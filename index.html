@@ -20,8 +20,8 @@
     --gold-soft:#F1E2BC;
     --jade:#12A150;
     --jade-soft:#DCEAE3;
-    --red:#9A3323;
-    --red-soft:#F6DED6;
+    --red:#2B5773; /* TEMP: swapped to blue for testing — was #2B5773, revert here to bring red back */
+    --red-soft:#DCE9F1; /* TEMP: swapped to blue for testing — was #F6DED6 */
     --blue:#2B5773;
     --blue-soft:#DCE9F1;
   }
@@ -109,7 +109,7 @@
     transition:transform .12s ease, filter .12s ease;
   }
   .btn:active{ transform:scale(0.97); }
-  .btn-primary{ background:var(--red); color:#FBF3EC; box-shadow:0 10px 24px -10px rgba(154,51,35,0.45);}
+  .btn-primary{ background:var(--red); color:#FBF3EC; box-shadow:0 10px 24px -10px rgba(43,87,115,0.45);}
   .btn-primary:active{ filter:brightness(1.08); }
   .btn-primary:disabled{ background:var(--line); color:var(--muted); box-shadow:none; cursor:not-allowed; }
   .btn-primary:disabled:active{ transform:none; filter:none; }
@@ -210,9 +210,9 @@
   .btn-report:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.15); }
   .btn-report-emoji{ font-size:16px; line-height:1; }
   .btn-review{
-    flex:1; background:var(--red-soft); color:#7A2A1B; border:none;
+    flex:1; background:var(--red-soft); color:#1B3A4F; border:none;
     border-radius:16px; justify-content:center; gap:8px;
-    box-shadow:0 4px 0 rgba(154,51,35,0.35);
+    box-shadow:0 4px 0 rgba(43,87,115,0.35);
   }
   .btn-known{
     flex:1; background:var(--jade-soft); color:#20463A; border:none;
@@ -244,7 +244,7 @@
   .check-result.show{ display:block; }
   .check-result.ok{ background:var(--jade-soft); color:#20463A; border:1px solid rgba(47,82,69,0.3); }
   .check-result.issue{ background:var(--gold-soft); color:#7A5A12; border:1px solid rgba(184,134,42,0.4); }
-  .check-result.error{ background:var(--red-soft); color:#7A2A1B; border:1px solid rgba(154,51,35,0.3); }
+  .check-result.error{ background:var(--red-soft); color:#1B3A4F; border:1px solid rgba(43,87,115,0.3); }
   .check-suggestion-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
   .btn-apply{
     background:none; border:1px solid currentColor; color:inherit; border-radius:8px;
@@ -362,8 +362,8 @@
     <!-- stylized coastline echoing Vietnam's S-curve, plus conical hat and lotus line-art: a quiet background texture, not a literal map -->
     <path d="M 300 20 C 200 90, 340 160, 250 230 C 160 300, 320 360, 260 430 C 210 490, 300 540, 250 610 C 200 680, 300 720, 240 800 C 210 840, 260 870, 230 900"
           fill="none" stroke="#B8862A" stroke-width="2" opacity="0.35"/>
-    <circle cx="300" cy="20" r="4" fill="#9A3323" opacity="0.4"/>
-    <circle cx="230" cy="900" r="4" fill="#9A3323" opacity="0.4"/>
+    <circle cx="300" cy="20" r="4" fill="#2B5773" opacity="0.4"/>
+    <circle cx="230" cy="900" r="4" fill="#2B5773" opacity="0.4"/>
     <!-- conical hat (nón lá), top right -->
     <g transform="translate(360,90)" opacity="0.3">
       <path d="M -60 30 A 60 22 0 0 1 60 30 Z" fill="none" stroke="#2F5245" stroke-width="2"/>
@@ -371,9 +371,9 @@
     </g>
     <!-- lotus, bottom left -->
     <g transform="translate(90,780)" opacity="0.3">
-      <path d="M0,0 C -18,-30 -14,-55 0,-70 C 14,-55 18,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
-      <path d="M0,0 C -34,-18 -46,-42 -36,-64 C -14,-58 -6,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
-      <path d="M0,0 C 34,-18 46,-42 36,-64 C 14,-58 6,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
+      <path d="M0,0 C -18,-30 -14,-55 0,-70 C 14,-55 18,-30 0,0 Z" fill="none" stroke="#2B5773" stroke-width="2"/>
+      <path d="M0,0 C -34,-18 -46,-42 -36,-64 C -14,-58 -6,-30 0,0 Z" fill="none" stroke="#2B5773" stroke-width="2"/>
+      <path d="M0,0 C 34,-18 46,-42 36,-64 C 14,-58 6,-30 0,0 Z" fill="none" stroke="#2B5773" stroke-width="2"/>
     </g>
     <!-- bamboo stalks, mid right -->
     <g transform="translate(420,480)" opacity="0.25">
