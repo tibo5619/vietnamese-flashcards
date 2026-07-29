@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Nhặt Chữ — Vietnamese Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E0A100">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#F6F1E6;
+    --surface:#FFFDF8;
+    --ink:#2B231C;
+    --muted:#8B7F71;
+    --line:rgba(43,35,28,0.12);
+    --gold:#E0A100;
+    --gold-soft:#F1E2BC;
+    --jade:#12A150;
+    --jade-soft:#DCEAE3;
+    --red:#9A3323;
+    --red-soft:#F6DED6;
+    --blue:#2B5773;
+    --blue-soft:#DCE9F1;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    overscroll-behavior:none;
+    user-select:none;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    background:var(--bg);
+    overflow:hidden;
+  }
+  .bg-motif{
+    position:absolute; inset:0; width:100%; height:100%;
+    z-index:0; pointer-events:none;
+    opacity:0.55;
+  }
+  .screen{ position:relative; z-index:1; display:none; flex-direction:column; flex:1; padding:16px 20px calc(12px + env(safe-area-inset-bottom)); min-height:0; }
+  .screen.active{ display:flex; }
+
+  /* ---------- HOME ---------- */
+  #home{ justify-content:space-between; }
+  .home-top{ padding-top:10px; }
+  h1.title{
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-weight:800;
+    font-size:40px;
+    line-height:1.05;
+    margin:0 0 2px;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+    text-align:center;
+  }
+  .title-en{
+    font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:15px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--red);
+    margin:0 0 14px;
+    text-align:center;
+  }
+  .subtitle{ color:var(--muted); font-size:14.5px; margin:0 0 28px; line-height:1.5; text-align:center;}
+
+  .stat-row{ margin-bottom:18px; }
+  .vocab-card{
+    display:flex; flex-direction:column; gap:5px;
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px 18px;
+    background:var(--gold-soft);
+    box-shadow:0 10px 24px -14px rgba(184,134,42,0.4);
+    cursor:pointer;
+    font-family:inherit;
+    text-align:left;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .12s ease;
+  }
+  .vocab-card:active{ transform:scale(0.97); }
+  .vocab-card-title{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:18px; color:var(--ink);
+  }
+  .vocab-card-emoji{ font-size:22px; line-height:1; }
+  .vocab-card-chevron{ margin-left:auto; color:var(--gold); font-size:20px; font-weight:700; }
+  .vocab-card-detail{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); }
+
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    border:none; border-radius:14px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600; font-size:16px;
+    padding:14px 18px;
+    cursor:pointer;
+    transition:transform .12s ease, filter .12s ease;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--red); color:#FBF3EC; box-shadow:0 10px 24px -10px rgba(154,51,35,0.45);}
+  .btn-primary:active{ filter:brightness(1.08); }
+  .btn-primary:disabled{ background:var(--line); color:var(--muted); box-shadow:none; cursor:not-allowed; }
+  .btn-primary:disabled:active{ transform:none; filter:none; }
+  .btn-gold-outline{ background:var(--surface); color:var(--gold); border:1px solid var(--gold); }
+
+  .home-actions{ display:flex; flex-direction:column; gap:10px; }
+  .home-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:22px; }
+  .home-foot-secondary{ display:flex; justify-content:center; gap:24px; margin-top:10px; }
+  .link-muted{ color:var(--muted); font-size:12.5px; text-decoration:underline; text-underline-offset:3px; background:none; border:none; font-family:inherit; cursor:pointer; padding:6px 0;}
+  .storage-warning{ font-size:12px; color:#7A5A12; background:var(--gold-soft); border:1px solid var(--gold); border-radius:10px; padding:8px 12px; margin-bottom:14px; display:none;}
+
+  .session-settings{ margin-bottom:20px; text-align:center; }
+  .setting-row{ margin-bottom:18px; }
+  .setting-label{ display:block; font-size:16px; font-weight:600; color:var(--ink); margin-bottom:10px; letter-spacing:.02em; font-family:'IBM Plex Sans',sans-serif;}
+  .pill-group{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .pill{
+    background:var(--surface); border:1px solid var(--line); color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; font-weight:500;
+    padding:10px 18px; border-radius:20px; cursor:pointer;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .pill.active{
+    background:var(--gold-soft); color:#7A5A12; border-color:var(--gold);
+    box-shadow:0 3px 0 var(--gold); transform:translateY(-2px);
+  }
+  .pill.active:active{ transform:translateY(1px); box-shadow:0 1px 0 var(--gold); }
+  .pill-flag{ font-size:40px; line-height:1; }
+  #dirGroup .pill{ width:66px; height:66px; padding:0; display:flex; align-items:center; justify-content:center; }
+  #dirGroup .pill[data-value="mix"] .pill-flag{ font-size:21px; letter-spacing:-7px; padding-right:7px; }
+  .size-slider{ width:100%; max-width:280px; margin:0 auto; accent-color:var(--red); height:22px; }
+
+  /* ---------- SESSION ---------- */
+  #session{ padding-top:12px; min-height:0; }
+  .session-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .icon-btn{ background:none; border:none; color:var(--muted); font-size:22px; line-height:1; padding:6px; cursor:pointer; }
+  .progress-track{ flex:1; margin:0 14px; height:3px; background:var(--line); border-radius:2px; overflow:hidden;}
+  .progress-fill{ height:100%; background:var(--gold); border-radius:2px; transition:width .25s ease; }
+  .counter{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); min-width:44px; text-align:right;}
+
+  .card-zone{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:4px 0 12px;}
+  .card{
+    width:100%; max-width:320px; aspect-ratio:0.88; max-height:100%;
+    position:relative;
+    transform:scaleX(1);
+    transition:transform .16s ease;
+    cursor:grab;
+    touch-action:none;
+  }
+  .swipe-stamp{
+    position:absolute; top:40%; left:50%; transform:translate(-50%,-50%) rotate(-10deg);
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:20px; letter-spacing:.1em;
+    padding:6px 16px; border-radius:8px; border:3px solid; opacity:0; pointer-events:none; z-index:3;
+    background:var(--surface);
+  }
+  .swipe-stamp.know{ color:var(--jade); border-color:var(--jade); }
+  .swipe-stamp.learning{ color:var(--red); border-color:var(--red); }
+  .face{
+    position:absolute; inset:0;
+    border-radius:22px;
+    display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    padding:28px 22px;
+    border:1px solid var(--line);
+    box-shadow:0 20px 40px -22px rgba(43,35,28,0.35);
+  }
+  .face.visible{ display:flex; }
+  .face.lang-vn{ background:linear-gradient(165deg, var(--red-soft), var(--surface) 70%); }
+  .face.lang-en{ background:linear-gradient(165deg, var(--blue-soft), var(--surface) 70%); }
+  .face::before, .face::after{
+    content:''; position:absolute; width:20px; height:20px; opacity:0.6;
+  }
+  .face::before{ top:10px; left:10px; border-top:1.5px solid var(--gold); border-left:1.5px solid var(--gold); border-radius:4px 0 0 0;}
+  .face::after{ bottom:10px; right:10px; border-bottom:1.5px solid var(--gold); border-right:1.5px solid var(--gold); border-radius:0 0 4px 0;}
+  .flag-tag{
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    font-size:44px; line-height:1;
+  }
+  .lesson-tag{
+    position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted);
+  }
+  .word-main{
+    font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:30px; text-align:center;
+    line-height:1.2; margin:0; word-break:break-word; color:var(--ink);
+  }
+  .tap-hint{ position:absolute; bottom:44px; color:var(--muted); font-size:11px; letter-spacing:.04em;}
+
+  .session-actions{ display:flex; flex-direction:column; gap:8px; opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  .session-actions.visible{ opacity:1; pointer-events:auto; }
+  .session-actions-main{ display:flex; gap:10px; }
+  .btn-report{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; background:var(--gold-soft); border:none;
+    color:#7A5A12; font-family:inherit; font-weight:600; font-size:12px;
+    padding:10px; border-radius:12px; cursor:pointer;
+    box-shadow:0 3px 0 rgba(184,134,42,0.4);
+  }
+  .btn-report:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.15); }
+  .btn-report-emoji{ font-size:16px; line-height:1; }
+  .btn-review{
+    flex:1; background:var(--red-soft); color:#7A2A1B; border:none;
+    border-radius:16px; justify-content:center; gap:8px;
+    box-shadow:0 4px 0 rgba(154,51,35,0.35);
+  }
+  .btn-known{
+    flex:1; background:var(--jade-soft); color:#20463A; border:none;
+    border-radius:16px; justify-content:center; gap:8px;
+    box-shadow:0 4px 0 rgba(47,82,69,0.35);
+  }
+  .btn-review:active, .btn-known:active{
+    transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,0.15);
+  }
+  .btn-emoji{ font-size:28px; line-height:1; }
+
+  /* ---------- ADD WORD ---------- */
+  #add h2, #home h2{ font-family:'Be Vietnam Pro',sans-serif; font-size:22px; margin:0 0 18px; color:var(--ink);}
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; letter-spacing:.03em;}
+  .field input{
+    width:100%; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; padding:14px 14px; color:var(--ink); font-size:16px; font-family:inherit;
+  }
+  .field input:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:transparent;}
+
+  .btn-check{
+    background:var(--surface); color:var(--blue); border:1px solid var(--blue);
+    width:100%; margin-bottom:16px;
+  }
+  .check-result{
+    border-radius:12px; padding:12px 14px; margin-bottom:16px; font-size:13px; line-height:1.5; display:none;
+  }
+  .check-result.show{ display:block; }
+  .check-result.ok{ background:var(--jade-soft); color:#20463A; border:1px solid rgba(47,82,69,0.3); }
+  .check-result.issue{ background:var(--gold-soft); color:#7A5A12; border:1px solid rgba(184,134,42,0.4); }
+  .check-result.error{ background:var(--red-soft); color:#7A2A1B; border:1px solid rgba(154,51,35,0.3); }
+  .check-suggestion-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+  .btn-apply{
+    background:none; border:1px solid currentColor; color:inherit; border-radius:8px;
+    font-size:11.5px; padding:5px 10px; cursor:pointer; font-family:inherit; flex-shrink:0;
+  }
+
+  .section-divider{ border:none; border-top:1px solid var(--line); margin:24px 0; }
+  .notes-add-row{ display:flex; gap:8px; margin-bottom:14px; }
+  .notes-add-row input{
+    flex:1; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; color:var(--ink); font-size:15px; font-family:inherit;
+  }
+  .notes-add-row input:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:transparent;}
+  .btn-add-note{
+    background:var(--jade); color:#F3F8F6; border:none; border-radius:12px;
+    padding:0 16px; font-size:20px; cursor:pointer; font-family:inherit; line-height:1;
+  }
+  .note-item{
+    display:flex; align-items:flex-start; gap:8px;
+    border:1px solid var(--line); border-radius:10px; background:var(--surface);
+    padding:10px 12px; margin-bottom:8px;
+  }
+  .note-text{ flex:1; font-size:13.5px; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
+  .note-del{ background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 4px; flex-shrink:0; }
+  .notes-empty{ color:var(--muted); font-size:12.5px; text-align:center; margin:10px 0; }
+  .toast{
+    position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
+    background:var(--jade); color:#F3F8F6; font-weight:600; font-size:14px;
+    padding:12px 20px; border-radius:12px; opacity:0; transition:all .3s ease; pointer-events:none;
+    max-width:90%; text-align:center; z-index:5;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .back-row button{ background:none;border:none;color:var(--ink);font-size:20px;cursor:pointer;padding:4px 6px 4px 0;}
+  .back-row h2{ font-size:19px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+
+  /* ---------- WORD LIST ---------- */
+  #wordlist{ padding-top:16px; }
+  .wl-lang-toggle{ display:flex; justify-content:center; gap:10px; margin-bottom:14px; }
+  .wl-lang-toggle .pill{ flex:1; text-align:center; }
+  .wl-status-toggle{ display:flex; justify-content:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap; }
+  .wl-status-toggle .pill{ flex:1; padding:8px 6px; font-size:12px; text-align:center; white-space:nowrap; }
+  .wl-legend{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+  .wl-legend-item{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+  .wordlist-scroll{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
+  .wl-item{
+    display:flex; align-items:center; gap:8px;
+    border:1px solid var(--line); border-radius:10px; background:var(--surface);
+    padding:9px 10px; margin-bottom:6px;
+  }
+  .wl-words{ flex:1; min-width:0; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; }
+  .wl-primary{
+    font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:14px; color:var(--ink);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;
+  }
+  .wl-secondary{
+    font-family:'Be Vietnam Pro',sans-serif; font-weight:500; font-size:14px; color:var(--muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;
+  }
+  .wl-divider{ width:1px; height:18px; background:var(--line); flex-shrink:0; }
+  .wl-dot{
+    width:9px; height:9px; border-radius:50%; border:1.5px solid var(--line); background:transparent;
+  }
+  .wl-dot.on-review{ background:var(--gold); border-color:var(--gold); }
+  .wl-dot.on-known{ background:var(--jade); border-color:var(--jade); }
+  .wl-item{ cursor:pointer; }
+
+  .wl-popup-backdrop{
+    position:fixed; inset:0; background:rgba(43,35,28,0.45); z-index:20;
+    display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .wl-popup-backdrop.show{ display:flex; }
+  .wl-popup-card{
+    background:var(--surface); border-radius:16px; padding:22px 20px; max-width:340px; width:100%;
+    box-shadow:0 20px 44px -18px rgba(43,35,28,0.4); text-align:center;
+  }
+  .wl-popup-vn{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:22px; color:var(--ink); margin-bottom:8px; word-break:break-word; }
+  .wl-popup-en{ font-size:15px; color:var(--muted); line-height:1.4; word-break:break-word; }
+
+  .report-note-input{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; color:var(--ink); font-size:14px; font-family:inherit; resize:vertical;
+    margin-bottom:14px;
+  }
+  .report-note-input:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:transparent; }
+  .report-popup-actions{ display:flex; gap:10px; align-items:stretch; }
+  .report-popup-actions .btn-apply{ padding:0 16px; border-color:var(--line); color:var(--muted); }
+
+  .issue-item{
+    border:1px solid var(--line); border-radius:12px; background:var(--surface);
+    padding:12px 14px; margin-bottom:10px; display:flex; gap:10px; align-items:flex-start;
+  }
+  .issue-item.resolved{ opacity:0.55; }
+  .issue-toggle{
+    flex-shrink:0; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line);
+    background:none; cursor:pointer; margin-top:1px; color:var(--jade); font-size:13px;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .issue-toggle.is-resolved{ background:var(--jade); border-color:var(--jade); color:#F3F8F6; }
+  .issue-body{ flex:1; min-width:0; }
+  .issue-word{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink); }
+  .issue-meta{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); margin:2px 0 6px; }
+  .issue-note{ font-size:13px; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .progress-fill, .btn, .session-actions{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <svg class="bg-motif" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- stylized coastline echoing Vietnam's S-curve, plus conical hat and lotus line-art: a quiet background texture, not a literal map -->
+    <path d="M 300 20 C 200 90, 340 160, 250 230 C 160 300, 320 360, 260 430 C 210 490, 300 540, 250 610 C 200 680, 300 720, 240 800 C 210 840, 260 870, 230 900"
+          fill="none" stroke="#B8862A" stroke-width="2" opacity="0.35"/>
+    <circle cx="300" cy="20" r="4" fill="#9A3323" opacity="0.4"/>
+    <circle cx="230" cy="900" r="4" fill="#9A3323" opacity="0.4"/>
+    <!-- conical hat (nón lá), top right -->
+    <g transform="translate(360,90)" opacity="0.3">
+      <path d="M -60 30 A 60 22 0 0 1 60 30 Z" fill="none" stroke="#2F5245" stroke-width="2"/>
+      <ellipse cx="0" cy="30" rx="62" ry="9" fill="none" stroke="#2F5245" stroke-width="2"/>
+    </g>
+    <!-- lotus, bottom left -->
+    <g transform="translate(90,780)" opacity="0.3">
+      <path d="M0,0 C -18,-30 -14,-55 0,-70 C 14,-55 18,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
+      <path d="M0,0 C -34,-18 -46,-42 -36,-64 C -14,-58 -6,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
+      <path d="M0,0 C 34,-18 46,-42 36,-64 C 14,-58 6,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
+    </g>
+    <!-- bamboo stalks, mid right -->
+    <g transform="translate(420,480)" opacity="0.25">
+      <line x1="0" y1="0" x2="0" y2="140" stroke="#2F5245" stroke-width="2"/>
+      <line x1="-16" y1="20" x2="-16" y2="150" stroke="#2F5245" stroke-width="2"/>
+      <line x1="0" y1="35" x2="10" y2="35" stroke="#2F5245" stroke-width="2"/>
+      <line x1="0" y1="75" x2="10" y2="75" stroke="#2F5245" stroke-width="2"/>
+      <line x1="-16" y1="55" x2="-6" y2="55" stroke="#2F5245" stroke-width="2"/>
+      <line x1="-16" y1="95" x2="-6" y2="95" stroke="#2F5245" stroke-width="2"/>
+    </g>
+  </svg>
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <div class="home-top">
+      <h1 class="title">Nhặt Chữ</h1>
+      <p class="title-en">Pick a Word, Learn a Word</p>
+      <p class="subtitle">Swipe through quick vocabulary sessions.<br>Add and track your own words along the way.</p>
+      <div class="storage-warning" id="storageWarning">Storage could not be loaded — your progress won't be saved on this device.</div>
+      <div class="stat-row">
+        <button type="button" class="vocab-card" id="statDirectoryBtn">
+          <div class="vocab-card-title"><span class="vocab-card-emoji">📖</span> Vocabulary <span class="vocab-card-chevron">›</span></div>
+          <div class="vocab-card-detail" id="directoryDetail">— words · — known · — to review</div>
+        </button>
+      </div>
+      <div class="session-settings">
+        <div class="setting-row">
+          <span class="setting-label" id="dirLabel">Mixed Flashcards</span>
+          <div class="pill-group" id="dirGroup">
+            <button class="pill" data-value="vn2en"><span class="pill-flag">🇻🇳</span></button>
+            <button class="pill active" data-value="mix"><span class="pill-flag">🇻🇳🇬🇧</span></button>
+            <button class="pill" data-value="en2vn"><span class="pill-flag">🇬🇧</span></button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label" id="sizeLabel">Session size — 20 words</span>
+          <input type="range" id="sizeSlider" class="size-slider" min="10" max="100" step="10" value="20">
+        </div>
+      </div>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-primary" id="startBtn">Start a session</button>
+      <button class="btn btn-gold-outline" id="addBtn">+ Add a word</button>
+      <div class="home-foot">
+        <button class="link-muted" id="issuesBtn">⚑ Reported issues (<span id="issuesCount">0</span>)</button>
+        <button class="link-muted" id="resetProgressBtn">Reset progress</button>
+      </div>
+      <div class="home-foot-secondary">
+        <button class="link-muted" id="exportDataBtn">⬇ Export data</button>
+        <button class="link-muted" id="importDataBtn">⬆ Import data</button>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none">
+    </div>
+  </section>
+
+  <!-- SESSION -->
+  <section id="session" class="screen">
+    <div class="session-head">
+      <button class="icon-btn" id="exitBtn" aria-label="Exit">←</button>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="counter" id="counter">0/0</div>
+    </div>
+    <div class="card-zone">
+      <div class="card" id="card">
+        <div class="swipe-stamp learning" id="stampLearning">LEARNING</div>
+        <div class="swipe-stamp know" id="stampKnow">KNOW</div>
+        <div class="face front visible">
+          <span class="flag-tag" id="flagFront">🇻🇳</span>
+          <p class="word-main" id="wordFront">—</p>
+          <span class="tap-hint" id="tapHint">tap to reveal</span>
+        </div>
+        <div class="face back">
+          <span class="flag-tag" id="flagBack">🇬🇧</span>
+          <p class="word-main" id="wordBack">—</p>
+          <span class="lesson-tag" id="lessonTagBack">Bài —</span>
+        </div>
+      </div>
+    </div>
+    <div class="session-actions" id="sessionActions">
+      <div class="session-actions-main">
+        <button class="btn btn-review" id="reviewBtn">Needs work <span class="btn-emoji">🧠</span></button>
+        <button class="btn btn-known" id="knownBtn">Got it <span class="btn-emoji">✅</span></button>
+      </div>
+      <button class="btn-report" id="reportIssueBtn" type="button">Report an issue <span class="btn-report-emoji">🚩</span></button>
+    </div>
+  </section>
+
+  <!-- ADD WORD -->
+  <section id="add" class="screen">
+    <div class="back-row">
+      <button id="backFromAdd" aria-label="Back">←</button>
+      <h2 style="margin:0;">Add a word</h2>
+    </div>
+    <div class="field">
+      <label for="inputVn">Vietnamese</label>
+      <input id="inputVn" type="text" placeholder="e.g. ăn kiêng" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="inputEn">English</label>
+      <input id="inputEn" type="text" placeholder="e.g. to go on a diet" autocomplete="off">
+    </div>
+    <button class="btn btn-check" id="checkDupBtn" type="button">Check for duplicates</button>
+    <div class="check-result" id="checkResult"></div>
+    <button class="btn btn-primary" id="saveWordBtn">Save</button>
+
+    <hr class="section-divider">
+    <h2>Quick notes</h2>
+    <div class="notes-add-row">
+      <input id="inputNote" type="text" placeholder="Scribble a word to sort out later..." autocomplete="off">
+      <button class="btn-add-note" id="addNoteBtn" type="button" aria-label="Add note">+</button>
+    </div>
+    <div id="notesList"></div>
+  </section>
+
+  <!-- WORD LIST (tap-through from home) -->
+  <section id="wordlist" class="screen">
+    <div class="back-row">
+      <button id="backFromWordlist" aria-label="Back">←</button>
+      <h2 style="margin:0;" id="wordlistTitle">Vocabulary</h2>
+    </div>
+    <div class="wl-status-toggle pill-group" id="wlStatusGroup">
+      <button class="pill active" data-value="all">📋 All</button>
+      <button class="pill" data-value="new">✨ New</button>
+      <button class="pill" data-value="review">🧠 Review</button>
+      <button class="pill" data-value="known">✅ Known</button>
+    </div>
+    <div class="wl-lang-toggle pill-group" id="wlLangGroup">
+      <button class="pill active" data-value="vn">🇻🇳 Vietnamese</button>
+      <button class="pill" data-value="en">🇬🇧 English</button>
+    </div>
+    <div class="wl-legend" id="wlLegend">
+      <div class="wl-legend-item"><span class="wl-dot"></span> New</div>
+      <div class="wl-legend-item"><span class="wl-dot on-review"></span> Review</div>
+      <div class="wl-legend-item"><span class="wl-dot on-known"></span> Known</div>
+    </div>
+    <div class="wordlist-scroll" id="wordlistScroll"></div>
+  </section>
+
+  <!-- REPORTED ISSUES -->
+  <section id="issues" class="screen">
+    <div class="back-row">
+      <button id="backFromIssues" aria-label="Back">←</button>
+      <h2 style="margin:0;">Reported issues</h2>
+    </div>
+    <div class="wordlist-scroll" id="issuesScroll"></div>
+  </section>
+
+  <div class="wl-popup-backdrop" id="wlPopupBackdrop">
+    <div class="wl-popup-card" id="wlPopupCard">
+      <div class="wl-popup-vn" id="wlPopupPrimary">—</div>
+      <div class="wl-popup-en" id="wlPopupSecondary">—</div>
+    </div>
+  </div>
+
+  <div class="wl-popup-backdrop" id="reportPopupBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" id="reportPopupWord">—</div>
+      <div class="wl-popup-en" id="reportPopupDir" style="margin-bottom:14px;">—</div>
+      <textarea id="reportNoteInput" class="report-note-input" placeholder="What's wrong? Translation, spelling, app behavior..." rows="4"></textarea>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="reportCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="reportSubmitBtn" type="button" style="flex:1;">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wl-popup-backdrop" id="importConfirmBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" style="font-size:17px;">Import this backup?</div>
+      <div class="wl-popup-en" style="margin-bottom:16px;">This replaces your current words, progress, notes and issue reports on this device with the content of the selected file. It can't be undone.</div>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="importCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="importConfirmBtn" type="button" style="flex:1;">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wl-popup-backdrop" id="resetConfirmBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" style="font-size:17px;">Reset all progress?</div>
+      <div class="wl-popup-en" style="margin-bottom:16px;">This clears every word's seen/known status in both directions. It can't be undone.</div>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="resetCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="resetConfirmBtn" type="button" style="flex:1;">Reset</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const BASE_VOCAB = [{"id":"b1","vn":"áo mưa","en":"raincoat","lesson":2},{"id":"b2","vn":"ảnh hưởng","en":"influence; to influence","lesson":2},{"id":"b3","vn":"ăn kiêng","en":"to go on a diet","lesson":4},{"id":"b4","vn":"ấm","en":"warm","lesson":2},{"id":"b5","vn":"ẩm","en":"humid, moist","lesson":2},{"id":"b6","vn":"bao tay","en":"glove","lesson":2},{"id":"b7","vn":"bài","en":"lesson, practice","lesson":4},{"id":"b8","vn":"(cơn) bão","en":"storm","lesson":2},{"id":"b9","vn":"bạn bè","en":"friends","lesson":3},{"id":"b10","vn":"bất động sản","en":"real estate","lesson":5},{"id":"b11","vn":"bất tiện","en":"inconvenient","lesson":3},{"id":"b12","vn":"bếp","en":"kitchen","lesson":5},{"id":"b13","vn":"bóng bàn","en":"ping-pong, table tennis","lesson":2},{"id":"b14","vn":"bóng chuyền","en":"volleyball","lesson":1},{"id":"b15","vn":"bóng đá","en":"soccer","lesson":1},{"id":"b16","vn":"bóng rổ","en":"basketball","lesson":1},{"id":"b17","vn":"bỏ","en":"to skip, to quit","lesson":4},{"id":"b18","vn":"bỏ bữa","en":"to skip a meal","lesson":4},{"id":"b19","vn":"bộ phận","en":"part","lesson":4},{"id":"b20","vn":"buồn ngủ","en":"to feel sleepy","lesson":3},{"id":"b21","vn":"buồn nôn","en":"nauseous","lesson":4},{"id":"b22","vn":"buổi học","en":"lesson, class session","lesson":1},{"id":"b23","vn":"bụi","en":"dust","lesson":5},{"id":"b24","vn":"bụng","en":"belly, abdomen","lesson":4},{"id":"b25","vn":"bước","en":"step, to step","lesson":5},{"id":"b26","vn":"bừa bộn","en":"untidy","lesson":5},{"id":"b27","vn":"bữa","en":"meal","lesson":4},{"id":"b28","vn":"bữa tiệc","en":"party","lesson":3},{"id":"b29","vn":"bữa tiệc cuối năm","en":"year-end party","lesson":3},{"id":"b30","vn":"(bị) cảm","en":"(to have) a cold","lesson":2},{"id":"b31","vn":"(bị) cảm lạnh","en":"(to have) a cold","lesson":2},{"id":"b32","vn":"căn hộ","en":"apartment","lesson":3},{"id":"b33","vn":"câu cá","en":"fishing, to fish","lesson":1},{"id":"b34","vn":"cầu lông","en":"badminton","lesson":1},{"id":"b35","vn":"chán","en":"bored, boring","lesson":6},{"id":"b36","vn":"chắc là","en":"perhaps, maybe, possibly","lesson":5},{"id":"b37","vn":"chân","en":"legs","lesson":4},{"id":"b38","vn":"châu Âu","en":"Europe","lesson":2},{"id":"b39","vn":"chật","en":"narrow, small, tight","lesson":5},{"id":"b40","vn":"chi tiết","en":"detailed, specific","lesson":5},{"id":"b41","vn":"chia sẻ","en":"to share","lesson":4},{"id":"b42","vn":"chỉ","en":"just, only, merely","lesson":1},{"id":"b43","vn":"chỉ","en":"to guide, to show, to instruct, to teach","lesson":3},{"id":"b44","vn":"chóng mặt","en":"dizzy","lesson":4},{"id":"b45","vn":"chọn","en":"to choose, to select","lesson":4},{"id":"b46","vn":"chỗ","en":"place","lesson":3},{"id":"b47","vn":"chở","en":"to drive someone somewhere","lesson":3},{"id":"b48","vn":"chung cư","en":"apartment building","lesson":3},{"id":"b49","vn":"chút nữa","en":"a bit later, a moment later","lesson":3},{"id":"b50","vn":"chú ý","en":"to pay attention","lesson":3},{"id":"b51","vn":"chủ nhà","en":"homeowner, landlord","lesson":5},{"id":"b52","vn":"chuẩn bị","en":"to prepare","lesson":2},{"id":"b53","vn":"chuyển nhà","en":"to move house","lesson":5},{"id":"b54","vn":"chụp hình","en":"to take photos","lesson":1},{"id":"b55","vn":"chữ","en":"word, letter","lesson":4},{"id":"b56","vn":"có khi","en":"sometimes","lesson":2},{"id":"b57","vn":"có lợi","en":"helpful, useful","lesson":3},{"id":"b58","vn":"còn","en":"still","lesson":4},{"id":"b59","vn":"cố gắng","en":"to try, to attempt","lesson":5},{"id":"b60","vn":"cổ","en":"neck","lesson":4},{"id":"b61","vn":"cơ thể","en":"body","lesson":3},{"id":"b62","vn":"(chơi) cờ","en":"(to play) chess","lesson":1},{"id":"b63","vn":"cuộc sống","en":"life","lesson":1},{"id":"b64","vn":"cửa hàng","en":"shop, store","lesson":3},{"id":"b65","vn":"cửa hàng tiện lợi","en":"convenient store","lesson":3},{"id":"b66","vn":"cửa sổ","en":"window","lesson":5},{"id":"b67","vn":"cực kỳ","en":"extremely","lesson":1},{"id":"b68","vn":"da","en":"skin","lesson":4},{"id":"b69","vn":"dạ dày","en":"stomach","lesson":4},{"id":"b70","vn":"dân số","en":"population","lesson":5},{"id":"b71","vn":"dễ chịu","en":"comfortable","lesson":2},{"id":"b72","vn":"dễ dàng","en":"easily","lesson":3},{"id":"b73","vn":"diện tích","en":"area","lesson":5},{"id":"b74","vn":"dọn dẹp","en":"to tidy up","lesson":5},{"id":"b75","vn":"dọn nhà","en":"to tidy up one's house","lesson":4},{"id":"b76","vn":"dơ","en":"dirty","lesson":5},{"id":"b77","vn":"dù","en":"umbrella","lesson":2},{"id":"b78","vn":"dưới","en":"(preposition) under, below","lesson":2},{"id":"b79","vn":"dự báo","en":"to forecast, to predict","lesson":2},{"id":"b80","vn":"đau","en":"painful","lesson":4},{"id":"b81","vn":"đau chân","en":"leg pain","lesson":4},{"id":"b82","vn":"đau cổ","en":"neckache","lesson":4},{"id":"b83","vn":"đau dạ dày","en":"stomachache, gastric pain","lesson":4},{"id":"b84","vn":"đau đầu","en":"headache","lesson":2},{"id":"b85","vn":"đau họng","en":"sore throat","lesson":4},{"id":"b86","vn":"đau lưng","en":"backache","lesson":2},{"id":"b87","vn":"đau người","en":"body pain","lesson":4},{"id":"b88","vn":"đau vai","en":"shoulder pain","lesson":4},{"id":"b89","vn":"đặc biệt","en":"special, especially","lesson":1},{"id":"b90","vn":"đặc điểm","en":"feature, characteristic","lesson":2},{"id":"b91","vn":"đặt cọc","en":"to deposit","lesson":5},{"id":"b92","vn":"đầu","en":"(body part) head","lesson":2},{"id":"b93","vn":"đầu gối","en":"knee","lesson":4},{"id":"b94","vn":"đầy đủ","en":"full, sufficient","lesson":5},{"id":"b95","vn":"đầy đủ tiện nghi","en":"fully furnished","lesson":5},{"id":"b96","vn":"đeo (khẩu trang)","en":"to wear (a face mask)","lesson":4},{"id":"b97","vn":"đi cắm trại","en":"to go camping","lesson":1},{"id":"b98","vn":"đi phượt","en":"to backpack or travel on a friendly budget","lesson":1},{"id":"b99","vn":"đi qua đi lại","en":"to go back and forth","lesson":4},{"id":"b100","vn":"đi vòng vòng","en":"to go around and around","lesson":1},{"id":"b101","vn":"địa chỉ","en":"address","lesson":1},{"id":"b102","vn":"điện","en":"electricity","lesson":5},{"id":"b103","vn":"điều","en":"(intangible) thing, matter","lesson":2},{"id":"b104","vn":"điều kiện","en":"condition","lesson":5},{"id":"b105","vn":"đóng gói","en":"to pack; packing","lesson":5},{"id":"b106","vn":"đông","en":"crowded, many","lesson":3},{"id":"b107","vn":"đồ","en":"thing, object","lesson":4},{"id":"b108","vn":"đồ ngọt","en":"sweet food","lesson":4},{"id":"b109","vn":"đồng ý","en":"to agree","lesson":2},{"id":"b110","vn":"đời","en":"life","lesson":3},{"id":"b111","vn":"đùi","en":"thigh","lesson":4},{"id":"b112","vn":"đủ","en":"enough, sufficient","lesson":4},{"id":"b113","vn":"đừng","en":"do not","lesson":4},{"id":"b114","vn":"đường phố","en":"street","lesson":3},{"id":"b115","vn":"gấp","en":"urgent, hurry","lesson":5},{"id":"b116","vn":"giá","en":"price","lesson":5},{"id":"b117","vn":"giá thuê","en":"rental price","lesson":5},{"id":"b118","vn":"giải chạy bộ","en":"marathon, running tournament","lesson":4},{"id":"b119","vn":"giải nhất","en":"first prize, first place","lesson":2},{"id":"b120","vn":"giải trí","en":"to entertain; entertainment","lesson":6},{"id":"b121","vn":"giảm","en":"to lose, to decrease","lesson":4},{"id":"b122","vn":"giảm cân","en":"to lose weight","lesson":4},{"id":"b123","vn":"giãn cơ","en":"stretching","lesson":4},{"id":"b124","vn":"giấy","en":"paper","lesson":3},{"id":"b125","vn":"giờ cao điểm","en":"rush hour","lesson":3},{"id":"b126","vn":"giữa","en":"in between, in the middle of","lesson":3},{"id":"b127","vn":"gói","en":"package, bundle","lesson":4},{"id":"b128","vn":"gọn gàng","en":"tidy","lesson":5},{"id":"b129","vn":"(chơi) gôn","en":"(to play) golf","lesson":1},{"id":"b130","vn":"hài lòng","en":"satisfied, pleased","lesson":5},{"id":"b131","vn":"hàng xóm","en":"neighbor","lesson":3},{"id":"b132","vn":"hắt hơi","en":"to sneeze, sneeze","lesson":4},{"id":"b133","vn":"hẻm","en":"alley","lesson":3},{"id":"b134","vn":"hết","en":"to end, to finish","lesson":4},{"id":"b135","vn":"hết hạn","en":"to expire","lesson":3},{"id":"b136","vn":"hiện đại","en":"modern","lesson":3},{"id":"b137","vn":"hiệu","en":"brand, brand name","lesson":3},{"id":"b138","vn":"hoạt động","en":"activity","lesson":2},{"id":"b139","vn":"học bổng","en":"scholarship","lesson":2},{"id":"b140","vn":"họng","en":"throat","lesson":4},{"id":"b141","vn":"hồ","en":"lake","lesson":1},{"id":"b142","vn":"hơi","en":"a bit, slightly","lesson":1},{"id":"b143","vn":"hơn nữa","en":"moreover","lesson":4},{"id":"b144","vn":"hợp đồng","en":"contract","lesson":5},{"id":"b145","vn":"hợp lý","en":"reasonable","lesson":5},{"id":"b146","vn":"hút thuốc","en":"to smoke (a cigarette)","lesson":4},{"id":"b147","vn":"hủy","en":"to cancel","lesson":2},{"id":"b148","vn":"huyện","en":"rural district","lesson":5},{"id":"b149","vn":"hư","en":"broken","lesson":2},{"id":"b150","vn":"kẹt xe","en":"traffic jam","lesson":2},{"id":"b151","vn":"kế hoạch","en":"plan","lesson":5},{"id":"b152","vn":"kết quả","en":"result","lesson":4},{"id":"b153","vn":"khả năng","en":"ability, capability","lesson":6},{"id":"b154","vn":"khám bệnh","en":"health check-up","lesson":4},{"id":"b155","vn":"khám phá","en":"to discover","lesson":1},{"id":"b156","vn":"khăn quàng cổ","en":"scarf","lesson":2},{"id":"b157","vn":"khẩu trang","en":"face mask","lesson":2},{"id":"b158","vn":"khó chịu","en":"uncomfortable","lesson":2},{"id":"b159","vn":"khó khăn","en":"difficult; difficultly","lesson":3},{"id":"b160","vn":"khó thở","en":"labored breathing, dyspnea","lesson":4},{"id":"b161","vn":"khô","en":"dry","lesson":2},{"id":"b162","vn":"khô ráo","en":"dry","lesson":2},{"id":"b163","vn":"khởi động","en":"to warm up","lesson":4},{"id":"b164","vn":"khu vực","en":"area, zone","lesson":2},{"id":"b165","vn":"khuyên","en":"to give advice","lesson":4},{"id":"b166","vn":"kiếm tiền","en":"to earn money, to earn a living","lesson":4},{"id":"b167","vn":"kiểu","en":"style","lesson":5},{"id":"b168","vn":"kinh nghiệm","en":"experience","lesson":4},{"id":"b169","vn":"ký","en":"to sign","lesson":5},{"id":"b170","vn":"lau nhà","en":"to mop the floor","lesson":5},{"id":"b171","vn":"làm biếng","en":"lazy","lesson":1},{"id":"b172","vn":"lành mạnh","en":"healthy, good for health","lesson":6},{"id":"b173","vn":"len","en":"wool","lesson":2},{"id":"b174","vn":"lên kế hoạch","en":"to plan","lesson":5},{"id":"b175","vn":"lịch","en":"calendar, schedule","lesson":1},{"id":"b176","vn":"lo","en":"to think about, to consider, to concern","lesson":5},{"id":"b177","vn":"luyện tập","en":"to practice","lesson":1},{"id":"b178","vn":"lưng","en":"(body part) back","lesson":2},{"id":"b179","vn":"lười","en":"lazy","lesson":4},{"id":"b180","vn":"lý do","en":"reason","lesson":5},{"id":"b181","vn":"mang","en":"to carry with, to bring with","lesson":2},{"id":"b182","vn":"mang theo","en":"to carry with, to bring with","lesson":2},{"id":"b183","vn":"mát","en":"cool, nice (weather)","lesson":2},{"id":"b184","vn":"mát mẻ","en":"cool, nice (weather)","lesson":2},{"id":"b185","vn":"mạng xã hội","en":"social media","lesson":6},{"id":"b186","vn":"mắc mưa","en":"to get rained on","lesson":2},{"id":"b187","vn":"mất","en":"to lose something","lesson":2},{"id":"b188","vn":"mất điện","en":"power outage, blackout","lesson":2},{"id":"b189","vn":"mất ngủ","en":"not be able to sleep, to have insomnia","lesson":3},{"id":"b190","vn":"mấy","en":"some, several","lesson":2},{"id":"b191","vn":"mét vuông","en":"square meter","lesson":5},{"id":"b192","vn":"mê","en":"be passionate about","lesson":1},{"id":"b193","vn":"mệt mỏi","en":"tired","lesson":3},{"id":"b194","vn":"mong","en":"to expect, to look forward to","lesson":5},{"id":"b195","vn":"mỏi","en":"aching, sore","lesson":3},{"id":"b196","vn":"mỏi mắt","en":"eye strain","lesson":4},{"id":"b197","vn":"môi trường","en":"environment","lesson":6},{"id":"b198","vn":"môn (thể thao)","en":"noun classifier for sports","lesson":1},{"id":"b199","vn":"mơ","en":"to dream","lesson":3},{"id":"b200","vn":"mơ ước","en":"to dream; dream","lesson":6},{"id":"b201","vn":"mới","en":"just, very recently","lesson":1},{"id":"b202","vn":"mới","en":"just (later than expected)","lesson":3},{"id":"b203","vn":"mua sắm","en":"to buy; shopping","lesson":5},{"id":"b204","vn":"mùa","en":"season","lesson":2},{"id":"b205","vn":"mùa đông","en":"winter","lesson":2},{"id":"b206","vn":"mùa hạ","en":"summer","lesson":2},{"id":"b207","vn":"mùa hè","en":"summer","lesson":2},{"id":"b208","vn":"mùa khô","en":"dry season","lesson":2},{"id":"b209","vn":"mùa mưa","en":"rainy season","lesson":2},{"id":"b210","vn":"mùa nắng","en":"sunny season","lesson":2},{"id":"b211","vn":"mùa thu","en":"fall, autumn","lesson":2},{"id":"b212","vn":"mùa xuân","en":"spring","lesson":2},{"id":"b213","vn":"mũi","en":"nose","lesson":4},{"id":"b214","vn":"nắng","en":"sunny; sunshine","lesson":2},{"id":"b215","vn":"nặng","en":"serious, severe","lesson":4},{"id":"b216","vn":"nên","en":"therefore","lesson":1},{"id":"b217","vn":"nên","en":"should","lesson":4},{"id":"b218","vn":"ngay","en":"at once, immediately","lesson":2},{"id":"b219","vn":"ngập","en":"flooded","lesson":2},{"id":"b220","vn":"ngập nước","en":"flooded","lesson":2},{"id":"b221","vn":"nghe nói","en":"It is said that; I have heard that","lesson":5},{"id":"b222","vn":"nghỉ","en":"to rest, (to have a day) off","lesson":2},{"id":"b223","vn":"nghỉ lễ","en":"to go on a holiday","lesson":4},{"id":"b224","vn":"nghỉ ngơi","en":"to rest, to relax","lesson":4},{"id":"b225","vn":"nghỉ phép","en":"to take a leave","lesson":2},{"id":"b226","vn":"ngoài","en":"(preposition) out, outside","lesson":2},{"id":"b227","vn":"ngoại thành","en":"suburb","lesson":3},{"id":"b228","vn":"ngôi","en":"noun classifier for buildings or structures","lesson":3},{"id":"b229","vn":"ngộp","en":"stuffy","lesson":5},{"id":"b230","vn":"nguy hiểm","en":"dangerous","lesson":1},{"id":"b231","vn":"ngủ đủ giấc","en":"to have / get enough sleep","lesson":6},{"id":"b232","vn":"người thân","en":"relative","lesson":6},{"id":"b233","vn":"nhà bếp","en":"kitchen","lesson":5},{"id":"b234","vn":"nhà riêng","en":"private house","lesson":3},{"id":"b235","vn":"nhà tắm","en":"bathroom","lesson":3},{"id":"b236","vn":"nhảy","en":"to dance; dancing","lesson":1},{"id":"b237","vn":"nhân sự","en":"human resources","lesson":5},{"id":"b238","vn":"nhận","en":"to get, to receive","lesson":2},{"id":"b239","vn":"nhẹ","en":"not serious, not severe","lesson":4},{"id":"b240","vn":"nhiệt độ","en":"temperature","lesson":2},{"id":"b241","vn":"nhóm","en":"group","lesson":3},{"id":"b242","vn":"nhức mỏi","en":"ache; aching","lesson":3},{"id":"b243","vn":"no","en":"full from eating","lesson":4},{"id":"b244","vn":"nói chơi","en":"to joke, to make a joke","lesson":2},{"id":"b245","vn":"nội thất","en":"furniture","lesson":5},{"id":"b246","vn":"nón len","en":"wool hat","lesson":2},{"id":"b247","vn":"nông thôn","en":"countryside","lesson":4},{"id":"b248","vn":"núi","en":"mountain","lesson":1},{"id":"b249","vn":"ồn","en":"noisy","lesson":3},{"id":"b250","vn":"ồn ào","en":"noisy","lesson":3},{"id":"b251","vn":"pha (đồ uống)","en":"to make (a drink)","lesson":3},{"id":"b252","vn":"phí","en":"fee","lesson":5},{"id":"b253","vn":"phong cảnh","en":"scenery, landscape","lesson":1},{"id":"b254","vn":"phòng khách","en":"living room","lesson":5},{"id":"b255","vn":"phòng ngủ","en":"bedroom","lesson":5},{"id":"b256","vn":"phòng nhân sự","en":"human resources department","lesson":5},{"id":"b257","vn":"phù hợp","en":"suitable, appropriate","lesson":5},{"id":"b258","vn":"pin","en":"battery","lesson":4},{"id":"b259","vn":"quán nhậu","en":"pub, drinking establishment","lesson":1},{"id":"b260","vn":"quản lý","en":"manager; management","lesson":3},{"id":"b261","vn":"quen","en":"to get used to, to be familiar with","lesson":1},{"id":"b262","vn":"quyết định","en":"to decide; decision","lesson":5},{"id":"b263","vn":"rác","en":"trash","lesson":3},{"id":"b264","vn":"ráng","en":"to try harder, to persevere, to endure","lesson":1},{"id":"b265","vn":"răng","en":"tooth","lesson":4},{"id":"b266","vn":"rau củ","en":"vegetable","lesson":4},{"id":"b267","vn":"riêng","en":"separately, individualy, personally","lesson":6},{"id":"b268","vn":"rộng","en":"wide, big","lesson":5},{"id":"b269","vn":"rủ","en":"to invite (friendly and informally)","lesson":6},{"id":"b270","vn":"rửa","en":"to wash","lesson":4},{"id":"b271","vn":"rửa tay","en":"to wash one's hands","lesson":4},{"id":"b272","vn":"sạch","en":"clean","lesson":5},{"id":"b273","vn":"sắp xếp","en":"to arrange","lesson":5},{"id":"b274","vn":"sân vận động","en":"stadium","lesson":2},{"id":"b275","vn":"siêng","en":"diligent","lesson":1},{"id":"b276","vn":"so với","en":"compared to, in comparison with","lesson":4},{"id":"b277","vn":"sốt","en":"fever","lesson":4},{"id":"b278","vn":"sổ mũi","en":"runny nose","lesson":4},{"id":"b279","vn":"sở thích","en":"hobby","lesson":1},{"id":"b280","vn":"sợ","en":"afraid, scared","lesson":1},{"id":"b281","vn":"suy nghĩ","en":"to think, to consider","lesson":5},{"id":"b282","vn":"sức","en":"power, strength","lesson":6},{"id":"b283","vn":"sức khỏe","en":"health","lesson":4},{"id":"b284","vn":"tai","en":"ear","lesson":4},{"id":"b285","vn":"tai nạn","en":"accident","lesson":2},{"id":"b286","vn":"tay","en":"arm","lesson":2},{"id":"b287","vn":"tăng","en":"to increase","lesson":4},{"id":"b288","vn":"tăng cân","en":"to gain weight","lesson":4},{"id":"b289","vn":"tắm biển","en":"to swim in the sea/ocean","lesson":2},{"id":"b290","vn":"tập","en":"to practice","lesson":1},{"id":"b291","vn":"té","en":"to fall (down)","lesson":4},{"id":"b292","vn":"tham gia","en":"to join, to participate","lesson":4},{"id":"b293","vn":"thay đổi","en":"to change; change","lesson":1},{"id":"b294","vn":"thật","en":"very, extremely","lesson":1},{"id":"b295","vn":"thể thao","en":"sport","lesson":1},{"id":"b296","vn":"thi đấu","en":"to compete, to participate in a competition","lesson":1},{"id":"b297","vn":"thiếu","en":"insufficient, inadequate","lesson":5},{"id":"b298","vn":"thiền","en":"meditation","lesson":1},{"id":"b299","vn":"thoải mái","en":"comfortable","lesson":3},{"id":"b300","vn":"thoáng","en":"airy (room / space)","lesson":5},{"id":"b301","vn":"thói quen","en":"habit","lesson":1},{"id":"b302","vn":"thông tin","en":"information","lesson":5},{"id":"b303","vn":"thời gian","en":"time","lesson":1},{"id":"b304","vn":"thời tiết","en":"weather","lesson":2},{"id":"b305","vn":"thú vị","en":"interesting","lesson":1},{"id":"b306","vn":"thuê","en":"to rent","lesson":5},{"id":"b307","vn":"thuốc","en":"medicine","lesson":3},{"id":"b308","vn":"thuốc lá","en":"cigarette","lesson":4},{"id":"b309","vn":"thư giãn","en":"to relax","lesson":5},{"id":"b310","vn":"thức ăn","en":"food","lesson":4},{"id":"b311","vn":"thức ăn nhanh","en":"fast food","lesson":4},{"id":"b312","vn":"thức khuya","en":"to stay up late, to go to bed late","lesson":1},{"id":"b313","vn":"tiệc","en":"party","lesson":3},{"id":"b314","vn":"tiền cọc","en":"deposit, down payment","lesson":5},{"id":"b315","vn":"tiền mặt","en":"cash","lesson":5},{"id":"b316","vn":"tiết kiệm","en":"economical","lesson":5},{"id":"b317","vn":"tiện","en":"convenient","lesson":1},{"id":"b318","vn":"tiện ích","en":"convenience, practicality","lesson":3},{"id":"b319","vn":"tiện lợi","en":"convenient","lesson":1},{"id":"b320","vn":"tiện nghi","en":"amenity","lesson":5},{"id":"b321","vn":"tim","en":"heart","lesson":4},{"id":"b322","vn":"tin tức","en":"news","lesson":6},{"id":"b323","vn":"tính","en":"to plan, to intend","lesson":5},{"id":"b324","vn":"tình yêu","en":"love","lesson":1},{"id":"b325","vn":"tốt nghiệp","en":"to graduate","lesson":5},{"id":"b326","vn":"trả","en":"to pay","lesson":5},{"id":"b327","vn":"trải nghiệm","en":"to experience; experience","lesson":1},{"id":"b328","vn":"trận đấu","en":"match, contest","lesson":1},{"id":"b329","vn":"trên","en":"(preposition) on","lesson":2},{"id":"b330","vn":"trễ làm","en":"late for work","lesson":2},{"id":"b331","vn":"trình bày","en":"to do a presentation or speech","lesson":5},{"id":"b332","vn":"trong","en":"(preposition) in, inside","lesson":2},{"id":"b333","vn":"trung tâm","en":"center","lesson":1},{"id":"b334","vn":"trượt tuyết","en":"to ski; skiing","lesson":2},{"id":"b335","vn":"tuy nhiên","en":"however","lesson":3},{"id":"b336","vn":"tuyết","en":"snow","lesson":2},{"id":"b337","vn":"tủ","en":"cabinet, closet","lesson":5},{"id":"b338","vn":"tủ quần áo","en":"wardrobe","lesson":5},{"id":"b339","vn":"ướt","en":"wet","lesson":2},{"id":"b340","vn":"vai","en":"shoulder","lesson":4},{"id":"b341","vn":"váy","en":"skirt","lesson":2},{"id":"b342","vn":"váy chống nắng","en":"sun protection skirt","lesson":2},{"id":"b343","vn":"vắng","en":"uncrowded, empty","lesson":3},{"id":"b344","vn":"vấn đề","en":"problem, matter, issue","lesson":6},{"id":"b345","vn":"vất vả","en":"arduous","lesson":5},{"id":"b346","vn":"vẽ (tranh)","en":"to draw (a picture)","lesson":1},{"id":"b347","vn":"vị trí","en":"location, position","lesson":3},{"id":"b348","vn":"vòng vòng","en":"around","lesson":2},{"id":"b349","vn":"với lại","en":"and, in addition (in spoken language)","lesson":3},{"id":"b350","vn":"vườn","en":"garden","lesson":3},{"id":"b351","vn":"xã hội","en":"society","lesson":6},{"id":"b352","vn":"xài","en":"to spend (money), to use","lesson":4},{"id":"b353","vn":"xài tiền","en":"to spend (money)","lesson":4},{"id":"b354","vn":"xảy ra","en":"to happen","lesson":6},{"id":"b355","vn":"xin nghỉ phép","en":"to ask for a leave or days off","lesson":5},{"id":"b356","vn":"xung quanh","en":"surrounding","lesson":3},{"id":"b357","vn":"yên tĩnh","en":"quiet, tranquil","lesson":3},{"id":"b358","vn":"yêu thích","en":"to love, to like","lesson":1},{"id":"b359","vn":"yếu","en":"weak","lesson":4}];
+
+let selectedDirection = 'mix';
+let selectedSize = 20;
+
+let customVocab = [];
+let progress = {};
+let quickNotes = [];
+let issueReports = [];
+let deck = [];
+let deckPos = 0;
+let currentCard = null;
+let storageOk = true;
+let revealed = false;
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// ---------- Storage (localStorage — data lives on this device/browser only) ----------
+// Same keys and JSON shapes as the previous window.storage version (see
+// spec.md): custom-vocab, progress, quick-notes, issue-reports. localStorage
+// is synchronous, but these helpers stay `async` so every existing call site
+// (`await saveProgress()`, etc.) keeps working unchanged.
+function loadJSON(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){
+    return fallback;
+  }
+}
+function saveJSON(key, value){
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+function flagStorageError(){
+  storageOk = false;
+  document.getElementById('storageWarning').style.display = 'block';
+}
+
+async function loadState(){
+  customVocab = loadJSON('custom-vocab', []);
+  progress = loadJSON('progress', {});
+  quickNotes = loadJSON('quick-notes', []);
+  issueReports = loadJSON('issue-reports', []);
+}
+
+async function saveIssueReports(){
+  if(!saveJSON('issue-reports', issueReports)) flagStorageError();
+}
+
+async function saveQuickNotes(){
+  if(!saveJSON('quick-notes', quickNotes)) flagStorageError();
+}
+
+async function saveCustomVocab(){
+  if(!saveJSON('custom-vocab', customVocab)) flagStorageError();
+}
+
+async function saveProgress(){
+  if(!saveJSON('progress', progress)) flagStorageError();
+}
+
+function allVocab(){ return BASE_VOCAB.concat(customVocab); }
+
+// Per-direction progress helpers (learning memory system v2 — last-outcome based).
+// progress[id] shape: { vn2en: {correct, wrong, last}, en2vn: {correct, wrong, last} }
+// `correct`/`wrong` are cumulative counters (kept for reference/stats).
+// `last` is 'correct' | 'wrong' — the outcome of the MOST RECENT time this word
+// was shown in this direction. Category (known / needs review) is driven only
+// by `last`, so a word flips between the two each time it's answered.
+// Either sub-key may be absent if that direction has never been shown.
+function dirProgress(id, dir){
+  return (progress[id] && progress[id][dir]) || null;
+}
+function lastResultInDir(id, dir){
+  const dp = dirProgress(id, dir);
+  if(!dp) return null;
+  if(dp.last) return dp.last;
+  // Fallback for progress recorded before "last outcome" tracking existed.
+  if(dp.correct > 0) return 'correct';
+  if(dp.wrong > 0) return 'wrong';
+  return null;
+}
+function isKnownInDir(id, dir){
+  return lastResultInDir(id, dir) === 'correct';
+}
+function isNeedsReviewInDir(id, dir){
+  return lastResultInDir(id, dir) === 'wrong';
+}
+function isKnownAnyDir(id){
+  return isKnownInDir(id, 'vn2en') || isKnownInDir(id, 'en2vn');
+}
+function isNeedsReviewAnyDir(id){
+  return isNeedsReviewInDir(id, 'vn2en') || isNeedsReviewInDir(id, 'en2vn');
+}
+// Category of a word for a specific direction, used by the weighted draw.
+function categorizeForDir(id, dir){
+  if(isKnownInDir(id, dir)) return 'known';
+  if(isNeedsReviewInDir(id, dir)) return 'review';
+  return 'new';
+}
+
+function refreshStats(){
+  const all = allVocab();
+  const knownCount = all.filter(w => isKnownAnyDir(w.id)).length;
+  const reviewCount = all.filter(w => isNeedsReviewAnyDir(w.id)).length;
+  document.getElementById('directoryDetail').textContent = `${all.length} words · ${knownCount} known · ${reviewCount} to review`;
+  const unresolvedCount = issueReports.filter(r => !r.resolved).length;
+  document.getElementById('issuesCount').textContent = unresolvedCount;
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// Weighted session draw (learning memory system v2).
+// Target quotas per session: 60% new / 30% needs-review / 10% known,
+// evaluated per-word against the direction that word will actually be
+// tested in (fixed direction, or a per-card coin flip when direction is 'mix').
+// "needs review" / "known" reflect only the LAST outcome in that direction
+// (see categorizeForDir) — a word flips category the next time it's answered.
+//
+// Fallback rule (validated):
+// - Case A (new pool non-empty but smaller than its quota): take what's
+//   available, report the deficit onto needs-review, then onto known if
+//   that pool is also short. Ratios unchanged.
+// - Case B (new pool fully empty): switch to 0% new / 80% needs-review /
+//   20% known before applying the same deficit cascade as Case A.
+// - Safety net: if all three pools combined can't fill the session, pad
+//   with whatever remains regardless of category (tiny vocab edge case).
+function buildDeck(){
+  const total = allVocab();
+  const size = Math.min(selectedSize, total.length);
+
+  const candidates = total.map(w => {
+    const dir = selectedDirection === 'mix' ? (Math.random() < 0.5 ? 'vn2en' : 'en2vn') : selectedDirection;
+    return {...w, dir};
+  });
+
+  const pools = { new: [], review: [], known: [] };
+  candidates.forEach(c => pools[categorizeForDir(c.id, c.dir)].push(c));
+  pools.new = shuffle(pools.new);
+  pools.review = shuffle(pools.review);
+  pools.known = shuffle(pools.known);
+
+  let newQuota, reviewQuota, knownQuota;
+  if(pools.new.length === 0){
+    newQuota = 0;
+    knownQuota = Math.round(size * 0.20);
+    reviewQuota = size - knownQuota;
+  } else {
+    newQuota = Math.round(size * 0.6);
+    reviewQuota = Math.round(size * 0.3);
+    knownQuota = size - newQuota - reviewQuota;
+  }
+
+  const newTaken = pools.new.splice(0, newQuota);
+  reviewQuota += (newQuota - newTaken.length);
+
+  const reviewTaken = pools.review.splice(0, reviewQuota);
+  knownQuota += (reviewQuota - reviewTaken.length);
+
+  const knownTaken = pools.known.splice(0, knownQuota);
+
+  let picked = [...newTaken, ...reviewTaken, ...knownTaken];
+  if(picked.length < size){
+    const leftover = shuffle([...pools.new, ...pools.review, ...pools.known]);
+    picked = picked.concat(leftover.slice(0, size - picked.length));
+  }
+
+  deck = shuffle(picked);
+  deckPos = 0;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderCard(){
+  if(deckPos >= deck.length){
+    showToast('Session complete — nice work!');
+    showScreen('home');
+    refreshStats();
+    return;
+  }
+  currentCard = deck[deckPos];
+  revealed = false;
+
+  const cardEl = document.getElementById('card');
+  cardEl.style.transition = 'none';
+  cardEl.style.transform = 'scaleX(1)';
+  document.getElementById('stampKnow').style.opacity = 0;
+  document.getElementById('stampLearning').style.opacity = 0;
+
+  const frontFace = document.querySelector('.face.front');
+  const backFace = document.querySelector('.face.back');
+  frontFace.classList.add('visible');
+  backFace.classList.remove('visible');
+  document.getElementById('sessionActions').classList.remove('visible');
+  const tapHintEl = document.getElementById('tapHint');
+  tapHintEl.style.visibility = 'visible';
+  tapHintEl.textContent = 'tap to reveal';
+
+  const isVnFirst = currentCard.dir === 'vn2en';
+  const front = isVnFirst ? currentCard.vn : currentCard.en;
+  const back = isVnFirst ? currentCard.en : currentCard.vn;
+  // "Connect 1" is hardcoded for now since it's the only source book; once a
+  // second book is added, vocab entries should carry their own `book` field.
+  const lessonLabel = currentCard.lesson ? `Connect 1 - Bài ${currentCard.lesson}` : 'Manual Input';
+
+  frontFace.classList.toggle('lang-vn', isVnFirst);
+  frontFace.classList.toggle('lang-en', !isVnFirst);
+  backFace.classList.toggle('lang-vn', !isVnFirst);
+  backFace.classList.toggle('lang-en', isVnFirst);
+
+  document.getElementById('flagFront').textContent = isVnFirst ? '🇻🇳' : '🇬🇧';
+  document.getElementById('flagBack').textContent = isVnFirst ? '🇬🇧' : '🇻🇳';
+
+  document.getElementById('wordFront').textContent = front;
+  document.getElementById('wordBack').textContent = back;
+  document.getElementById('lessonTagBack').textContent = lessonLabel;
+
+  document.getElementById('counter').textContent = (deckPos+1) + '/' + deck.length;
+  document.getElementById('progressFill').style.width = (100*deckPos/deck.length) + '%';
+}
+
+function markCard(known){
+  const id = currentCard.id;
+  const dir = currentCard.dir;
+  if(!progress[id]) progress[id] = {};
+  if(!progress[id][dir]) progress[id][dir] = {correct:0, wrong:0};
+  if(known) progress[id][dir].correct++; else progress[id][dir].wrong++;
+  progress[id][dir].last = known ? 'correct' : 'wrong';
+  saveProgress();
+  deckPos++;
+  renderCard();
+}
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  buildDeck();
+  showScreen('session');
+  renderCard();
+});
+document.getElementById('exitBtn').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
+
+const cardEl = document.getElementById('card');
+const stampKnow = document.getElementById('stampKnow');
+const stampLearning = document.getElementById('stampLearning');
+let dragStartX = 0, dragCurX = 0, isDragging = false;
+
+function flipCard(){
+  cardEl.style.transition = 'transform .16s ease';
+  cardEl.style.transform = 'scaleX(0.04)';
+  setTimeout(()=>{
+    revealed = !revealed;
+    document.querySelector('.face.front').classList.toggle('visible', !revealed);
+    document.querySelector('.face.back').classList.toggle('visible', revealed);
+    document.getElementById('sessionActions').classList.toggle('visible', revealed);
+    document.getElementById('tapHint').textContent = revealed ? 'swipe right: got it · swipe left: needs work' : 'tap to reveal';
+    cardEl.style.transform = 'scaleX(1)';
+  }, 150);
+}
+
+cardEl.addEventListener('pointerdown', (e)=>{
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragCurX = 0;
+  cardEl.style.transition = 'none';
+  cardEl.setPointerCapture(e.pointerId);
+});
+cardEl.addEventListener('pointermove', (e)=>{
+  if(!isDragging || !revealed) return;
+  dragCurX = e.clientX - dragStartX;
+  const rot = dragCurX / 18;
+  cardEl.style.transform = `translateX(${dragCurX}px) rotate(${rot}deg)`;
+  const t = Math.min(Math.abs(dragCurX) / 100, 1);
+  stampKnow.style.opacity = dragCurX > 0 ? t : 0;
+  stampLearning.style.opacity = dragCurX < 0 ? t : 0;
+});
+cardEl.addEventListener('pointerup', ()=>{
+  if(!isDragging) return;
+  isDragging = false;
+  const dx = dragCurX;
+  dragCurX = 0;
+  if(revealed && Math.abs(dx) > 90){
+    const known = dx > 0;
+    const flyX = known ? 700 : -700;
+    cardEl.style.transition = 'transform .22s ease';
+    cardEl.style.transform = `translateX(${flyX}px) rotate(${flyX/18}deg)`;
+    setTimeout(()=>markCard(known), 200);
+  } else if(Math.abs(dx) < 6){
+    flipCard();
+  } else {
+    cardEl.style.transition = 'transform .2s ease';
+    cardEl.style.transform = 'scaleX(1)';
+    stampKnow.style.opacity = 0;
+    stampLearning.style.opacity = 0;
+  }
+});
+
+document.getElementById('knownBtn').addEventListener('click', ()=>markCard(true));
+document.getElementById('reviewBtn').addEventListener('click', ()=>markCard(false));
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  renderNotes();
+  clearCheckResult();
+  showScreen('add');
+});
+document.getElementById('backFromAdd').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
+document.getElementById('saveWordBtn').addEventListener('click', async ()=>{
+  const vn = document.getElementById('inputVn').value.trim();
+  const en = document.getElementById('inputEn').value.trim();
+  if(!vn || !en){ showToast('Fill in both fields'); return; }
+  const id = 'c' + Date.now();
+  customVocab.push({id, vn, en, lesson:null});
+  await saveCustomVocab();
+  document.getElementById('inputVn').value = '';
+  document.getElementById('inputEn').value = '';
+  clearCheckResult();
+  showToast('Word added');
+  refreshStats();
+});
+
+// ---------- Quick notes (unstructured scratchpad) ----------
+function renderNotes(){
+  const list = document.getElementById('notesList');
+  list.innerHTML = '';
+  if(quickNotes.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'notes-empty';
+    empty.textContent = 'No notes yet — jot down a word you don\'t have time to add properly.';
+    list.appendChild(empty);
+    return;
+  }
+  // Most recent first.
+  quickNotes.slice().reverse().forEach(note => {
+    const item = document.createElement('div');
+    item.className = 'note-item';
+
+    const text = document.createElement('div');
+    text.className = 'note-text';
+    text.textContent = note.text;
+    item.appendChild(text);
+
+    const del = document.createElement('button');
+    del.className = 'note-del';
+    del.setAttribute('aria-label', 'Delete note');
+    del.textContent = '🗑';
+    del.addEventListener('click', async ()=>{
+      quickNotes = quickNotes.filter(n => n.id !== note.id);
+      await saveQuickNotes();
+      renderNotes();
+    });
+    item.appendChild(del);
+
+    list.appendChild(item);
+  });
+}
+
+document.getElementById('addNoteBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('inputNote');
+  const text = input.value.trim();
+  if(!text) return;
+  quickNotes.push({ id: 'n' + Date.now(), text, createdAt: Date.now() });
+  await saveQuickNotes();
+  input.value = '';
+  renderNotes();
+});
+document.getElementById('inputNote').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') document.getElementById('addNoteBtn').click();
+});
+
+// ---------- Check result box (shared with the duplicate check below) ----------
+function clearCheckResult(){
+  const box = document.getElementById('checkResult');
+  box.className = 'check-result';
+  box.innerHTML = '';
+}
+
+// ---------- Local duplicate detection (deterministic, no API call needed) ----------
+// Strips Vietnamese diacritics/tone marks so "dien thoai" matches "điện thoại",
+// which also catches the common case of an accent typo against an existing word.
+function normalizeVn(s){
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .trim();
+}
+
+function levenshteinDistance(a, b){
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for(let i = 0; i <= m; i++) dp[i][0] = i;
+  for(let j = 0; j <= n; j++) dp[0][j] = j;
+  for(let i = 1; i <= m; i++){
+    for(let j = 1; j <= n; j++){
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Returns { exact, near } where each is the matching vocab entry or null.
+// exact = same word once diacritics are ignored (covers true duplicates and pure accent typos).
+// near = 1-2 character edit away (covers other likely typos), only checked for short-ish entries.
+function findVnDuplicate(vn){
+  const norm = normalizeVn(vn);
+  if(!norm) return null;
+  let exact = null, near = null, nearDist = Infinity;
+  for(const w of allVocab()){
+    const wNorm = normalizeVn(w.vn);
+    if(wNorm === norm){ exact = w; break; }
+    if(norm.length <= 20){
+      const threshold = norm.length <= 6 ? 1 : 2;
+      const dist = levenshteinDistance(norm, wNorm);
+      if(dist <= threshold && dist < nearDist){ nearDist = dist; near = w; }
+    }
+  }
+  return { exact, near };
+}
+
+function renderDuplicateNotice(box, dup){
+  if(dup && dup.exact){
+    const div = document.createElement('div');
+    div.textContent = `⚠ Already in your list: "${dup.exact.vn}" — ${dup.exact.en}`;
+    box.appendChild(div);
+    return true;
+  }
+  if(dup && dup.near){
+    const div = document.createElement('div');
+    div.textContent = `⚠ Very similar to an existing word: "${dup.near.vn}" — ${dup.near.en}. Make sure this isn't the same word before adding.`;
+    box.appendChild(div);
+    return true;
+  }
+  return false;
+}
+
+// DISABLED FEATURE — Haiku-powered spelling/translation check:
+// This used to also call the Anthropic API (model claude-haiku-4-5-20251001)
+// right here to check Vietnamese spelling/diacritics and cross-check the
+// English translation ("Check with AI"). That relied on the Claude.ai
+// artifact's built-in, key-less API access, which doesn't exist on a plain
+// static site — calling the Anthropic API directly from client-side JS would
+// mean shipping a secret API key inside the page source, which is unsafe.
+// To bring it back: add a small serverless function (e.g. a Cloudflare
+// Worker, or a Netlify/Vercel function) that holds the API key server-side,
+// have this button call that function instead of the removed fetch() call,
+// and keep the same response shape ({vnOk, vnSuggestion, enOk, enSuggestion,
+// note}) so the "Apply suggestion" UI can be restored with it.
+function checkDuplicates(){
+  const vn = document.getElementById('inputVn').value.trim();
+  if(!vn){ showToast('Enter a Vietnamese word first'); return; }
+
+  const box = document.getElementById('checkResult');
+  box.innerHTML = '';
+  const dup = findVnDuplicate(vn);
+  const dupFlagged = renderDuplicateNotice(box, dup);
+  if(!dupFlagged){
+    const ok = document.createElement('div');
+    ok.textContent = '✓ No duplicate found.';
+    box.appendChild(ok);
+  }
+  box.className = 'check-result ' + (dupFlagged ? 'issue' : 'ok') + ' show';
+}
+
+document.getElementById('checkDupBtn').addEventListener('click', checkDuplicates);
+document.getElementById('inputVn').addEventListener('input', clearCheckResult);
+document.getElementById('inputEn').addEventListener('input', clearCheckResult);
+
+document.getElementById('resetProgressBtn').addEventListener('click', ()=>{
+  document.getElementById('resetConfirmBackdrop').classList.add('show');
+});
+document.getElementById('resetCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('resetConfirmBackdrop').classList.remove('show');
+});
+document.getElementById('resetConfirmBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'resetConfirmBackdrop') e.currentTarget.classList.remove('show');
+});
+document.getElementById('resetConfirmBtn').addEventListener('click', async ()=>{
+  progress = {};
+  await saveProgress();
+  document.getElementById('resetConfirmBackdrop').classList.remove('show');
+  refreshStats();
+  showToast('Progress reset');
+});
+
+// ---------- Export / Import (data portability across devices/browsers) ----------
+function exportData(){
+  const payload = {
+    app: 'nhat-chu',
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    customVocab,
+    progress,
+    quickNotes,
+    issueReports
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `nhat-chu-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded');
+}
+
+let pendingImportData = null;
+
+function openImportConfirm(data){
+  pendingImportData = data;
+  document.getElementById('importConfirmBackdrop').classList.add('show');
+}
+function closeImportConfirm(){
+  pendingImportData = null;
+  document.getElementById('importConfirmBackdrop').classList.remove('show');
+}
+
+document.getElementById('exportDataBtn').addEventListener('click', exportData);
+
+document.getElementById('importDataBtn').addEventListener('click', ()=>{
+  document.getElementById('importFileInput').click();
+});
+
+document.getElementById('importFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  e.target.value = ''; // allow re-selecting the same file later
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(typeof data !== 'object' || data === null) throw new Error('not an object');
+      openImportConfirm(data);
+    }catch(e){
+      showToast('This file is not a valid backup');
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('importCancelBtn').addEventListener('click', closeImportConfirm);
+document.getElementById('importConfirmBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'importConfirmBackdrop') closeImportConfirm();
+});
+document.getElementById('importConfirmBtn').addEventListener('click', async ()=>{
+  const data = pendingImportData;
+  if(!data) return;
+  customVocab = Array.isArray(data.customVocab) ? data.customVocab : [];
+  progress = (data.progress && typeof data.progress === 'object') ? data.progress : {};
+  quickNotes = Array.isArray(data.quickNotes) ? data.quickNotes : [];
+  issueReports = Array.isArray(data.issueReports) ? data.issueReports : [];
+  await Promise.all([saveCustomVocab(), saveProgress(), saveQuickNotes(), saveIssueReports()]);
+  closeImportConfirm();
+  refreshStats();
+  showToast('Backup imported');
+});
+
+const dirLabels = { vn2en: 'Vietnamese Flashcards', en2vn: 'English Flashcards', mix: 'Mixed Flashcards' };
+
+document.querySelectorAll('#dirGroup .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#dirGroup .pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDirection = btn.dataset.value;
+    document.getElementById('dirLabel').textContent = dirLabels[selectedDirection];
+  });
+});
+
+document.getElementById('sizeSlider').addEventListener('input', (e)=>{
+  selectedSize = parseInt(e.target.value, 10);
+  document.getElementById('sizeLabel').textContent = `Session size — ${selectedSize} words`;
+});
+
+// ---------- Word list ("Vocabulary" screen, tap-through from home) ----------
+const wordlistStatusLabels = {
+  all: 'All',
+  new: 'New',
+  known: 'Known',
+  review: 'Review'
+};
+let wordlistStatus = 'all';
+let wordlistLang = 'vn'; // 'vn' or 'en' — which language shows first + sort order
+
+// The displayed language maps to the direction it's actually tested in:
+// showing the VN word means the vn2en direction is the relevant one, and vice versa.
+function dirForLang(lang){
+  return lang === 'vn' ? 'vn2en' : 'en2vn';
+}
+
+function wordlistFilter(status){
+  const dir = dirForLang(wordlistLang);
+  if(status === 'new') return w => !isKnownInDir(w.id, dir) && !isNeedsReviewInDir(w.id, dir);
+  if(status === 'review') return w => isNeedsReviewInDir(w.id, dir);
+  if(status === 'known') return w => isKnownInDir(w.id, dir);
+  return () => true;
+}
+
+function renderWordList(status){
+  if(status) wordlistStatus = status;
+  const scroll = document.getElementById('wordlistScroll');
+  scroll.innerHTML = '';
+  const statusLabel = wordlistStatusLabels[wordlistStatus] || 'All';
+  const dirLabel = wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN';
+  document.getElementById('wordlistTitle').textContent = `Vocabulary | ${statusLabel} (${dirLabel})`;
+
+  // The per-word status indicator (and its legend) is only meaningful on the
+  // unfiltered "all" view — on "new"/"review"/"known" every row is already
+  // in that state, so showing it again is redundant.
+  document.getElementById('wlLegend').style.display = wordlistStatus === 'all' ? 'flex' : 'none';
+
+  const words = allVocab()
+    .filter(wordlistFilter(wordlistStatus))
+    .slice()
+    .sort((a, b) => a[wordlistLang].localeCompare(b[wordlistLang], wordlistLang === 'vn' ? 'vi' : 'en'));
+
+  if(words.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'wordlist-empty';
+    empty.textContent = 'No words here yet.';
+    scroll.appendChild(empty);
+    return;
+  }
+
+  words.forEach(w => {
+    const item = document.createElement('div');
+    item.className = 'wl-item';
+
+    const wordsBox = document.createElement('div');
+    wordsBox.className = 'wl-words';
+
+    const primaryText = wordlistLang === 'vn' ? w.vn : w.en;
+    const secondaryText = wordlistLang === 'vn' ? w.en : w.vn;
+
+    const primary = document.createElement('span');
+    primary.className = 'wl-primary';
+    primary.textContent = primaryText;
+    wordsBox.appendChild(primary);
+
+    const divider = document.createElement('span');
+    divider.className = 'wl-divider';
+    wordsBox.appendChild(divider);
+
+    const secondary = document.createElement('span');
+    secondary.className = 'wl-secondary';
+    secondary.textContent = secondaryText;
+    wordsBox.appendChild(secondary);
+
+    item.appendChild(wordsBox);
+
+    if(wordlistStatus === 'all'){
+      const dir = dirForLang(wordlistLang);
+      const statusDot = document.createElement('span');
+      let statusClass = '', statusTitle = 'New';
+      if(isKnownInDir(w.id, dir)){ statusClass = ' on-known'; statusTitle = 'Known'; }
+      else if(isNeedsReviewInDir(w.id, dir)){ statusClass = ' on-review'; statusTitle = 'Needs review'; }
+      statusDot.className = 'wl-dot' + statusClass;
+      statusDot.title = `${statusTitle} (${wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN'})`;
+      item.appendChild(statusDot);
+    }
+
+    item.addEventListener('click', () => openWordPopup(primaryText, secondaryText));
+
+    scroll.appendChild(item);
+  });
+}
+
+function openWordPopup(vn, en){
+  document.getElementById('wlPopupPrimary').textContent = vn;
+  document.getElementById('wlPopupSecondary').textContent = en;
+  document.getElementById('wlPopupBackdrop').classList.add('show');
+}
+function closeWordPopup(){
+  document.getElementById('wlPopupBackdrop').classList.remove('show');
+}
+document.getElementById('wlPopupBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'wlPopupBackdrop') closeWordPopup();
+});
+
+document.getElementById('statDirectoryBtn').addEventListener('click', ()=>{
+  // Always reopen on the unfiltered "All" view.
+  document.querySelectorAll('#wlStatusGroup .pill').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#wlStatusGroup .pill[data-value="all"]').classList.add('active');
+  renderWordList('all');
+  showScreen('wordlist');
+});
+document.getElementById('backFromWordlist').addEventListener('click', ()=>{
+  showScreen('home');
+  refreshStats();
+});
+document.querySelectorAll('#wlStatusGroup .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#wlStatusGroup .pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderWordList(btn.dataset.value);
+  });
+});
+document.querySelectorAll('#wlLangGroup .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#wlLangGroup .pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    wordlistLang = btn.dataset.value;
+    renderWordList();
+  });
+});
+
+// ---------- Report an issue (translation, spelling, or app behavior) ----------
+function openReportPopup(){
+  if(!currentCard) return;
+  const dirLabel = currentCard.dir === 'vn2en' ? 'VN → EN' : 'EN → VN';
+  document.getElementById('reportPopupWord').textContent = `${currentCard.vn} — ${currentCard.en}`;
+  document.getElementById('reportPopupDir').textContent = dirLabel;
+  document.getElementById('reportNoteInput').value = '';
+  document.getElementById('reportPopupBackdrop').classList.add('show');
+}
+function closeReportPopup(){
+  document.getElementById('reportPopupBackdrop').classList.remove('show');
+}
+
+document.getElementById('reportIssueBtn').addEventListener('click', openReportPopup);
+document.getElementById('reportCancelBtn').addEventListener('click', closeReportPopup);
+document.getElementById('reportPopupBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'reportPopupBackdrop') closeReportPopup();
+});
+document.getElementById('reportSubmitBtn').addEventListener('click', async ()=>{
+  const note = document.getElementById('reportNoteInput').value.trim();
+  if(!note){ showToast('Write a note before submitting'); return; }
+  issueReports.push({
+    id: 'r' + Date.now(),
+    wordId: currentCard.id,
+    vn: currentCard.vn,
+    en: currentCard.en,
+    dir: currentCard.dir,
+    note,
+    resolved: false,
+    createdAt: Date.now()
+  });
+  await saveIssueReports();
+  closeReportPopup();
+  showToast('Issue reported — thanks!');
+  refreshStats();
+});
+
+function renderIssuesList(){
+  const scroll = document.getElementById('issuesScroll');
+  scroll.innerHTML = '';
+
+  if(issueReports.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'wordlist-empty';
+    empty.textContent = 'No issues reported yet.';
+    scroll.appendChild(empty);
+    return;
+  }
+
+  // Unresolved first (most recent first within each group).
+  const sorted = issueReports.slice().sort((a, b) => {
+    if(a.resolved !== b.resolved) return a.resolved ? 1 : -1;
+    return b.createdAt - a.createdAt;
+  });
+
+  sorted.forEach(report => {
+    const item = document.createElement('div');
+    item.className = 'issue-item' + (report.resolved ? ' resolved' : '');
+
+    const toggle = document.createElement('button');
+    toggle.className = 'issue-toggle' + (report.resolved ? ' is-resolved' : '');
+    toggle.setAttribute('aria-label', report.resolved ? 'Mark as unresolved' : 'Mark as resolved');
+    toggle.textContent = report.resolved ? '✓' : '';
+    toggle.addEventListener('click', async ()=>{
+      report.resolved = !report.resolved;
+      await saveIssueReports();
+      renderIssuesList();
+      refreshStats();
+    });
+    item.appendChild(toggle);
+
+    const body = document.createElement('div');
+    body.className = 'issue-body';
+
+    const word = document.createElement('div');
+    word.className = 'issue-word';
+    word.textContent = `${report.vn} — ${report.en}`;
+    body.appendChild(word);
+
+    const meta = document.createElement('div');
+    meta.className = 'issue-meta';
+    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : 'EN→VN';
+    const dateLabel = new Date(report.createdAt).toLocaleDateString();
+    meta.textContent = `${dirLabel} · ${dateLabel}`;
+    body.appendChild(meta);
+
+    const note = document.createElement('div');
+    note.className = 'issue-note';
+    note.textContent = report.note;
+    body.appendChild(note);
+
+    item.appendChild(body);
+    scroll.appendChild(item);
+  });
+}
+
+document.getElementById('issuesBtn').addEventListener('click', ()=>{
+  renderIssuesList();
+  showScreen('issues');
+});
+document.getElementById('backFromIssues').addEventListener('click', ()=>{
+  showScreen('home');
+  refreshStats();
+});
+
+(async function init(){
+  await loadState();
+  refreshStats();
+})();
+
+// Registers the offline/installability service worker (see sw.js).
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
