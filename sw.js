@@ -1,7 +1,9 @@
 // Minimal service worker: caches the app shell so it's installable as a PWA
-// and still opens (from cache) when offline. No network-first logic needed —
-// this app has no server backend, everything lives in the single HTML file.
-const CACHE_NAME = 'nhat-chu-v1';
+// and still opens (from cache) when offline.
+// Network-first: every request tries the network first (so app updates
+// pushed to GitHub Pages are picked up as soon as there's a connection) and
+// only falls back to the cached copy when the network is unavailable.
+const CACHE_NAME = 'nhat-chu-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -27,7 +29,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
