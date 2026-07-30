@@ -256,7 +256,10 @@
   .check-result.ok{ background:var(--jade-soft); color:#20463A; border:1px solid rgba(47,82,69,0.3); }
   .check-result.issue{ background:var(--gold-soft); color:#7A5A12; border:1px solid rgba(184,134,42,0.4); }
   .check-result.error{ background:var(--red-soft); color:#7A2A1B; border:1px solid rgba(154,51,35,0.3); }
+  .check-result > div + div{ margin-top:8px; }
   .check-suggestion-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+  .dict-credit{ color:var(--muted); font-size:11.5px; line-height:1.5; margin-top:20px; }
+  .hidden{ display:none !important; }
   .btn-apply{
     background:none; border:1px solid currentColor; color:inherit; border-radius:8px;
     font-size:11.5px; padding:5px 10px; cursor:pointer; font-family:inherit; flex-shrink:0;
@@ -364,23 +367,25 @@
 
   /* ---------- SETTINGS ---------- */
   .settings-section-title{ font-size:16px; margin-bottom:14px; }
-  .source-book{ margin-bottom:24px; }
+  .source-book{ margin-bottom:16px; }
   .source-book-title{ display:flex; align-items:baseline; gap:8px; font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:16px; color:var(--ink); margin-bottom:2px; }
-  .source-book-detail{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:10px; }
-  .lesson-row{
-    display:flex; align-items:center; gap:12px;
-    padding:12px 14px; border:1px solid var(--line); border-radius:12px;
-    background:var(--surface); margin-bottom:8px; cursor:pointer;
+  .source-book-detail{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:8px; }
+  .lesson-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .lesson-tile{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    padding:8px 6px; border:1px solid var(--line); border-radius:10px;
+    background:var(--surface); cursor:pointer; text-align:center;
   }
-  .lesson-row-check{
-    width:22px; height:22px; border-radius:6px; border:1.5px solid var(--line);
+  .lesson-tile-top{ display:flex; align-items:center; gap:5px; }
+  .lesson-tile-check{
+    width:16px; height:16px; border-radius:5px; border:1.5px solid var(--line);
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    color:#FBF3EC; font-size:13px; font-weight:700;
+    color:#FBF3EC; font-size:10px; font-weight:700;
   }
-  .lesson-row.active .lesson-row-check{ background:var(--gold); border-color:var(--gold); }
-  .lesson-row-label{ flex:1; font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:14px; color:var(--ink); }
-  .lesson-row-count{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); }
-  .lesson-row.disabled{ opacity:0.5; filter:blur(1.5px); cursor:not-allowed; pointer-events:none; }
+  .lesson-tile.active .lesson-tile-check{ background:var(--gold); border-color:var(--gold); }
+  .lesson-tile.active{ border-color:var(--gold); }
+  .lesson-tile-label{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:12.5px; color:var(--ink); }
+  .lesson-tile-count{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--muted); }
 
   @media (prefers-reduced-motion: reduce){
     .card, .progress-fill, .btn, .session-actions{ transition:none !important; }
@@ -509,9 +514,9 @@
       <label for="inputEn">English</label>
       <input id="inputEn" type="text" placeholder="e.g. to go on a diet" autocomplete="off">
     </div>
-    <button class="btn btn-check" id="checkDupBtn" type="button">Check for duplicates</button>
+    <button class="btn btn-check" id="checkDupBtn" type="button">Check word</button>
     <div class="check-result" id="checkResult"></div>
-    <button class="btn btn-primary" id="saveWordBtn">Save</button>
+    <button class="btn btn-primary hidden" id="saveWordBtn">Save</button>
 
     <hr class="section-divider">
     <h2>Quick notes</h2>
@@ -571,9 +576,26 @@
       <span>Data</span>
       <span class="menu-btn-chevron">›</span>
     </button>
-    <button class="menu-btn" type="button" id="resetProgressBtn">
+    <button class="menu-btn" type="button" id="openResetBtn">
       <span class="menu-btn-emoji">🔄</span>
-      <span>Reset Progression</span>
+      <span>Reset</span>
+      <span class="menu-btn-chevron">›</span>
+    </button>
+  </section>
+
+  <!-- SETTINGS > RESET -->
+  <section id="settingsReset" class="screen">
+    <div class="back-row">
+      <button id="backFromReset" aria-label="Back">←</button>
+      <h2 style="margin:0;">Reset</h2>
+    </div>
+    <button class="menu-btn" type="button" id="resetLearningBtn">
+      <span class="menu-btn-emoji">🔄</span>
+      <span>Reset learning progress</span>
+    </button>
+    <button class="menu-btn" type="button" id="resetCustomVocabBtn">
+      <span class="menu-btn-emoji">🗑️</span>
+      <span>Reset manually added words</span>
     </button>
   </section>
 
@@ -601,6 +623,7 @@
       <span>Import data</span>
     </button>
     <input type="file" id="importFileInput" accept="application/json" style="display:none">
+    <p class="dict-credit">Word verification on "Add a word" uses dictionary data from the Free Vietnamese Dictionary Project / Open Vietnamese Dictionary Project (GNU GPL).</p>
   </section>
 
   <div class="wl-popup-backdrop" id="wlPopupBackdrop">
@@ -644,6 +667,17 @@
     </div>
   </div>
 
+  <div class="wl-popup-backdrop" id="resetVocabConfirmBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" style="font-size:17px;">Delete your added words?</div>
+      <div class="wl-popup-en" id="resetVocabConfirmMsg" style="margin-bottom:16px;">—</div>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="resetVocabCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="resetVocabConfirmBtn" type="button" style="flex:1;">Delete</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 <div class="toast" id="toast"></div>
 
@@ -670,6 +704,25 @@ async function loadBooksData(){
     }
   }));
   baseVocab = loaded.flat();
+}
+
+// Reference Vietnamese-English dictionary (FVDP/OVDP data, GNU GPL — see
+// Settings > Data for attribution) used to verify words on the "Add a word"
+// screen. Lazily fetched only when that screen is opened (not at app
+// startup) since it's a ~1.4MB one-time download; cached by the service
+// worker afterward. null = not loaded yet or the last fetch failed.
+let vnDictIndex = null;
+let enDictIndex = null;
+let dictLoadPromise = null;
+
+function loadDictionaryData(){
+  if(!dictLoadPromise){
+    dictLoadPromise = fetch('data/dictionary.json')
+      .then(res => res.json())
+      .then(data => { vnDictIndex = data.vn || {}; enDictIndex = data.en || {}; })
+      .catch(() => { vnDictIndex = null; enDictIndex = null; dictLoadPromise = null; });
+  }
+  return dictLoadPromise;
 }
 
 let selectedDirection = 'mix';
@@ -1028,13 +1081,26 @@ document.getElementById('reviewBtn').addEventListener('click', ()=>markCard(fals
 document.getElementById('addBtn').addEventListener('click', ()=>{
   renderNotes();
   clearCheckResult();
+  loadDictionaryData();
   showScreen('add');
 });
 document.getElementById('backFromAdd').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
+// Save only ever becomes visible via applyDictionaryEntry() below, once a
+// specific dictionary-verified spelling has been picked — so by the time
+// it's clicked, vn/en are already a known-good pair. The duplicate check is
+// re-run anyway as a cheap safety net (e.g. against another tab's changes).
 document.getElementById('saveWordBtn').addEventListener('click', async ()=>{
   const vn = document.getElementById('inputVn').value.trim();
   const en = document.getElementById('inputEn').value.trim();
   if(!vn || !en){ showToast('Fill in both fields'); return; }
+
+  const dup = findVnDuplicate(vn);
+  if(dup && dup.exact){
+    showToast(`Already in your list: "${dup.exact.vn}"`);
+    document.getElementById('saveWordBtn').classList.add('hidden');
+    return;
+  }
+
   const id = 'c' + Date.now();
   customVocab.push({id, vn, en, lesson:null});
   await saveCustomVocab();
@@ -1095,10 +1161,13 @@ document.getElementById('inputNote').addEventListener('keydown', (e)=>{
 });
 
 // ---------- Check result box (shared with the duplicate check below) ----------
+// Also hides Save: it should only reappear once applyDictionaryEntry() has
+// re-confirmed a fresh, verified spelling — any manual edit invalidates that.
 function clearCheckResult(){
   const box = document.getElementById('checkResult');
   box.className = 'check-result';
   box.innerHTML = '';
+  document.getElementById('saveWordBtn').classList.add('hidden');
 }
 
 // ---------- Local duplicate detection (deterministic, no API call needed) ----------
@@ -1161,6 +1230,133 @@ function renderDuplicateNotice(box, dup){
   return false;
 }
 
+// ---------- Reference dictionary lookup (FVDP/OVDP data, see Settings > Data) ----------
+// Returns null while the dictionary hasn't loaded (or failed to load), an
+// empty array when the word isn't found, or an array of {vn, gl} variants
+// sharing the same diacritic-stripped spelling (length > 1 = ambiguous —
+// e.g. "ban" groups with "bàn", "bạn", etc., so it's always shown in full
+// even when the typed spelling already matches one real variant exactly).
+function lookupVnInDictionary(vn){
+  if(!vnDictIndex) return null;
+  return vnDictIndex[normalizeVn(vn)] || [];
+}
+
+// Returns null while the dictionary hasn't loaded, otherwise the list of
+// Vietnamese headwords whose gloss matches this English word/phrase.
+function lookupEnInDictionary(en){
+  if(!enDictIndex) return null;
+  let norm = en.trim().toLowerCase();
+  for(const prefix of ['to ', 'a ', 'an ', 'the ']){
+    if(norm.startsWith(prefix)){ norm = norm.slice(prefix.length).trim(); break; }
+  }
+  return enDictIndex[norm] || [];
+}
+
+// Writes a dictionary-verified {vn, en} pair into the two inputs (the only
+// way those fields end up holding what actually gets saved — see the
+// "Check word" flow below) and re-checks for a duplicate under that exact
+// spelling before revealing Save. Any further manual edit to either input
+// hides Save again via clearCheckResult()'s input listeners.
+function applyDictionaryEntry(vn, en){
+  document.getElementById('inputVn').value = vn;
+  document.getElementById('inputEn').value = en;
+
+  const box = document.getElementById('checkResult');
+  box.innerHTML = '';
+  const saveBtn = document.getElementById('saveWordBtn');
+  const dup = findVnDuplicate(vn);
+  if(dup && dup.exact){
+    renderDuplicateNotice(box, dup);
+    box.className = 'check-result error show';
+    saveBtn.classList.add('hidden');
+  } else {
+    const ok = document.createElement('div');
+    ok.textContent = `✓ Ready to save: "${vn}" — ${en}`;
+    box.appendChild(ok);
+    box.className = 'check-result ok show';
+    saveBtn.classList.remove('hidden');
+  }
+}
+
+function dictSuggestionRow(variant){
+  const row = document.createElement('div');
+  row.className = 'check-suggestion-row';
+  const label = document.createElement('span');
+  const gl = variant.gl.slice(0, 3).join(', ') || '(no gloss available)';
+  label.textContent = `${variant.vn} — ${gl}`;
+  row.appendChild(label);
+  const btn = document.createElement('button');
+  btn.className = 'btn-apply';
+  btn.type = 'button';
+  btn.textContent = 'Apply';
+  btn.addEventListener('click', () => applyDictionaryEntry(variant.vn, gl === '(no gloss available)' ? '' : gl));
+  row.appendChild(btn);
+  return row;
+}
+
+function reportRow(vn, en){
+  const row = document.createElement('div');
+  row.className = 'check-suggestion-row';
+  const label = document.createElement('span');
+  label.textContent = 'Sure this is correct?';
+  row.appendChild(label);
+  const btn = document.createElement('button');
+  btn.className = 'btn-apply';
+  btn.type = 'button';
+  btn.textContent = 'Report this word';
+  btn.addEventListener('click', () => openReportPopup({ vn, en }));
+  row.appendChild(btn);
+  return row;
+}
+
+// Looks a headword back up in the VN index to recover its glosses — used
+// when applying an EN-side candidate, since lookupEnInDictionary() only
+// returns headword strings.
+function dictEntryFor(headword){
+  const variants = (vnDictIndex && vnDictIndex[normalizeVn(headword)]) || [];
+  return variants.find(v => v.vn === headword) || { vn: headword, gl: [] };
+}
+
+function renderVnDictionaryNotice(box, variants){
+  const vn = document.getElementById('inputVn').value.trim();
+  const en = document.getElementById('inputEn').value.trim();
+  if(variants.length === 0){
+    const div = document.createElement('div');
+    div.textContent = `⚠ "${vn}" not found in the reference dictionary.`;
+    box.appendChild(div);
+    box.appendChild(reportRow(vn, en));
+    return 'notfound';
+  }
+  const intro = document.createElement('div');
+  intro.textContent = variants.length === 1
+    ? '✓ Found in the reference dictionary:'
+    : '⚠ Several Vietnamese words share this spelling without accents — pick the right one:';
+  box.appendChild(intro);
+  variants.forEach(v => box.appendChild(dictSuggestionRow(v)));
+  return variants.length === 1 ? 'ok' : 'ambiguous';
+}
+
+function renderEnDictionaryNotice(box, en, candidates){
+  if(candidates.length === 0){
+    const div = document.createElement('div');
+    div.textContent = `⚠ "${en}" not found in the reference dictionary.`;
+    box.appendChild(div);
+    box.appendChild(reportRow(document.getElementById('inputVn').value.trim(), en));
+    return 'notfound';
+  }
+  const shown = candidates.slice(0, 8);
+  const intro = document.createElement('div');
+  intro.textContent = `Possible Vietnamese words for "${en}":`;
+  box.appendChild(intro);
+  shown.forEach(headword => box.appendChild(dictSuggestionRow(dictEntryFor(headword))));
+  if(candidates.length > 8){
+    const more = document.createElement('div');
+    more.textContent = `+${candidates.length - 8} more — refine your search to narrow it down.`;
+    box.appendChild(more);
+  }
+  return 'ok';
+}
+
 // DISABLED FEATURE — Haiku-powered spelling/translation check:
 // This used to also call the Anthropic API (model claude-haiku-4-5-20251001)
 // right here to check Vietnamese spelling/diacritics and cross-check the
@@ -1168,32 +1364,68 @@ function renderDuplicateNotice(box, dup){
 // artifact's built-in, key-less API access, which doesn't exist on a plain
 // static site — calling the Anthropic API directly from client-side JS would
 // mean shipping a secret API key inside the page source, which is unsafe.
-// To bring it back: add a small serverless function (e.g. a Cloudflare
-// Worker, or a Netlify/Vercel function) that holds the API key server-side,
-// have this button call that function instead of the removed fetch() call,
-// and keep the same response shape ({vnOk, vnSuggestion, enOk, enSuggestion,
-// note}) so the "Apply suggestion" UI can be restored with it.
-function checkDuplicates(){
+// Replaced by a deterministic reference-dictionary check instead (see
+// applyDictionaryEntry() and friends above) — no AI, no API key, no cost.
+async function checkDuplicates(){
   const vn = document.getElementById('inputVn').value.trim();
-  if(!vn){ showToast('Enter a Vietnamese word first'); return; }
+  const en = document.getElementById('inputEn').value.trim();
+  if(!vn && !en){ showToast('Enter a word first'); return; }
+
+  await loadDictionaryData();
 
   const box = document.getElementById('checkResult');
   box.innerHTML = '';
-  const dup = findVnDuplicate(vn);
-  const dupFlagged = renderDuplicateNotice(box, dup);
-  if(!dupFlagged){
+  document.getElementById('saveWordBtn').classList.add('hidden');
+
+  const order = {ok: 0, issue: 1, error: 2};
+  let severity = 'ok';
+  const escalate = (level) => { if(order[level] > order[severity]) severity = level; };
+
+  if(vn){
+    const dup = findVnDuplicate(vn);
+    if(renderDuplicateNotice(box, dup)) escalate(dup.exact ? 'error' : 'issue');
+
+    if(vnDictIndex){
+      const result = renderVnDictionaryNotice(box, lookupVnInDictionary(vn));
+      if(result === 'notfound') escalate('error');
+      else if(result === 'ambiguous') escalate('issue');
+    } else {
+      const div = document.createElement('div');
+      div.textContent = 'Reference dictionary unavailable right now (check your connection) — duplicate check still applies.';
+      box.appendChild(div);
+    }
+  }
+
+  if(en){
+    if(enDictIndex){
+      escalate(renderEnDictionaryNotice(box, en, lookupEnInDictionary(en)) === 'notfound' ? 'error' : 'ok');
+    } else if(!vn){
+      const div = document.createElement('div');
+      div.textContent = 'Reference dictionary unavailable right now (check your connection).';
+      box.appendChild(div);
+    }
+  }
+
+  if(box.innerHTML === ''){
     const ok = document.createElement('div');
-    ok.textContent = '✓ No duplicate found.';
+    ok.textContent = '✓ No issues found.';
     box.appendChild(ok);
   }
-  box.className = 'check-result ' + (dupFlagged ? 'issue' : 'ok') + ' show';
+  box.className = 'check-result ' + severity + ' show';
 }
 
 document.getElementById('checkDupBtn').addEventListener('click', checkDuplicates);
 document.getElementById('inputVn').addEventListener('input', clearCheckResult);
 document.getElementById('inputEn').addEventListener('input', clearCheckResult);
 
-document.getElementById('resetProgressBtn').addEventListener('click', ()=>{
+document.getElementById('openResetBtn').addEventListener('click', ()=>{
+  showScreen('settingsReset');
+});
+document.getElementById('backFromReset').addEventListener('click', ()=>{
+  showScreen('settings');
+});
+
+document.getElementById('resetLearningBtn').addEventListener('click', ()=>{
   document.getElementById('resetConfirmBackdrop').classList.add('show');
 });
 document.getElementById('resetCancelBtn').addEventListener('click', ()=>{
@@ -1208,6 +1440,32 @@ document.getElementById('resetConfirmBtn').addEventListener('click', async ()=>{
   document.getElementById('resetConfirmBackdrop').classList.remove('show');
   refreshStats();
   showToast('Progress reset');
+});
+
+document.getElementById('resetCustomVocabBtn').addEventListener('click', ()=>{
+  const count = customVocab.length;
+  if(count === 0){
+    showToast('No manually added words yet');
+    return;
+  }
+  document.getElementById('resetVocabConfirmMsg').textContent =
+    `This permanently deletes the ${count} word${count === 1 ? '' : 's'} you added manually via "Add a word", along with their progress. It can't be undone.`;
+  document.getElementById('resetVocabConfirmBackdrop').classList.add('show');
+});
+document.getElementById('resetVocabCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('resetVocabConfirmBackdrop').classList.remove('show');
+});
+document.getElementById('resetVocabConfirmBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'resetVocabConfirmBackdrop') e.currentTarget.classList.remove('show');
+});
+document.getElementById('resetVocabConfirmBtn').addEventListener('click', async ()=>{
+  customVocab.forEach(w => { delete progress[w.id]; });
+  customVocab = [];
+  await saveCustomVocab();
+  await saveProgress();
+  document.getElementById('resetVocabConfirmBackdrop').classList.remove('show');
+  refreshStats();
+  showToast('Added words deleted');
 });
 
 // ---------- Export / Import (data portability across devices/browsers) ----------
@@ -1456,10 +1714,17 @@ document.querySelectorAll('#wlLangGroup .pill').forEach(btn=>{
 });
 
 // ---------- Report an issue (translation, spelling, or app behavior) ----------
-function openReportPopup(){
-  if(!currentCard) return;
-  const dirLabel = currentCard.dir === 'vn2en' ? 'VN → EN' : 'EN → VN';
-  document.getElementById('reportPopupWord').textContent = `${currentCard.vn} — ${currentCard.en}`;
+// context is either a reviewed card ({vn, en, wordId, dir}) or a not-yet-
+// saved word from "Add a word" ({vn, en} only, no wordId/dir). Defaults to
+// the card currently being reviewed when called with no argument (the
+// session screen's "Report an issue" button).
+let reportContext = null;
+
+function openReportPopup(context){
+  if(!context && !currentCard) return;
+  reportContext = context || { vn: currentCard.vn, en: currentCard.en, wordId: currentCard.id, dir: currentCard.dir };
+  const dirLabel = reportContext.dir === 'vn2en' ? 'VN → EN' : reportContext.dir === 'en2vn' ? 'EN → VN' : 'New word';
+  document.getElementById('reportPopupWord').textContent = `${reportContext.vn} — ${reportContext.en}`;
   document.getElementById('reportPopupDir').textContent = dirLabel;
   document.getElementById('reportNoteInput').value = '';
   document.getElementById('reportPopupBackdrop').classList.add('show');
@@ -1468,7 +1733,7 @@ function closeReportPopup(){
   document.getElementById('reportPopupBackdrop').classList.remove('show');
 }
 
-document.getElementById('reportIssueBtn').addEventListener('click', openReportPopup);
+document.getElementById('reportIssueBtn').addEventListener('click', ()=> openReportPopup());
 document.getElementById('reportCancelBtn').addEventListener('click', closeReportPopup);
 document.getElementById('reportPopupBackdrop').addEventListener('click', (e)=>{
   if(e.target.id === 'reportPopupBackdrop') closeReportPopup();
@@ -1478,10 +1743,10 @@ document.getElementById('reportSubmitBtn').addEventListener('click', async ()=>{
   if(!note){ showToast('Write a note before submitting'); return; }
   issueReports.push({
     id: 'r' + Date.now(),
-    wordId: currentCard.id,
-    vn: currentCard.vn,
-    en: currentCard.en,
-    dir: currentCard.dir,
+    wordId: reportContext.wordId || null,
+    vn: reportContext.vn,
+    en: reportContext.en,
+    dir: reportContext.dir || null,
     note,
     resolved: false,
     createdAt: Date.now()
@@ -1536,7 +1801,7 @@ function renderIssuesList(){
 
     const meta = document.createElement('div');
     meta.className = 'issue-meta';
-    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : 'EN→VN';
+    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : report.dir === 'en2vn' ? 'EN→VN' : 'New word';
     const dateLabel = new Date(report.createdAt).toLocaleDateString();
     meta.textContent = `${dirLabel} · ${dateLabel}`;
     body.appendChild(meta);
@@ -1583,36 +1848,45 @@ function renderSettingsSources(){
     detail.textContent = `${activeCount}/${bookWords.length} words active`;
     wrap.appendChild(detail);
 
+    const grid = document.createElement('div');
+    grid.className = 'lesson-grid';
+
     for(let lesson = 1; lesson <= book.lessonsCount; lesson++){
       const count = bookWords.filter(w => w.lesson === lesson).length;
       const isActive = !!scope[book.id][lesson];
 
-      const row = document.createElement('div');
-      row.className = 'lesson-row' + (isActive ? ' active' : '');
+      const tile = document.createElement('div');
+      tile.className = 'lesson-tile' + (isActive ? ' active' : '');
+
+      const top = document.createElement('div');
+      top.className = 'lesson-tile-top';
 
       const check = document.createElement('span');
-      check.className = 'lesson-row-check';
+      check.className = 'lesson-tile-check';
       check.textContent = isActive ? '✓' : '';
-      row.appendChild(check);
+      top.appendChild(check);
 
       const label = document.createElement('span');
-      label.className = 'lesson-row-label';
+      label.className = 'lesson-tile-label';
       label.textContent = `Lesson ${lesson}`;
-      row.appendChild(label);
+      top.appendChild(label);
+
+      tile.appendChild(top);
 
       const countEl = document.createElement('span');
-      countEl.className = 'lesson-row-count';
+      countEl.className = 'lesson-tile-count';
       countEl.textContent = `${count} words`;
-      row.appendChild(countEl);
+      tile.appendChild(countEl);
 
-      row.addEventListener('click', () => {
+      tile.addEventListener('click', () => {
         setLessonActive(book.id, lesson, !isActive);
         renderSettingsSources();
       });
 
-      wrap.appendChild(row);
+      grid.appendChild(tile);
     }
 
+    wrap.appendChild(grid);
     container.appendChild(wrap);
   });
 }
