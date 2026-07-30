@@ -1324,6 +1324,29 @@ function wordlistFilter(status){
   return () => true;
 }
 
+// A handful of words don't alphabetize sensibly even after the generic
+// leading-noise rule below (e.g. "for, to help" reads better sorted under
+// "help" than under "for"). Reviewed and approved one by one with the user.
+const WORDLIST_SORT_OVERRIDES = {
+  c131: 'help', // giùm — "(when asking for help) for, to help"
+};
+
+// Ignore, for sorting purposes only (never for display), leading noise that
+// would otherwise push a word to the front of the list out of alphabetical
+// order: a parenthetical usage note ("(preposition) in, inside"), a leading
+// English article ("a bit, slightly"), or the English infinitive marker
+// ("to choose, to select"). Reviewed word-by-word with the user before
+// applying broadly — see CLAUDE.md.
+function wordlistSortKey(word, lang){
+  if(WORDLIST_SORT_OVERRIDES[word.id] !== undefined) return WORDLIST_SORT_OVERRIDES[word.id];
+  let key = word[lang].replace(/^\([^)]*\)\s*/, '');
+  if(lang === 'en'){
+    key = key.replace(/^(a|an|the)\s+/i, '');
+    key = key.replace(/^to\s+/i, '');
+  }
+  return key;
+}
+
 function renderWordList(status){
   if(status) wordlistStatus = status;
   const scroll = document.getElementById('wordlistScroll');
@@ -1340,7 +1363,7 @@ function renderWordList(status){
   const words = activeVocab()
     .filter(wordlistFilter(wordlistStatus))
     .slice()
-    .sort((a, b) => a[wordlistLang].localeCompare(b[wordlistLang], wordlistLang === 'vn' ? 'vi' : 'en'));
+    .sort((a, b) => wordlistSortKey(a, wordlistLang).localeCompare(wordlistSortKey(b, wordlistLang), wordlistLang === 'vn' ? 'vi' : 'en'));
 
   if(words.length === 0){
     const empty = document.createElement('div');
