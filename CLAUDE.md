@@ -28,10 +28,18 @@ session opened in this folder — keep it up to date after each chantier.
   `<script>`), e.g. `{ id, title, file, lessonsCount }`. `loadBooksData()`
   fetches every book's JSON file and tags each entry with `book: bookDef.id`,
   filling the global `baseVocab` array.
-- **Recipe to add a new book** (e.g. Connect 2): drop `data/connect2.json`
+- **Recipe to add a new book** (e.g. Connect 3): drop `data/connect3.json`
   (same shape as `data/connect1.json`) → add one line to `BOOKS` → add the
   file path to `ASSETS` in `sw.js` and bump `CACHE_NAME` → done. Lessons
   default to **inactive** until the user turns them on (see active-scope).
+  Before finalizing the new book's JSON, compare its `vn` words against every
+  existing book's and report findings to the user (count + full list, split
+  into "identical word+translation" vs "same word, different sense") — this
+  check can be run automatically, but **never delete or keep an entry without
+  the user explicitly deciding**, one at a time or via a rule they approve.
+  (Connect 1 vs Connect 2 had 7 words in common; only 1 — "bữa tiệc" — was an
+  exact duplicate and was removed after confirmation; the other 6 were the
+  same word with a different sense, kept as-is.)
 - **Active scope** (`active-scope` localStorage key): `{ [bookId]: { [lesson]:
   true|false } }`. Drives `activeVocab()`, which feeds session draws, the
   Vocabulary screen, and home stats. `allVocab()` (unfiltered) is used ONLY by
