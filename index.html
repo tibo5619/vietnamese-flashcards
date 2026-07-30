@@ -39,7 +39,7 @@
     max-width:480px;
     margin:0 auto;
     min-height:100vh;
-    min-height:100dvh;
+    min-height:100svh;
     display:flex;
     flex-direction:column;
     position:relative;
@@ -116,9 +116,20 @@
   .btn-gold-outline{ background:var(--surface); color:var(--gold); border:1px solid var(--gold); }
 
   .home-actions{ display:flex; flex-direction:column; gap:10px; }
-  .home-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:22px; }
-  .link-row{ display:flex; justify-content:center; gap:24px; margin:10px 0; }
-  .link-muted{ color:var(--muted); font-size:12.5px; text-decoration:underline; text-underline-offset:3px; background:none; border:none; font-family:inherit; cursor:pointer; padding:6px 0;}
+  .home-foot{ display:flex; flex-direction:column; gap:10px; margin-top:22px; }
+
+  .menu-btn{
+    display:flex; align-items:center; gap:12px;
+    width:100%; background:var(--surface); border:1px solid var(--line);
+    border-radius:14px; padding:14px 16px; margin-bottom:10px;
+    font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:15px; color:var(--ink);
+    cursor:pointer; text-align:left;
+    transition:transform .12s ease;
+  }
+  .menu-btn:last-child{ margin-bottom:0; }
+  .menu-btn:active{ transform:scale(0.98); }
+  .menu-btn-emoji{ font-size:21px; line-height:1; }
+  .menu-btn-chevron{ margin-left:auto; color:var(--gold); font-size:19px; font-weight:700; }
   .storage-warning{ font-size:12px; color:#7A5A12; background:var(--gold-soft); border:1px solid var(--gold); border-radius:10px; padding:8px 12px; margin-bottom:14px; display:none;}
 
   .session-settings{ margin-bottom:20px; text-align:center; }
@@ -352,12 +363,25 @@
   .issue-note{ font-size:13px; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
 
   /* ---------- SETTINGS ---------- */
-  .source-book{ margin-bottom:22px; }
-  .source-book-title{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:15px; color:var(--ink); margin-bottom:2px; }
-  .source-book-detail{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:10px; }
-  .source-lessons{ justify-content:flex-start; }
-  .source-lessons .pill{ padding:8px 14px; font-size:12.5px; }
   .settings-section-title{ font-size:16px; margin-bottom:14px; }
+  .source-book{ margin-bottom:24px; }
+  .source-book-title{ display:flex; align-items:baseline; gap:8px; font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:16px; color:var(--ink); margin-bottom:2px; }
+  .source-book-tag{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--gold); font-weight:600; letter-spacing:.03em; }
+  .source-book-detail{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .lesson-row{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 14px; border:1px solid var(--line); border-radius:12px;
+    background:var(--surface); margin-bottom:8px; cursor:pointer;
+  }
+  .lesson-row-check{
+    width:22px; height:22px; border-radius:6px; border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    color:#FBF3EC; font-size:13px; font-weight:700;
+  }
+  .lesson-row.active .lesson-row-check{ background:var(--gold); border-color:var(--gold); }
+  .lesson-row-label{ flex:1; font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:14px; color:var(--ink); }
+  .lesson-row-count{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); }
+  .lesson-row.disabled{ opacity:0.5; filter:blur(1.5px); cursor:not-allowed; pointer-events:none; }
 
   @media (prefers-reduced-motion: reduce){
     .card, .progress-fill, .btn, .session-actions{ transition:none !important; }
@@ -426,8 +450,16 @@
       <button class="btn btn-primary" id="startBtn">Start a session</button>
       <button class="btn btn-gold-outline" id="addBtn">+ Add a word</button>
       <div class="home-foot">
-        <button class="link-muted" id="issuesBtn">⚑ Reported issues (<span id="issuesCount">0</span>)</button>
-        <button class="link-muted" id="settingsBtn">⚙ Settings</button>
+        <button class="menu-btn" type="button" id="issuesBtn">
+          <span class="menu-btn-emoji">⚑</span>
+          <span>Reported issues (<span id="issuesCount">0</span>)</span>
+          <span class="menu-btn-chevron">›</span>
+        </button>
+        <button class="menu-btn" type="button" id="settingsBtn">
+          <span class="menu-btn-emoji">⚙️</span>
+          <span>Settings</span>
+          <span class="menu-btn-chevron">›</span>
+        </button>
       </div>
     </div>
   </section>
@@ -530,23 +562,46 @@
       <button id="backFromSettings" aria-label="Back">←</button>
       <h2 style="margin:0;">Settings</h2>
     </div>
-    <div class="wordlist-scroll">
-      <h2 class="settings-section-title">📚 Vocabulary sources</h2>
-      <div id="sourcesList"></div>
+    <button class="menu-btn" type="button" id="openSourcesBtn">
+      <span class="menu-btn-emoji">📚</span>
+      <span>Vocabulary sources</span>
+      <span class="menu-btn-chevron">›</span>
+    </button>
+    <button class="menu-btn" type="button" id="openDataBtn">
+      <span class="menu-btn-emoji">💾</span>
+      <span>Data</span>
+      <span class="menu-btn-chevron">›</span>
+    </button>
+    <button class="menu-btn" type="button" id="resetProgressBtn">
+      <span class="menu-btn-emoji">🔄</span>
+      <span>Reset Progression</span>
+    </button>
+  </section>
 
-      <hr class="section-divider">
-      <h2 class="settings-section-title">💾 Data</h2>
-      <div class="link-row">
-        <button class="link-muted" id="exportDataBtn">⬇ Export data</button>
-        <button class="link-muted" id="importDataBtn">⬆ Import data</button>
-      </div>
-      <input type="file" id="importFileInput" accept="application/json" style="display:none">
-
-      <hr class="section-divider">
-      <div class="link-row">
-        <button class="link-muted" id="resetProgressBtn">Reset progress</button>
-      </div>
+  <!-- SETTINGS > VOCABULARY SOURCES -->
+  <section id="settingsSources" class="screen">
+    <div class="back-row">
+      <button id="backFromSources" aria-label="Back">←</button>
+      <h2 style="margin:0;">Vocabulary sources</h2>
     </div>
+    <div class="wordlist-scroll" id="sourcesList"></div>
+  </section>
+
+  <!-- SETTINGS > DATA -->
+  <section id="settingsData" class="screen">
+    <div class="back-row">
+      <button id="backFromData" aria-label="Back">←</button>
+      <h2 style="margin:0;">Data</h2>
+    </div>
+    <button class="menu-btn" type="button" id="exportDataBtn">
+      <span class="menu-btn-emoji">⬇️</span>
+      <span>Export data</span>
+    </button>
+    <button class="menu-btn" type="button" id="importDataBtn">
+      <span class="menu-btn-emoji">⬆️</span>
+      <span>Import data</span>
+    </button>
+    <input type="file" id="importFileInput" accept="application/json" style="display:none">
   </section>
 
   <div class="wl-popup-backdrop" id="wlPopupBackdrop">
@@ -1483,6 +1538,14 @@ document.getElementById('backFromIssues').addEventListener('click', ()=>{
 });
 
 // ---------- Settings: vocabulary sources (per book, per lesson toggles) ----------
+// PREVIEW-ONLY placeholder for a book not added yet: rendered disabled/blurred
+// so the design can be previewed, but not wired into BOOKS (which would try to
+// fetch a file that doesn't exist). Remove this once data/connect2.json and a
+// real BOOKS entry are added — see the recipe comment near BOOKS above.
+const UPCOMING_BOOKS_PREVIEW = [
+  { title: 'Connect 2', lessonsCount: 6 },
+];
+
 function renderSettingsSources(){
   const scope = getActiveScope();
   const container = document.getElementById('sourcesList');
@@ -1505,34 +1568,93 @@ function renderSettingsSources(){
     detail.textContent = `${activeCount}/${bookWords.length} words active`;
     wrap.appendChild(detail);
 
-    const pills = document.createElement('div');
-    pills.className = 'pill-group source-lessons';
     for(let lesson = 1; lesson <= book.lessonsCount; lesson++){
       const count = bookWords.filter(w => w.lesson === lesson).length;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'pill' + (scope[book.id][lesson] ? ' active' : '');
-      btn.textContent = `Bài ${lesson}`;
-      btn.title = `${count} words`;
-      btn.addEventListener('click', () => {
-        setLessonActive(book.id, lesson, !scope[book.id][lesson]);
+      const isActive = !!scope[book.id][lesson];
+
+      const row = document.createElement('div');
+      row.className = 'lesson-row' + (isActive ? ' active' : '');
+
+      const check = document.createElement('span');
+      check.className = 'lesson-row-check';
+      check.textContent = isActive ? '✓' : '';
+      row.appendChild(check);
+
+      const label = document.createElement('span');
+      label.className = 'lesson-row-label';
+      label.textContent = `Lesson ${lesson}`;
+      row.appendChild(label);
+
+      const countEl = document.createElement('span');
+      countEl.className = 'lesson-row-count';
+      countEl.textContent = `${count} words`;
+      row.appendChild(countEl);
+
+      row.addEventListener('click', () => {
+        setLessonActive(book.id, lesson, !isActive);
         renderSettingsSources();
       });
-      pills.appendChild(btn);
+
+      wrap.appendChild(row);
     }
-    wrap.appendChild(pills);
+
+    container.appendChild(wrap);
+  });
+
+  // Design preview of upcoming books — disabled until real data is added.
+  UPCOMING_BOOKS_PREVIEW.forEach(book => {
+    const wrap = document.createElement('div');
+    wrap.className = 'source-book';
+
+    const title = document.createElement('div');
+    title.className = 'source-book-title';
+    title.innerHTML = `${book.title} <span class="source-book-tag">COMING SOON</span>`;
+    wrap.appendChild(title);
+
+    const detail = document.createElement('div');
+    detail.className = 'source-book-detail';
+    detail.textContent = 'Add data/connect2.json to unlock';
+    wrap.appendChild(detail);
+
+    for(let lesson = 1; lesson <= book.lessonsCount; lesson++){
+      const row = document.createElement('div');
+      row.className = 'lesson-row disabled';
+
+      const check = document.createElement('span');
+      check.className = 'lesson-row-check';
+      row.appendChild(check);
+
+      const label = document.createElement('span');
+      label.className = 'lesson-row-label';
+      label.textContent = `Lesson ${lesson}`;
+      row.appendChild(label);
+
+      wrap.appendChild(row);
+    }
 
     container.appendChild(wrap);
   });
 }
 
 document.getElementById('settingsBtn').addEventListener('click', ()=>{
-  renderSettingsSources();
   showScreen('settings');
 });
 document.getElementById('backFromSettings').addEventListener('click', ()=>{
   showScreen('home');
   refreshStats();
+});
+document.getElementById('openSourcesBtn').addEventListener('click', ()=>{
+  renderSettingsSources();
+  showScreen('settingsSources');
+});
+document.getElementById('backFromSources').addEventListener('click', ()=>{
+  showScreen('settings');
+});
+document.getElementById('openDataBtn').addEventListener('click', ()=>{
+  showScreen('settingsData');
+});
+document.getElementById('backFromData').addEventListener('click', ()=>{
+  showScreen('settings');
 });
 
 (async function init(){
