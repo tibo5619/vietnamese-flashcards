@@ -85,11 +85,20 @@ confirm popup directly, no sub-screen).
   "Check for duplicates" (no network call). The removal comment right above
   `checkDuplicates()` in `index.html` documents exactly how to re-add it via
   a serverless function (planned in a future chantier — see below).
-- **No PDF of the source textbooks has ever been read in this Claude Code
-  project.** The existing `data/connect1.json` (359 words) was extracted in
-  a separate, earlier Claude.ai chat, before this project existed. To expand
-  it or add Connect 2, the user needs to attach the relevant PDF pages in a
-  new chat — Claude Code can read PDFs directly when attached.
+- **Source textbook PDFs live outside this project folder**, in a separate
+  working directory (`Vietnamese Books/Connect 1/` and `Connect 2/`, one PDF
+  per lesson plus vocabulary/grammar appendices) — authorize that folder for
+  the chat to read them. Claude Code's built-in PDF reader needs
+  `poppler` (`pdftoppm`), which isn't installed on this Mac and neither is
+  Homebrew; the workaround that worked is `python3 -m pip install --user
+  pymupdf` (no sudo/Homebrew needed) and reading pages via `fitz` in Bash.
+  The vocabulary appendix PDFs have machine-readable text in a multi-column
+  layout (word / definition / lesson) — extract with PyMuPDF's `get_text
+  ('dict')` using each line's bbox (x0 for column, y0 for row order), not
+  plain `get_text()` (column reading order isn't reliable). `data/connect1.json`
+  (359 words) was extracted in an earlier Claude.ai chat, before this project
+  existed; `data/connect2.json` (410 words) was extracted this way, in this
+  project, cross-checked against two independent readings of the source PDF.
 
 ## Working agreement with this user (complete beginner, non-technical)
 
@@ -117,20 +126,25 @@ confirm popup directly, no sub-screen).
 3. Settings UI redesign: bigger home menu buttons, 3-entry Settings menu,
    vertical lesson checklist, disabled Connect 2 preview, mobile viewport
    fix (`svh`).
+4. Connect 2 vocabulary added: `data/connect2.json` (410 words, lessons 1-6)
+   extracted from the source PDFs (see "Known constraints" for how), `BOOKS`
+   catalog entry added, the now-obsolete "COMING SOON" preview block removed
+   from Settings → Vocabulary sources, `sw.js` cache updated. Lessons default
+   to inactive, same as any newly-added book.
 
 ## Planned next (not started)
 
-- **Vocabulary content**: add Connect 2 (needs its PDF), broaden Connect 1
-  beyond the end-of-book glossary (needs the lesson PDFs), rework existing
-  Connect 1 entries (translations, sort-order handling for VN words starting
-  with "(", recontextualizing). Note: the "(" sorting issue is likely a sort
-  logic fix (ignore leading parentheses when comparing) rather than a data
-  fix — don't rewrite entries just to work around it.
+- **Vocabulary content**: broaden Connect 1 beyond the end-of-book glossary
+  (needs the per-lesson PDFs, already available — see "Known constraints"),
+  rework existing Connect 1 entries (translations, sort-order handling for
+  VN words starting with "(", recontextualizing). Note: the "(" sorting
+  issue is likely a sort logic fix (ignore leading parentheses when
+  comparing) rather than a data fix — don't rewrite entries just to work
+  around it.
 - **Add-word verification redesign**: replace the disabled Haiku check with
   something that doesn't depend on Claude.ai's sandbox — most likely a small
   serverless function (Cloudflare Worker / Netlify or Vercel function) that
   holds an API key server-side. Needs its own design discussion (which
   platform, how secrets are stored, deployment flow).
-- **Later**: extract grammar rules from Connect 1/2 (needs their PDFs) for a
-  possible grammar section; extract example sentences per word for a richer
-  card back.
+- **Later**: extract grammar rules from Connect 1/2 for a possible grammar
+  section; extract example sentences per word for a richer card back.
