@@ -366,7 +366,6 @@
   .settings-section-title{ font-size:16px; margin-bottom:14px; }
   .source-book{ margin-bottom:24px; }
   .source-book-title{ display:flex; align-items:baseline; gap:8px; font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:16px; color:var(--ink); margin-bottom:2px; }
-  .source-book-tag{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--gold); font-weight:600; letter-spacing:.03em; }
   .source-book-detail{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:10px; }
   .lesson-row{
     display:flex; align-items:center; gap:12px;
@@ -655,6 +654,7 @@
 // user turns them on in Settings — see getActiveScope() further down.
 const BOOKS = [
   { id: 'connect1', title: 'Connect 1', file: 'data/connect1.json', lessonsCount: 6 },
+  { id: 'connect2', title: 'Connect 2', file: 'data/connect2.json', lessonsCount: 6 },
 ];
 
 let baseVocab = []; // filled by loadBooksData(), each entry tagged with its `book` id
@@ -1538,14 +1538,6 @@ document.getElementById('backFromIssues').addEventListener('click', ()=>{
 });
 
 // ---------- Settings: vocabulary sources (per book, per lesson toggles) ----------
-// PREVIEW-ONLY placeholder for a book not added yet: rendered disabled/blurred
-// so the design can be previewed, but not wired into BOOKS (which would try to
-// fetch a file that doesn't exist). Remove this once data/connect2.json and a
-// real BOOKS entry are added — see the recipe comment near BOOKS above.
-const UPCOMING_BOOKS_PREVIEW = [
-  { title: 'Connect 2', lessonsCount: 6 },
-];
-
 function renderSettingsSources(){
   const scope = getActiveScope();
   const container = document.getElementById('sourcesList');
@@ -1594,40 +1586,6 @@ function renderSettingsSources(){
         setLessonActive(book.id, lesson, !isActive);
         renderSettingsSources();
       });
-
-      wrap.appendChild(row);
-    }
-
-    container.appendChild(wrap);
-  });
-
-  // Design preview of upcoming books — disabled until real data is added.
-  UPCOMING_BOOKS_PREVIEW.forEach(book => {
-    const wrap = document.createElement('div');
-    wrap.className = 'source-book';
-
-    const title = document.createElement('div');
-    title.className = 'source-book-title';
-    title.innerHTML = `${book.title} <span class="source-book-tag">COMING SOON</span>`;
-    wrap.appendChild(title);
-
-    const detail = document.createElement('div');
-    detail.className = 'source-book-detail';
-    detail.textContent = 'Add data/connect2.json to unlock';
-    wrap.appendChild(detail);
-
-    for(let lesson = 1; lesson <= book.lessonsCount; lesson++){
-      const row = document.createElement('div');
-      row.className = 'lesson-row disabled';
-
-      const check = document.createElement('span');
-      check.className = 'lesson-row-check';
-      row.appendChild(check);
-
-      const label = document.createElement('span');
-      label.className = 'lesson-row-label';
-      label.textContent = `Lesson ${lesson}`;
-      row.appendChild(label);
 
       wrap.appendChild(row);
     }
