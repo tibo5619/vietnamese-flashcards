@@ -116,7 +116,6 @@
   .btn-gold-outline{ background:var(--surface); color:var(--gold); border:1px solid var(--gold); }
 
   .home-actions{ display:flex; flex-direction:column; gap:10px; }
-  .home-foot{ display:flex; flex-direction:column; gap:10px; margin-top:22px; }
   .home-settings-btn{
     position:absolute; top:14px; left:16px; z-index:5;
     background:none; border:none; padding:0;
@@ -160,7 +159,7 @@
 
   /* ---------- SESSION ---------- */
   #session{ padding-top:12px; min-height:0; }
-  .session-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .session-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding-right:50px; }
   .icon-btn{ background:none; border:none; color:var(--muted); font-size:22px; line-height:1; padding:6px; cursor:pointer; }
   .progress-track{ flex:1; margin:0 14px; height:3px; background:var(--line); border-radius:2px; overflow:hidden;}
   .progress-fill{ height:100%; background:var(--gold); border-radius:2px; transition:width .25s ease; }
@@ -217,15 +216,6 @@
   .session-actions{ display:flex; flex-direction:column; gap:8px; opacity:0; pointer-events:none; transition:opacity .2s ease; }
   .session-actions.visible{ opacity:1; pointer-events:auto; }
   .session-actions-main{ display:flex; gap:10px; }
-  .btn-report{
-    display:flex; align-items:center; justify-content:center; gap:6px;
-    width:100%; background:var(--gold-soft); border:none;
-    color:#7A5A12; font-family:inherit; font-weight:600; font-size:12px;
-    padding:10px; border-radius:12px; cursor:pointer;
-    box-shadow:0 3px 0 rgba(184,134,42,0.4);
-  }
-  .btn-report:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.15); }
-  .btn-report-emoji{ font-size:16px; line-height:1; }
   .btn-review{
     flex:1; background:var(--red-soft); color:#7A2A1B; border:none;
     border-radius:16px; justify-content:center; gap:8px;
@@ -257,6 +247,7 @@
   }
   .check-result{
     border-radius:12px; padding:12px 14px; margin-bottom:16px; font-size:13px; line-height:1.5; display:none;
+    max-height:340px; overflow-y:auto;
   }
   .check-result.show{ display:block; }
   .check-result.ok{ background:var(--jade-soft); color:#20463A; border:1px solid rgba(47,82,69,0.3); }
@@ -264,6 +255,8 @@
   .check-result.error{ background:var(--red-soft); color:#7A2A1B; border:1px solid rgba(154,51,35,0.3); }
   .check-result > div + div{ margin-top:8px; }
   .check-suggestion-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+  .dict-headword{ font-weight:600; font-size:13.5px; margin-top:10px; }
+  .dict-more-senses{ font-size:11.5px; opacity:0.75; padding-left:10px; margin-top:2px; }
   .dict-credit{ color:var(--muted); font-size:11.5px; line-height:1.5; margin-top:20px; }
   .hidden{ display:none !important; }
   .btn-apply{
@@ -271,25 +264,6 @@
     font-size:11.5px; padding:5px 10px; cursor:pointer; font-family:inherit; flex-shrink:0;
   }
 
-  .section-divider{ border:none; border-top:1px solid var(--line); margin:24px 0; }
-  .notes-add-row{ display:flex; gap:8px; margin-bottom:14px; }
-  .notes-add-row input{
-    flex:1; background:var(--surface); border:1px solid var(--line); border-radius:12px;
-    padding:12px 14px; color:var(--ink); font-size:15px; font-family:inherit;
-  }
-  .notes-add-row input:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:transparent;}
-  .btn-add-note{
-    background:var(--jade); color:#F3F8F6; border:none; border-radius:12px;
-    padding:0 16px; font-size:20px; cursor:pointer; font-family:inherit; line-height:1;
-  }
-  .note-item{
-    display:flex; align-items:flex-start; gap:8px;
-    border:1px solid var(--line); border-radius:10px; background:var(--surface);
-    padding:10px 12px; margin-bottom:8px;
-  }
-  .note-text{ flex:1; font-size:13.5px; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
-  .note-del{ background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 4px; flex-shrink:0; }
-  .notes-empty{ color:var(--muted); font-size:12.5px; text-align:center; margin:10px 0; }
   .toast{
     position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
     background:var(--jade); color:#F3F8F6; font-weight:600; font-size:14px;
@@ -298,9 +272,27 @@
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-right:50px; }
   .back-row button{ background:none;border:none;color:var(--ink);font-size:20px;cursor:pointer;padding:4px 6px 4px 0;}
   .back-row h2{ font-size:19px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+
+  /* ---------- FLOATING REPORT/ISSUES BUTTON ---------- */
+  .floating-issue-btn{
+    position:absolute; top:12px; right:16px; z-index:10;
+    background:none; border:none; padding:0; margin:0;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .floating-issue-btn:active{ transform:scale(0.9); }
+  .floating-issue-flag{ font-size:30px; line-height:1; color:var(--muted); }
+  .floating-issue-btn.mode-list .floating-issue-flag{ color:var(--gold); }
+  .floating-issue-badge{
+    position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px;
+    border-radius:8px; background:var(--red); color:#FBEFE9;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:700;
+    align-items:center; justify-content:center; display:none;
+  }
+  .floating-issue-badge.show{ display:flex; }
 
   /* ---------- WORD LIST ---------- */
   #wordlist{ padding-top:16px; }
@@ -428,6 +420,11 @@
     </g>
   </svg>
 
+  <button type="button" id="floatingIssueBtn" class="floating-issue-btn" aria-label="Report an issue" title="Report an issue">
+    <span class="floating-issue-flag">⚑</span>
+    <span class="floating-issue-badge" id="floatingIssueBadge">0</span>
+  </button>
+
   <!-- HOME -->
   <section id="home" class="screen active">
     <button type="button" id="settingsBtn" class="home-settings-btn" aria-label="Settings" title="Settings">⚙️</button>
@@ -460,13 +457,6 @@
     <div class="home-actions">
       <button class="btn btn-primary" id="startBtn">Start a session</button>
       <button class="btn btn-gold-outline" id="addBtn">+ Add a word</button>
-      <div class="home-foot">
-        <button class="menu-btn" type="button" id="issuesBtn">
-          <span class="menu-btn-emoji">⚑</span>
-          <span>Reported issues (<span id="issuesCount">0</span>)</span>
-          <span class="menu-btn-chevron">›</span>
-        </button>
-      </div>
     </div>
   </section>
 
@@ -498,7 +488,6 @@
         <button class="btn btn-review" id="reviewBtn">Needs work <span class="btn-emoji">🧠</span></button>
         <button class="btn btn-known" id="knownBtn">Got it <span class="btn-emoji">✅</span></button>
       </div>
-      <button class="btn-report" id="reportIssueBtn" type="button">Report an issue <span class="btn-report-emoji">🚩</span></button>
     </div>
   </section>
 
@@ -519,14 +508,6 @@
     <button class="btn btn-check" id="checkDupBtn" type="button">Check word</button>
     <div class="check-result" id="checkResult"></div>
     <button class="btn btn-primary hidden" id="saveWordBtn">Save</button>
-
-    <hr class="section-divider">
-    <h2>Quick notes</h2>
-    <div class="notes-add-row">
-      <input id="inputNote" type="text" placeholder="Scribble a word to sort out later..." autocomplete="off">
-      <button class="btn-add-note" id="addNoteBtn" type="button" aria-label="Add note">+</button>
-    </div>
-    <div id="notesList"></div>
   </section>
 
   <!-- WORD LIST (tap-through from home) -->
@@ -558,6 +539,12 @@
     <div class="back-row">
       <button id="backFromIssues" aria-label="Back">←</button>
       <h2 style="margin:0;">Reported issues</h2>
+    </div>
+    <button class="btn btn-gold-outline" id="newIssueBtn" type="button" style="margin-bottom:14px;">+ New report</button>
+    <div class="wl-status-toggle pill-group" id="issuesStatusGroup">
+      <button class="pill" data-value="open">Unresolved</button>
+      <button class="pill" data-value="resolved">Resolved</button>
+      <button class="pill active" data-value="all">All</button>
     </div>
     <div class="wordlist-scroll" id="issuesScroll"></div>
   </section>
@@ -625,7 +612,7 @@
       <span>Import data</span>
     </button>
     <input type="file" id="importFileInput" accept="application/json" style="display:none">
-    <p class="dict-credit">Word verification on "Add a word" uses dictionary data from the Free Vietnamese Dictionary Project / Open Vietnamese Dictionary Project (GNU GPL).</p>
+    <p class="dict-credit">Word verification on "Add a word" uses Vietnamese dictionary data from Wiktionary contributors (Creative Commons Attribution-ShareAlike 3.0).</p>
   </section>
 
   <div class="wl-popup-backdrop" id="wlPopupBackdrop">
@@ -732,7 +719,6 @@ let selectedSize = 20;
 
 let customVocab = [];
 let progress = {};
-let quickNotes = [];
 let issueReports = [];
 let deck = [];
 let deckPos = 0;
@@ -749,7 +735,7 @@ function showToast(msg){
 
 // ---------- Storage (localStorage — data lives on this device/browser only) ----------
 // Same keys and JSON shapes as the previous window.storage version (see
-// spec.md): custom-vocab, progress, quick-notes, issue-reports. localStorage
+// spec.md): custom-vocab, progress, issue-reports. localStorage
 // is synchronous, but these helpers stay `async` so every existing call site
 // (`await saveProgress()`, etc.) keeps working unchanged.
 function loadJSON(key, fallback){
@@ -776,16 +762,11 @@ function flagStorageError(){
 async function loadState(){
   customVocab = loadJSON('custom-vocab', []);
   progress = loadJSON('progress', {});
-  quickNotes = loadJSON('quick-notes', []);
   issueReports = loadJSON('issue-reports', []);
 }
 
 async function saveIssueReports(){
   if(!saveJSON('issue-reports', issueReports)) flagStorageError();
-}
-
-async function saveQuickNotes(){
-  if(!saveJSON('quick-notes', quickNotes)) flagStorageError();
 }
 
 async function saveCustomVocab(){
@@ -879,8 +860,7 @@ function refreshStats(){
   const knownCount = all.filter(w => isKnownAnyDir(w.id)).length;
   const reviewCount = all.filter(w => isNeedsReviewAnyDir(w.id)).length;
   document.getElementById('directoryDetail').textContent = `${all.length} words · ${knownCount} known · ${reviewCount} to review`;
-  const unresolvedCount = issueReports.filter(r => !r.resolved).length;
-  document.getElementById('issuesCount').textContent = unresolvedCount;
+  updateFloatingIcon();
 }
 
 function shuffle(arr){
@@ -951,9 +931,13 @@ function buildDeck(){
   deckPos = 0;
 }
 
+let currentScreenId = 'home';
+
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  currentScreenId = id;
+  updateFloatingIcon();
 }
 
 function renderCard(){
@@ -1081,7 +1065,6 @@ document.getElementById('knownBtn').addEventListener('click', ()=>markCard(true)
 document.getElementById('reviewBtn').addEventListener('click', ()=>markCard(false));
 
 document.getElementById('addBtn').addEventListener('click', ()=>{
-  renderNotes();
   clearCheckResult();
   loadDictionaryData();
   showScreen('add');
@@ -1111,55 +1094,6 @@ document.getElementById('saveWordBtn').addEventListener('click', async ()=>{
   clearCheckResult();
   showToast('Word added');
   refreshStats();
-});
-
-// ---------- Quick notes (unstructured scratchpad) ----------
-function renderNotes(){
-  const list = document.getElementById('notesList');
-  list.innerHTML = '';
-  if(quickNotes.length === 0){
-    const empty = document.createElement('div');
-    empty.className = 'notes-empty';
-    empty.textContent = 'No notes yet — jot down a word you don\'t have time to add properly.';
-    list.appendChild(empty);
-    return;
-  }
-  // Most recent first.
-  quickNotes.slice().reverse().forEach(note => {
-    const item = document.createElement('div');
-    item.className = 'note-item';
-
-    const text = document.createElement('div');
-    text.className = 'note-text';
-    text.textContent = note.text;
-    item.appendChild(text);
-
-    const del = document.createElement('button');
-    del.className = 'note-del';
-    del.setAttribute('aria-label', 'Delete note');
-    del.textContent = '🗑';
-    del.addEventListener('click', async ()=>{
-      quickNotes = quickNotes.filter(n => n.id !== note.id);
-      await saveQuickNotes();
-      renderNotes();
-    });
-    item.appendChild(del);
-
-    list.appendChild(item);
-  });
-}
-
-document.getElementById('addNoteBtn').addEventListener('click', async ()=>{
-  const input = document.getElementById('inputNote');
-  const text = input.value.trim();
-  if(!text) return;
-  quickNotes.push({ id: 'n' + Date.now(), text, createdAt: Date.now() });
-  await saveQuickNotes();
-  input.value = '';
-  renderNotes();
-});
-document.getElementById('inputNote').addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter') document.getElementById('addNoteBtn').click();
 });
 
 // ---------- Check result box (shared with the duplicate check below) ----------
@@ -1205,8 +1139,16 @@ function findVnDuplicate(vn){
   if(!norm) return null;
   let exact = null, near = null, nearDist = Infinity;
   for(const w of allVocab()){
+    if(w.vn === vn){ exact = w; break; }
     const wNorm = normalizeVn(w.vn);
-    if(wNorm === norm){ exact = w; break; }
+    if(wNorm === norm){
+      // Same spelling once accents are stripped, but a different accented
+      // word (e.g. "chó" dog vs "chỗ" place) — a real, distinct dictionary
+      // headword, not a duplicate. Surface it as a "near" warning (like a
+      // likely accent typo) rather than blocking outright.
+      if(!near || nearDist > 0){ near = w; nearDist = 0; }
+      continue;
+    }
     if(norm.length <= 20){
       const threshold = norm.length <= 6 ? 1 : 2;
       const dist = levenshteinDistance(norm, wNorm);
@@ -1280,20 +1222,44 @@ function applyDictionaryEntry(vn, en){
   }
 }
 
-function dictSuggestionRow(variant){
-  const row = document.createElement('div');
-  row.className = 'check-suggestion-row';
-  const label = document.createElement('span');
-  const gl = variant.gl.slice(0, 3).join(', ') || '(no gloss available)';
-  label.textContent = `${variant.vn} — ${gl}`;
-  row.appendChild(label);
-  const btn = document.createElement('button');
-  btn.className = 'btn-apply';
-  btn.type = 'button';
-  btn.textContent = 'Apply';
-  btn.addEventListener('click', () => applyDictionaryEntry(variant.vn, gl === '(no gloss available)' ? '' : gl));
-  row.appendChild(btn);
-  return row;
+// One dictionary entry can have many senses (e.g. "ban" has 11) — showing
+// them all combined into a single Apply used to force applying a messy
+// concatenation of every sense. Instead: the headword once, then each of
+// its first couple of senses as its own row with its own Apply, so picking
+// "dog" applies exactly "dog" rather than every sense glued together.
+const MAX_SENSES_SHOWN = 2;
+
+function dictSenseRows(variant){
+  const frag = document.createDocumentFragment();
+  const label = document.createElement('div');
+  label.className = 'dict-headword';
+  label.textContent = variant.vn;
+  frag.appendChild(label);
+
+  const glosses = variant.gl.length ? variant.gl.slice(0, MAX_SENSES_SHOWN) : ['(no gloss available)'];
+  glosses.forEach(gloss => {
+    const row = document.createElement('div');
+    row.className = 'check-suggestion-row';
+    row.style.paddingLeft = '10px';
+    const span = document.createElement('span');
+    span.textContent = gloss;
+    row.appendChild(span);
+    const btn = document.createElement('button');
+    btn.className = 'btn-apply';
+    btn.type = 'button';
+    btn.textContent = 'Apply';
+    btn.addEventListener('click', () => applyDictionaryEntry(variant.vn, gloss === '(no gloss available)' ? '' : gloss));
+    row.appendChild(btn);
+    frag.appendChild(row);
+  });
+  if(variant.gl.length > MAX_SENSES_SHOWN){
+    const more = document.createElement('div');
+    more.className = 'dict-more-senses';
+    const n = variant.gl.length - MAX_SENSES_SHOWN;
+    more.textContent = `+${n} more sense${n > 1 ? 's' : ''}`;
+    frag.appendChild(more);
+  }
+  return frag;
 }
 
 function reportRow(vn, en){
@@ -1332,9 +1298,9 @@ function renderVnDictionaryNotice(box, variants){
   const intro = document.createElement('div');
   intro.textContent = variants.length === 1
     ? '✓ Found in the reference dictionary:'
-    : '⚠ Several Vietnamese words share this spelling without accents — pick the right one:';
+    : '⚠ Several Vietnamese words share this spelling without accents — pick the right sense:';
   box.appendChild(intro);
-  variants.forEach(v => box.appendChild(dictSuggestionRow(v)));
+  variants.forEach(v => box.appendChild(dictSenseRows(v)));
   return variants.length === 1 ? 'ok' : 'ambiguous';
 }
 
@@ -1350,7 +1316,7 @@ function renderEnDictionaryNotice(box, en, candidates){
   const intro = document.createElement('div');
   intro.textContent = `Possible Vietnamese words for "${en}":`;
   box.appendChild(intro);
-  shown.forEach(headword => box.appendChild(dictSuggestionRow(dictEntryFor(headword))));
+  shown.forEach(headword => box.appendChild(dictSenseRows(dictEntryFor(headword))));
   if(candidates.length > 8){
     const more = document.createElement('div');
     more.textContent = `+${candidates.length - 8} more — refine your search to narrow it down.`;
@@ -1478,7 +1444,6 @@ function exportData(){
     version: 1,
     customVocab,
     progress,
-    quickNotes,
     issueReports
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -1536,9 +1501,8 @@ document.getElementById('importConfirmBtn').addEventListener('click', async ()=>
   if(!data) return;
   customVocab = Array.isArray(data.customVocab) ? data.customVocab : [];
   progress = (data.progress && typeof data.progress === 'object') ? data.progress : {};
-  quickNotes = Array.isArray(data.quickNotes) ? data.quickNotes : [];
   issueReports = Array.isArray(data.issueReports) ? data.issueReports : [];
-  await Promise.all([saveCustomVocab(), saveProgress(), saveQuickNotes(), saveIssueReports()]);
+  await Promise.all([saveCustomVocab(), saveProgress(), saveIssueReports()]);
   closeImportConfirm();
   refreshStats();
   showToast('Backup imported');
@@ -1716,18 +1680,36 @@ document.querySelectorAll('#wlLangGroup .pill').forEach(btn=>{
 });
 
 // ---------- Report an issue (translation, spelling, or app behavior) ----------
-// context is either a reviewed card ({vn, en, wordId, dir}) or a not-yet-
-// saved word from "Add a word" ({vn, en} only, no wordId/dir). Defaults to
-// the card currently being reviewed when called with no argument (the
-// session screen's "Report an issue" button).
+// context is either a reviewed card ({vn, en, wordId, dir}), a not-yet-saved
+// word from "Add a word" ({vn, en} only, no wordId/dir), or null for a
+// generic report tied only to the current screen (no word). The floating
+// icon (see updateFloatingIcon()) opens this directly everywhere except on
+// home, where it opens the issues list instead.
 let reportContext = null;
 
+const PAGE_LABELS = {
+  home: 'Home', session: 'Session', add: 'Add a word', wordlist: 'Vocabulary list',
+  issues: 'Reported issues', settings: 'Settings', settingsSources: 'Settings',
+  settingsData: 'Settings'
+};
+function pageLabel(id){ return PAGE_LABELS[id] || id; }
+
 function openReportPopup(context){
-  if(!context && !currentCard) return;
-  reportContext = context || { vn: currentCard.vn, en: currentCard.en, wordId: currentCard.id, dir: currentCard.dir };
-  const dirLabel = reportContext.dir === 'vn2en' ? 'VN → EN' : reportContext.dir === 'en2vn' ? 'EN → VN' : 'New word';
-  document.getElementById('reportPopupWord').textContent = `${reportContext.vn} — ${reportContext.en}`;
-  document.getElementById('reportPopupDir').textContent = dirLabel;
+  if(context){
+    reportContext = context;
+  } else if(currentScreenId === 'session' && currentCard){
+    reportContext = { vn: currentCard.vn, en: currentCard.en, wordId: currentCard.id, dir: currentCard.dir };
+  } else {
+    reportContext = { vn: null, en: null, wordId: null, dir: null };
+  }
+  if(reportContext.vn){
+    const dirLabel = reportContext.dir === 'vn2en' ? 'VN → EN' : reportContext.dir === 'en2vn' ? 'EN → VN' : 'New word';
+    document.getElementById('reportPopupWord').textContent = `${reportContext.vn} — ${reportContext.en}`;
+    document.getElementById('reportPopupDir').textContent = dirLabel;
+  } else {
+    document.getElementById('reportPopupWord').textContent = 'General report';
+    document.getElementById('reportPopupDir').textContent = pageLabel(currentScreenId);
+  }
   document.getElementById('reportNoteInput').value = '';
   document.getElementById('reportPopupBackdrop').classList.add('show');
 }
@@ -1735,7 +1717,6 @@ function closeReportPopup(){
   document.getElementById('reportPopupBackdrop').classList.remove('show');
 }
 
-document.getElementById('reportIssueBtn').addEventListener('click', ()=> openReportPopup());
 document.getElementById('reportCancelBtn').addEventListener('click', closeReportPopup);
 document.getElementById('reportPopupBackdrop').addEventListener('click', (e)=>{
   if(e.target.id === 'reportPopupBackdrop') closeReportPopup();
@@ -1749,6 +1730,7 @@ document.getElementById('reportSubmitBtn').addEventListener('click', async ()=>{
     vn: reportContext.vn,
     en: reportContext.en,
     dir: reportContext.dir || null,
+    page: currentScreenId,
     note,
     resolved: false,
     createdAt: Date.now()
@@ -1757,22 +1739,32 @@ document.getElementById('reportSubmitBtn').addEventListener('click', async ()=>{
   closeReportPopup();
   showToast('Issue reported — thanks!');
   refreshStats();
+  if(currentScreenId === 'issues') renderIssuesList();
 });
 
-function renderIssuesList(){
+let issuesStatusFilter = 'all';
+
+function renderIssuesList(status){
+  if(status) issuesStatusFilter = status;
   const scroll = document.getElementById('issuesScroll');
   scroll.innerHTML = '';
 
-  if(issueReports.length === 0){
+  const filtered = issueReports.filter(r => {
+    if(issuesStatusFilter === 'open') return !r.resolved;
+    if(issuesStatusFilter === 'resolved') return r.resolved;
+    return true;
+  });
+
+  if(filtered.length === 0){
     const empty = document.createElement('div');
     empty.className = 'wordlist-empty';
-    empty.textContent = 'No issues reported yet.';
+    empty.textContent = issueReports.length === 0 ? 'No issues reported yet.' : 'No issues in this filter.';
     scroll.appendChild(empty);
     return;
   }
 
   // Unresolved first (most recent first within each group).
-  const sorted = issueReports.slice().sort((a, b) => {
+  const sorted = filtered.slice().sort((a, b) => {
     if(a.resolved !== b.resolved) return a.resolved ? 1 : -1;
     return b.createdAt - a.createdAt;
   });
@@ -1798,14 +1790,15 @@ function renderIssuesList(){
 
     const word = document.createElement('div');
     word.className = 'issue-word';
-    word.textContent = `${report.vn} — ${report.en}`;
+    word.textContent = report.vn ? `${report.vn} — ${report.en}` : 'General report';
     body.appendChild(word);
 
     const meta = document.createElement('div');
     meta.className = 'issue-meta';
-    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : report.dir === 'en2vn' ? 'EN→VN' : 'New word';
+    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : report.dir === 'en2vn' ? 'EN→VN' : (report.vn ? 'New word' : null);
+    const pageLbl = pageLabel(report.page);
     const dateLabel = new Date(report.createdAt).toLocaleDateString();
-    meta.textContent = `${dirLabel} · ${dateLabel}`;
+    meta.textContent = [dirLabel, pageLbl, dateLabel].filter(Boolean).join(' · ');
     body.appendChild(meta);
 
     const note = document.createElement('div');
@@ -1818,10 +1811,42 @@ function renderIssuesList(){
   });
 }
 
-document.getElementById('issuesBtn').addEventListener('click', ()=>{
-  renderIssuesList();
-  showScreen('issues');
+document.getElementById('newIssueBtn').addEventListener('click', () => openReportPopup());
+document.querySelectorAll('#issuesStatusGroup .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#issuesStatusGroup .pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderIssuesList(btn.dataset.value);
+  });
 });
+
+function updateFloatingIcon(){
+  const btn = document.getElementById('floatingIssueBtn');
+  const badge = document.getElementById('floatingIssueBadge');
+  if(currentScreenId === 'issues'){
+    btn.classList.add('hidden');
+    return;
+  }
+  btn.classList.remove('hidden');
+  if(currentScreenId === 'home'){
+    btn.classList.add('mode-list');
+    const unresolvedCount = issueReports.filter(r => !r.resolved).length;
+    badge.textContent = unresolvedCount;
+    badge.classList.toggle('show', unresolvedCount > 0);
+  } else {
+    btn.classList.remove('mode-list');
+    badge.classList.remove('show');
+  }
+}
+document.getElementById('floatingIssueBtn').addEventListener('click', ()=>{
+  if(currentScreenId === 'home'){
+    renderIssuesList();
+    showScreen('issues');
+  } else {
+    openReportPopup();
+  }
+});
+
 document.getElementById('backFromIssues').addEventListener('click', ()=>{
   showScreen('home');
   refreshStats();

@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
 """
-One-off data-prep tool: turns the FVDP/OVDP Vietnamese-English dictionary
-(GNU GPL v2-or-later) into data/dictionary.json, the static asset the app
-fetches at runtime to power the "Check for duplicates" verification.
+One-off data-prep tool: turns Wiktionary's Vietnamese-language entries
+(extracted from en.wiktionary.org, CC BY-SA 3.0) into data/dictionary.json,
+the static asset the app fetches at runtime to power "Check word" on the
+Add-a-word screen.
 
-Source: https://raw.githubusercontent.com/iamstevendao/superfast-dictionary/
-        master/app/src/main/assets/vietanh.json
-(a JSON-ish export of the Free Vietnamese Dictionary Project + Open
-Vietnamese Dictionary Project data; not shipped to the browser, only this
-script's *output* is).
+Source: https://raw.githubusercontent.com/Trannosaur/published_dicts/
+        master/vi2enwikitxt.txt
+(a tab-separated dump of Vietnamese Wiktionary entries: headword, blank,
+numbered senses joined by "<br />" with POS tags and examples, tags).
+Chosen over the older FVDP/OVDP dictionary (used until this script's
+previous version) because FVDP was compiled 1997-2007 and never updated
+since, and some of its glosses are garbled from ambiguous legacy markup
+(e.g. "chó" (dog) came out as "Dog spaniel boxer saluki" with no
+punctuation). This Wiktionary-derived source is actively maintained and
+its numbered-sense format parses unambiguously.
 
 Not run automatically — re-run manually (python3 scripts/build-dictionary.py)
 if the upstream source ever needs to be refreshed.
 
-Output shape:
+Output shape (unchanged from the previous FVDP-based version, so no
+runtime code in index.html needs to change):
   {
-    "_license": "<verbatim FVDP/OVDP GPL notice>",
+    "_license": "<attribution text>",
     "vn": { "<diacritic-stripped spelling>": [ {"vn": "<headword>", "gl": ["<gloss>", ...]}, ... ], ... },
     "en": { "<english phrase>": ["<vn headword>", ...], ... }
   }
@@ -26,84 +33,36 @@ import unicodedata
 import urllib.request
 from pathlib import Path
 
-SOURCE_URL = "https://raw.githubusercontent.com/iamstevendao/superfast-dictionary/master/app/src/main/assets/vietanh.json"
+SOURCE_URL = "https://raw.githubusercontent.com/Trannosaur/published_dicts/master/vi2enwikitxt.txt"
 OUT_PATH = Path(__file__).resolve().parent.parent / "data" / "dictionary.json"
-META_KEYS = {"00-database-info", "00-database-short", "00-database-url"}
+LICENSE_TEXT = (
+    "Vietnamese-English glosses derived from English Wiktionary "
+    "(https://en.wiktionary.org) contributor content, via the "
+    "vi2enwikitxt.txt extract at "
+    "https://github.com/Trannosaur/published_dicts. "
+    "Licensed under Creative Commons Attribution-ShareAlike 3.0 Unported "
+    "(https://creativecommons.org/licenses/by-sa/3.0/)."
+)
 
-# The source file isn't strictly valid JSON (some values contain unescaped
-# inner quotes; a few entries have a literal newline inside a [pronunciation]
-# bracket), so it's parsed line-by-line: buffer lines until one matches a
-# complete "key": "value" pair, using a greedy value match so the *last*
-# quote on the buffered text is treated as the closing delimiter.
-LINE_RE = re.compile(r'^\s*"(.*?)":\s*"(.*)"\s*,?\s*$', re.DOTALL)
-SKIP_RE = re.compile(r'^\s*[{}]\s*,?\s*$')
-
-
-def unescape(s):
-    return (s.replace('\\r', '')
-             .replace('\\n', ' ')
-             .replace('\\t', ' ')
-             .replace('\\/', '/')
-             .replace('\\"', '"')
-             .replace('\\\\', '\\'))
+# Each source line is 4 tab-separated fields: "<n>[:-]<headword>", "",
+# "<numbered senses joined by <br />>", "<space-separated tags>".
+SENSE_RE = re.compile(r'^(\d+)\.\s*(?:\(([^)]*)\)\s*)?(.*)$')
 
 
-def parse_entries(raw_text):
-    entries = {}
-    buf = []
-    for line in raw_text.split('\n'):
-        if not buf and SKIP_RE.match(line):
-            continue
-        buf.append(line)
-        candidate = '\n'.join(buf)
-        m = LINE_RE.match(candidate)
-        if m:
-            entries[unescape(m.group(1))] = unescape(m.group(2))
-            buf = []
-    return entries
-
-
-# Markup per entry: "@headword [pron]* POS- gloss1- gloss2=vn_ex+en_ex..."
-# repeated per POS block (blocks separated by "*"). We only need the
-# glosses (not POS labels, which mix English/Vietnamese inconsistently in
-# the source, or the worked examples), so:
-#  - strip the leading "@headword [pronunciation]" echo
-#  - split into POS blocks on "*"
-#  - within each block, drop the POS label (text before the first "-")
-#  - split remaining text into sub-senses on a hyphen followed by an
-#    uppercase letter or "(" (distinguishes sub-sense separators like
-#    "daylight- Rash" from mid-word hyphens like "hold-up")
-#  - for each sub-sense, keep only the text before its first "=" (drops
-#    the VN/EN example pair that follows)
-POS_PREFIX_RE = re.compile(r'^[^\-=]{0,25}-\s*(.*)$', re.DOTALL)
-SUBSENSE_SPLIT_RE = re.compile(r'-(?=\s*[A-ZÀ-Ỹ(])')
-
-
-def extract_glosses(headword, value):
-    s = value[1:] if value.startswith('@') else value
-    if s.lower().startswith(headword.lower()):
-        s = s[len(headword):]
-    s = re.sub(r'^\s*\[[^\]]*\]', '', s)  # drop leading [pronunciation]
-
+def extract_senses(definition_field):
+    """Splits a Wiktionary-style '1. (pos) gloss<br />> example: ...<br />2. ...'
+    field into a flat list of gloss strings, dropping example/meaning lines
+    (prefixed '>') and POS tags — only the gloss text itself is kept."""
     glosses = []
-    for seg in s.split('*'):
-        seg = seg.strip()
-        if not seg:
+    for line in definition_field.split('<br />'):
+        line = line.strip()
+        if not line or line.startswith('>'):
             continue
-        m = POS_PREFIX_RE.match(seg)
-        text = m.group(1) if m else seg
-        for chunk in SUBSENSE_SPLIT_RE.split(text):
-            gloss = chunk.split('=')[0].strip(' -;,.')
-            if gloss and len(gloss) < 200:
-                glosses.append(gloss)
-
-    seen, out = set(), []
-    for g in glosses:
-        key = g.lower()
-        if key not in seen:
-            seen.add(key)
-            out.append(g)
-    return out
+        m = SENSE_RE.match(line)
+        text = m.group(3).strip() if m else line
+        if text:
+            glosses.append(text)
+    return glosses
 
 
 def normalize_vn(s):
@@ -136,15 +95,20 @@ def main():
     with urllib.request.urlopen(SOURCE_URL) as resp:
         raw_text = resp.read().decode('utf-8')
 
-    entries = parse_entries(raw_text)
-    license_text = entries.pop("00-database-info", "").strip()
-    for k in META_KEYS - {"00-database-info"}:
-        entries.pop(k, None)
+    entries = {}
+    for line in raw_text.split('\n'):
+        parts = line.rstrip('\n').split('\t')
+        if len(parts) != 4:
+            continue
+        headword = re.sub(r'^\d+[:-]', '', parts[0])
+        glosses = extract_senses(parts[2])
+        if not glosses:
+            continue
+        entries.setdefault(headword, []).extend(glosses)
     print(f"Parsed {len(entries)} dictionary entries.")
 
     vn_index, en_index = {}, {}
-    for headword, raw in entries.items():
-        glosses = extract_glosses(headword, raw)
+    for headword, glosses in entries.items():
         norm = normalize_vn(headword)
         vn_index.setdefault(norm, []).append({"vn": headword, "gl": glosses})
         for gloss in glosses:
@@ -153,7 +117,7 @@ def main():
                 if headword not in bucket:
                     bucket.append(headword)
 
-    out = {"_license": license_text, "vn": vn_index, "en": en_index}
+    out = {"_license": LICENSE_TEXT, "vn": vn_index, "en": en_index}
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT_PATH, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
