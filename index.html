@@ -133,13 +133,15 @@
 
   /* ---------- TEST MODE ---------- */
   .test-mode-banner{
-    display:none;
+    display:none; cursor:pointer;
     background:var(--gold); color:#3A2A00;
     text-align:center; font-weight:700; font-size:12.5px;
     padding:7px 10px;
   }
   body.test-mode .test-mode-banner{ display:block; }
+  .menu-btn-status{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; color:var(--muted); }
   #testModeBtn.active{ background:var(--gold-soft); border-color:var(--gold); }
+  #testModeBtn.active .menu-btn-status{ color:#7A5A12; }
   /* Everything that writes data (lesson toggles, import, resets, saving a
      new word) is neutralized while testing — Check word / browsing /
      Settings navigation stay fully usable so the demo still feels real. */
@@ -504,10 +506,6 @@
     </div>
     <div class="home-actions">
       <button class="btn btn-primary" id="startBtn">Start a session</button>
-      <button type="button" class="menu-btn" id="testModeBtn">
-        <span class="menu-btn-emoji">🚧</span>
-        <span id="testModeLabel">Test mode: Off</span>
-      </button>
     </div>
   </section>
 
@@ -627,6 +625,11 @@
       <span>Reset</span>
       <span class="menu-btn-chevron">›</span>
     </button>
+    <button class="menu-btn" type="button" id="testModeBtn">
+      <span class="menu-btn-emoji">🚧</span>
+      <span>Test mode</span>
+      <span class="menu-btn-status" id="testModeStatus">Off</span>
+    </button>
   </section>
 
   <!-- SETTINGS > RESET -->
@@ -720,6 +723,17 @@
       <div class="report-popup-actions">
         <button class="btn-apply" id="resetVocabCancelBtn" type="button">Cancel</button>
         <button class="btn btn-primary" id="resetVocabConfirmBtn" type="button" style="flex:1;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wl-popup-backdrop" id="testModeConfirmBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" style="font-size:17px;">Activate test mode?</div>
+      <div class="wl-popup-en" style="margin-bottom:16px;">Nothing gets saved while it's on: your real progress, Settings and vocabulary all stay untouched. You can still swipe cards and check words normally. A banner at the top will remind you it's active — tap it any time to come back here and turn it off.</div>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="testModeCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="testModeConfirmBtn" type="button" style="flex:1;">Activate</button>
       </div>
     </div>
   </div>
@@ -848,7 +862,7 @@ function setTestMode(on){
   testMode = on;
   document.body.classList.toggle('test-mode', on);
   document.getElementById('testModeBtn').classList.toggle('active', on);
-  document.getElementById('testModeLabel').textContent = 'Test mode: ' + (on ? 'On' : 'Off');
+  document.getElementById('testModeStatus').textContent = on ? 'On' : 'Off';
   if(!on){ progress = loadJSON('progress', {}); }
   refreshStats();
 }
@@ -2012,7 +2026,24 @@ function renderSettingsSources(){
 }
 
 document.getElementById('testModeBtn').addEventListener('click', ()=>{
-  setTestMode(!testMode);
+  if(testMode){
+    setTestMode(false);
+  }else{
+    document.getElementById('testModeConfirmBackdrop').classList.add('show');
+  }
+});
+document.getElementById('testModeCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('testModeConfirmBackdrop').classList.remove('show');
+});
+document.getElementById('testModeConfirmBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'testModeConfirmBackdrop') e.currentTarget.classList.remove('show');
+});
+document.getElementById('testModeConfirmBtn').addEventListener('click', ()=>{
+  setTestMode(true);
+  document.getElementById('testModeConfirmBackdrop').classList.remove('show');
+});
+document.getElementById('testModeBanner').addEventListener('click', ()=>{
+  showScreen('settings');
 });
 
 document.getElementById('settingsBtn').addEventListener('click', ()=>{
