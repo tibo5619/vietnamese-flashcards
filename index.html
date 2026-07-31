@@ -864,6 +864,13 @@ function setTestMode(on){
   document.getElementById('testModeBtn').classList.toggle('active', on);
   document.getElementById('testModeStatus').textContent = on ? 'On' : 'Off';
   if(!on){ progress = loadJSON('progress', {}); }
+  // The floating report button is position:absolute against #app, so it
+  // doesn't shift down on its own when the banner (a normal-flow element)
+  // pushes everything else — nudge it by the banner's real rendered height
+  // (measured, not hardcoded, since the banner's height can vary if its
+  // text wraps on a narrow screen).
+  const bannerHeight = on ? document.getElementById('testModeBanner').offsetHeight : 0;
+  document.getElementById('floatingIssueBtn').style.top = `calc(12px + ${bannerHeight}px)`;
   refreshStats();
 }
 
