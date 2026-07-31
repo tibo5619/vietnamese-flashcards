@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="home-active">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
@@ -27,14 +27,22 @@
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
+  /* Pull-to-refresh is only allowed on the home screen — showScreen() toggles
+     this class on <html> so every other screen blocks the swipe-down refresh
+     gesture (it used to always reload straight back to home, which was the
+     bug: a real page reload has no route/state to restore, so it lands on
+     whatever screen is "active" by default in the markup, i.e. home). */
+  html{ overscroll-behavior-y:none; }
+  html.home-active{ overscroll-behavior-y:auto; }
   body{
     margin:0;
     background:var(--bg);
     color:var(--ink);
     font-family:'IBM Plex Sans',sans-serif;
-    overscroll-behavior:none;
+    overscroll-behavior-y:none;
     user-select:none;
   }
+  html.home-active body{ overscroll-behavior-y:auto; }
   #app{
     max-width:480px;
     margin:0 auto;
@@ -122,6 +130,26 @@
     font-size:30px; line-height:1; cursor:pointer;
   }
   .home-settings-btn:active{ transform:scale(0.92); }
+
+  /* ---------- TEST MODE ---------- */
+  .test-mode-banner{
+    display:none;
+    background:var(--gold); color:#3A2A00;
+    text-align:center; font-weight:700; font-size:12.5px;
+    padding:7px 10px;
+  }
+  body.test-mode .test-mode-banner{ display:block; }
+  #testModeBtn.active{ background:var(--gold-soft); border-color:var(--gold); }
+  /* Everything that writes data (lesson toggles, import, resets, saving a
+     new word) is neutralized while testing — Check word / browsing /
+     Settings navigation stay fully usable so the demo still feels real. */
+  body.test-mode .lesson-tile,
+  body.test-mode #importDataBtn,
+  body.test-mode #resetLearningBtn,
+  body.test-mode #resetCustomVocabBtn,
+  body.test-mode #saveWordBtn{
+    pointer-events:none; opacity:0.4;
+  }
 
   .menu-btn{
     display:flex; align-items:center; gap:12px;
@@ -313,7 +341,7 @@
   .wl-status-toggle .pill{ flex:1; padding:8px 6px; font-size:12px; text-align:center; white-space:nowrap; }
   .wl-legend{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
   .wl-legend-item{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
-  .wordlist-scroll{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .wordlist-scroll{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   /* #app only sets min-height, so a normal .screen grows past the viewport
      and the whole page scrolls — fine elsewhere, but here it means the
      filters scroll away with the list. Capping just this screen's height
@@ -410,6 +438,7 @@
 </head>
 <body>
 <div id="app">
+  <div class="test-mode-banner" id="testModeBanner">🚧 Test mode — nothing will be saved</div>
   <svg class="bg-motif" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <!-- stylized coastline echoing Vietnam's S-curve, plus conical hat and lotus line-art: a quiet background texture, not a literal map -->
     <path d="M 300 20 C 200 90, 340 160, 250 230 C 160 300, 320 360, 260 430 C 210 490, 300 540, 250 610 C 200 680, 300 720, 240 800 C 210 840, 260 870, 230 900"
@@ -475,6 +504,10 @@
     </div>
     <div class="home-actions">
       <button class="btn btn-primary" id="startBtn">Start a session</button>
+      <button type="button" class="menu-btn" id="testModeBtn">
+        <span class="menu-btn-emoji">🚧</span>
+        <span id="testModeLabel">Test mode: Off</span>
+      </button>
     </div>
   </section>
 
@@ -749,6 +782,7 @@ let deckPos = 0;
 let currentCard = null;
 let storageOk = true;
 let revealed = false;
+let testMode = false;
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -798,7 +832,25 @@ async function saveCustomVocab(){
 }
 
 async function saveProgress(){
+  if(testMode) return;
   if(!saveJSON('progress', progress)) flagStorageError();
+}
+
+// Test mode: lets the user demo the app (swiping, checking words) without
+// touching real data. Deliberately NOT persisted to localStorage — a reload
+// always comes back up in normal mode, so it can't be left on by accident
+// across sessions. Progress writes are skipped above; on exit, in-memory
+// progress is reloaded from storage to discard whatever the demo changed.
+// Add-a-word Save and every settings control that writes something
+// (lesson toggles, import, resets) are neutralized via the `.test-mode`
+// body class in CSS — see "TEST MODE" in the stylesheet.
+function setTestMode(on){
+  testMode = on;
+  document.body.classList.toggle('test-mode', on);
+  document.getElementById('testModeBtn').classList.toggle('active', on);
+  document.getElementById('testModeLabel').textContent = 'Test mode: ' + (on ? 'On' : 'Off');
+  if(!on){ progress = loadJSON('progress', {}); }
+  refreshStats();
 }
 
 // allVocab() = the ENTIRE library regardless of active/inactive lessons — used
@@ -961,6 +1013,7 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   currentScreenId = id;
+  document.documentElement.classList.toggle('home-active', id === 'home');
   updateFloatingIcon();
 }
 
@@ -1957,6 +2010,10 @@ function renderSettingsSources(){
     container.appendChild(wrap);
   });
 }
+
+document.getElementById('testModeBtn').addEventListener('click', ()=>{
+  setTestMode(!testMode);
+});
 
 document.getElementById('settingsBtn').addEventListener('click', ()=>{
   showScreen('settings');
