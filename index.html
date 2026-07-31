@@ -161,6 +161,13 @@
   #session{ padding-top:12px; min-height:0; }
   .session-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding-right:50px; }
   .icon-btn{ background:none; border:none; color:var(--muted); font-size:22px; line-height:1; padding:6px; cursor:pointer; }
+  .wl-add-btn{
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    background:none; border:none; cursor:pointer; padding:2px 4px; font-family:inherit; flex-shrink:0;
+  }
+  .wl-add-btn:active{ transform:scale(0.92); }
+  .wl-add-emoji{ font-size:20px; line-height:1; }
+  .wl-add-label{ font-size:9.5px; color:var(--muted); line-height:1; }
   .progress-track{ flex:1; margin:0 14px; height:3px; background:var(--line); border-radius:2px; overflow:hidden;}
   .progress-fill{ height:100%; background:var(--gold); border-radius:2px; transition:width .25s ease; }
   .counter{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); min-width:44px; text-align:right;}
@@ -256,7 +263,11 @@
   .check-result > div + div{ margin-top:8px; }
   .check-suggestion-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
   .dict-headword{ font-weight:600; font-size:13.5px; margin-top:10px; }
-  .dict-more-senses{ font-size:11.5px; opacity:0.75; padding-left:10px; margin-top:2px; }
+  .dict-more-senses{
+    font-size:11.5px; opacity:0.75; padding-left:10px; margin-top:2px;
+    background:none; border:none; color:inherit; font-family:inherit;
+    text-decoration:underline; cursor:pointer; display:block; text-align:left;
+  }
   .dict-credit{ color:var(--muted); font-size:11.5px; line-height:1.5; margin-top:20px; }
   .hidden{ display:none !important; }
   .btn-apply{
@@ -280,12 +291,12 @@
   .floating-issue-btn{
     position:absolute; top:12px; right:16px; z-index:10;
     background:none; border:none; padding:0; margin:0;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
     cursor:pointer;
   }
   .floating-issue-btn:active{ transform:scale(0.9); }
-  .floating-issue-flag{ font-size:30px; line-height:1; color:var(--muted); }
-  .floating-issue-btn.mode-list .floating-issue-flag{ color:var(--gold); }
+  .floating-issue-flag{ font-size:28px; line-height:1; }
+  .floating-issue-label{ font-size:9.5px; color:var(--muted); line-height:1; }
   .floating-issue-badge{
     position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px;
     border-radius:8px; background:var(--red); color:#FBEFE9;
@@ -303,6 +314,13 @@
   .wl-legend{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
   .wl-legend-item{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
   .wordlist-scroll{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  /* #app only sets min-height, so a normal .screen grows past the viewport
+     and the whole page scrolls — fine elsewhere, but here it means the
+     filters scroll away with the list. Capping just this screen's height
+     makes .wordlist-scroll the actual scroll container, so .wl-sticky-header
+     (everything above it) stays in place instead. */
+  #wordlist.screen{ max-height:100vh; max-height:100svh; }
+  .wl-sticky-header{ flex-shrink:0; }
   .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
   .wl-item{
     display:flex; align-items:center; gap:8px;
@@ -421,7 +439,8 @@
   </svg>
 
   <button type="button" id="floatingIssueBtn" class="floating-issue-btn" aria-label="Report an issue" title="Report an issue">
-    <span class="floating-issue-flag">⚑</span>
+    <span class="floating-issue-flag" id="floatingIssueFlag">🔔</span>
+    <span class="floating-issue-label" id="floatingIssueLabel"></span>
     <span class="floating-issue-badge" id="floatingIssueBadge">0</span>
   </button>
 
@@ -456,7 +475,6 @@
     </div>
     <div class="home-actions">
       <button class="btn btn-primary" id="startBtn">Start a session</button>
-      <button class="btn btn-gold-outline" id="addBtn">+ Add a word</button>
     </div>
   </section>
 
@@ -512,9 +530,14 @@
 
   <!-- WORD LIST (tap-through from home) -->
   <section id="wordlist" class="screen">
+    <div class="wl-sticky-header">
     <div class="back-row">
       <button id="backFromWordlist" aria-label="Back">←</button>
       <h2 style="margin:0;" id="wordlistTitle">Vocabulary</h2>
+      <button class="wl-add-btn" id="addBtn" aria-label="Add a word">
+        <span class="wl-add-emoji">➕</span>
+        <span class="wl-add-label">Add</span>
+      </button>
     </div>
     <div class="wl-status-toggle pill-group" id="wlStatusGroup">
       <button class="pill active" data-value="all">📋 All</button>
@@ -531,6 +554,7 @@
       <div class="wl-legend-item"><span class="wl-dot on-review"></span> Review</div>
       <div class="wl-legend-item"><span class="wl-dot on-known"></span> Known</div>
     </div>
+    </div>
     <div class="wordlist-scroll" id="wordlistScroll"></div>
   </section>
 
@@ -542,9 +566,9 @@
     </div>
     <button class="btn btn-gold-outline" id="newIssueBtn" type="button" style="margin-bottom:14px;">+ New report</button>
     <div class="wl-status-toggle pill-group" id="issuesStatusGroup">
+      <button class="pill active" data-value="all">All</button>
       <button class="pill" data-value="open">Unresolved</button>
       <button class="pill" data-value="resolved">Resolved</button>
-      <button class="pill active" data-value="all">All</button>
     </div>
     <div class="wordlist-scroll" id="issuesScroll"></div>
   </section>
@@ -1069,7 +1093,11 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   loadDictionaryData();
   showScreen('add');
 });
-document.getElementById('backFromAdd').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
+document.getElementById('backFromAdd').addEventListener('click', ()=>{
+  renderWordList();
+  showScreen('wordlist');
+  refreshStats();
+});
 // Save only ever becomes visible via applyDictionaryEntry() below, once a
 // specific dictionary-verified spelling has been picked — so by the time
 // it's clicked, vn/en are already a known-good pair. The duplicate check is
@@ -1229,6 +1257,22 @@ function applyDictionaryEntry(vn, en){
 // "dog" applies exactly "dog" rather than every sense glued together.
 const MAX_SENSES_SHOWN = 2;
 
+function dictGlossRow(vn, gloss){
+  const row = document.createElement('div');
+  row.className = 'check-suggestion-row';
+  row.style.paddingLeft = '10px';
+  const span = document.createElement('span');
+  span.textContent = gloss;
+  row.appendChild(span);
+  const btn = document.createElement('button');
+  btn.className = 'btn-apply';
+  btn.type = 'button';
+  btn.textContent = 'Apply';
+  btn.addEventListener('click', () => applyDictionaryEntry(vn, gloss === '(no gloss available)' ? '' : gloss));
+  row.appendChild(btn);
+  return row;
+}
+
 function dictSenseRows(variant){
   const frag = document.createDocumentFragment();
   const label = document.createElement('div');
@@ -1236,27 +1280,19 @@ function dictSenseRows(variant){
   label.textContent = variant.vn;
   frag.appendChild(label);
 
-  const glosses = variant.gl.length ? variant.gl.slice(0, MAX_SENSES_SHOWN) : ['(no gloss available)'];
-  glosses.forEach(gloss => {
-    const row = document.createElement('div');
-    row.className = 'check-suggestion-row';
-    row.style.paddingLeft = '10px';
-    const span = document.createElement('span');
-    span.textContent = gloss;
-    row.appendChild(span);
-    const btn = document.createElement('button');
-    btn.className = 'btn-apply';
-    btn.type = 'button';
-    btn.textContent = 'Apply';
-    btn.addEventListener('click', () => applyDictionaryEntry(variant.vn, gloss === '(no gloss available)' ? '' : gloss));
-    row.appendChild(btn);
-    frag.appendChild(row);
-  });
-  if(variant.gl.length > MAX_SENSES_SHOWN){
-    const more = document.createElement('div');
+  const allGlosses = variant.gl.length ? variant.gl : ['(no gloss available)'];
+  allGlosses.slice(0, MAX_SENSES_SHOWN).forEach(gloss => frag.appendChild(dictGlossRow(variant.vn, gloss)));
+
+  if(allGlosses.length > MAX_SENSES_SHOWN){
+    const remaining = allGlosses.slice(MAX_SENSES_SHOWN);
+    const more = document.createElement('button');
+    more.type = 'button';
     more.className = 'dict-more-senses';
-    const n = variant.gl.length - MAX_SENSES_SHOWN;
-    more.textContent = `+${n} more sense${n > 1 ? 's' : ''}`;
+    more.textContent = `+${remaining.length} more sense${remaining.length > 1 ? 's' : ''}`;
+    more.addEventListener('click', () => {
+      remaining.forEach(gloss => more.insertAdjacentElement('beforebegin', dictGlossRow(variant.vn, gloss)));
+      more.remove();
+    });
     frag.appendChild(more);
   }
   return frag;
@@ -1823,18 +1859,22 @@ document.querySelectorAll('#issuesStatusGroup .pill').forEach(btn=>{
 function updateFloatingIcon(){
   const btn = document.getElementById('floatingIssueBtn');
   const badge = document.getElementById('floatingIssueBadge');
+  const flag = document.getElementById('floatingIssueFlag');
+  const label = document.getElementById('floatingIssueLabel');
   if(currentScreenId === 'issues'){
     btn.classList.add('hidden');
     return;
   }
   btn.classList.remove('hidden');
   if(currentScreenId === 'home'){
-    btn.classList.add('mode-list');
+    flag.textContent = '🔔';
+    label.textContent = '';
     const unresolvedCount = issueReports.filter(r => !r.resolved).length;
     badge.textContent = unresolvedCount;
     badge.classList.toggle('show', unresolvedCount > 0);
   } else {
-    btn.classList.remove('mode-list');
+    flag.textContent = '📝';
+    label.textContent = 'Report';
     badge.classList.remove('show');
   }
 }

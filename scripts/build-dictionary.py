@@ -49,6 +49,59 @@ LICENSE_TEXT = (
 SENSE_RE = re.compile(r'^(\d+)\.\s*(?:\(([^)]*)\)\s*)?(.*)$')
 
 
+def split_top_level(text, sep=';'):
+    """Splits on `sep`, but ignores occurrences nested inside parentheses
+    (so "smack (a loud kiss; a quick noise)" stays one segment)."""
+    parts, depth, current = [], 0, ''
+    for ch in text:
+        if ch == '(':
+            depth += 1
+            current += ch
+        elif ch == ')':
+            depth = max(0, depth - 1)
+            current += ch
+        elif ch == sep and depth == 0:
+            parts.append(current)
+            current = ''
+        else:
+            current += ch
+    parts.append(current)
+    return parts
+
+
+def strip_verbose_paren(segment, max_len):
+    """Some senses read '<short term> (<long explanation or scientific
+    name>)' (e.g. "crab (a crustacean of the infraorder Brachyura)") — if
+    there's text before the "(" and the whole segment runs long, keep only
+    that lead-in. A short clarifying parenthetical like "to save (every bit
+    of)" stays untouched (it's under max_len already), as does a segment
+    that *starts* with "(" (e.g. "(little) (son of a) bitch" — no lead text
+    to fall back to)."""
+    idx = segment.find('(')
+    if idx > 0 and len(segment) > max_len:
+        lead = segment[:idx].strip()
+        if lead:
+            return lead
+    return segment
+
+
+def trim_gloss(text, max_segment_len=40):
+    """Some Wiktionary senses read '<short term>; <long explanatory clause>'
+    (e.g. "printer; a device, usually attached to a computer, used to print
+    text or images onto paper") — a flashcard only needs the short term.
+    Keeps semicolon-separated segments while they stay short, and drops the
+    rest as soon as one runs long, so a genuine multi-synonym list like
+    "to save; to glean; to collect; to lay up" is left intact instead."""
+    segments = [strip_verbose_paren(s.strip(), max_segment_len) for s in split_top_level(text)]
+    kept = []
+    for seg in segments:
+        if len(seg) <= max_segment_len:
+            kept.append(seg)
+        else:
+            break
+    return '; '.join(kept) if kept else text.strip()
+
+
 def extract_senses(definition_field):
     """Splits a Wiktionary-style '1. (pos) gloss<br />> example: ...<br />2. ...'
     field into a flat list of gloss strings, dropping example/meaning lines
@@ -61,7 +114,7 @@ def extract_senses(definition_field):
         m = SENSE_RE.match(line)
         text = m.group(3).strip() if m else line
         if text:
-            glosses.append(text)
+            glosses.append(trim_gloss(text))
     return glosses
 
 

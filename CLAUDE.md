@@ -84,7 +84,24 @@ session opened in this folder — keep it up to date after each chantier.
   (usually 1, sometimes many — e.g. "ban" groups with "bàn", "bạn", "bản",
   etc., 12 in total). `gl` is a list of individual senses (Wiktionary's
   numbered definitions, one gloss string per sense — e.g. "chó" → `["dog",
-  "(little) (son of a) bitch"]`), not one combined string. `en` is keyed by
+  "(little) (son of a) bitch"]`), not one combined string; each sense is
+  also run through `trim_gloss()` in the build script, which drops a
+  trailing long explanatory clause after a short term (e.g. Wiktionary's
+  "printer; a device, usually attached to a computer, used to print text
+  or images onto paper" becomes just `"printer"`) while leaving genuine
+  multi-synonym lists like "to save; to glean; to collect; to lay up"
+  intact — it keeps semicolon-separated segments (parenthesis-aware, so
+  "smack (a loud kiss; a quick noise)" isn't split mid-parenthetical) only
+  while each one stays under 40 characters, stopping at the first long
+  one. Same function also strips a trailing verbose parenthetical off an
+  otherwise-short segment (`strip_verbose_paren()`) — e.g. "crab (a
+  crustacean of the infraorder Brachyura)" becomes just `"crab"` — but
+  leaves a short clarifying parenthetical alone ("to save (every bit of)")
+  and leaves a segment that *starts* with "(" alone (no lead text to fall
+  back to, e.g. "(little) (son of a) bitch"). Affects ~1.3% of senses for
+  the semicolon case and ~10% for the trailing-parenthetical case — real
+  volume, which is why this is a build-script rule rather than a per-word
+  fix. `en` is keyed by
   an English gloss phrase → array of matching Vietnamese headwords. Lazily
   fetched by `loadDictionaryData()` only when "Add a word" opens (not at app
   startup — a one-time download, cached by the service worker afterward).
@@ -146,6 +163,19 @@ the pre-existing confirm popup — `progress = {}` — and **Reset manually adde
 words**, opens a confirm popup naming the exact word count, then clears
 `customVocab` and deletes only the `progress` entries for those word ids;
 if there are 0 custom words it shows a toast instead of opening the popup).
+`add` (Add a word) is no longer reachable from `home` — its entry point is
+now `#addBtn`, a small `.icon-btn` ("+") in the `wordlist` screen's
+back-row, next to the "Vocabulary" title. `backFromAdd` returns to
+`wordlist` (re-running `renderWordList()` first, so a just-added word shows
+up) instead of `home`. `wordlist`'s header (back-row, status/lang pills,
+legend — everything above `#wordlistScroll`, wrapped in `.wl-sticky-header`)
+stays fixed while the list scrolls: `#app` only sets `min-height`, so
+normally a tall `.screen` grows past the viewport and the whole page
+scrolls past the header too — `#wordlist.screen` alone gets a `max-height`
+cap (`100vh`/`100svh`, same fallback pattern as `#app`), which makes
+`.wordlist-scroll{flex:1; overflow-y:auto}` the actual scroll container
+instead. Scoped to just this one screen by ID so it can't reintroduce the
+`100dvh` address-bar bug documented below for `home`.
 
 ## Known constraints (read before touching related code)
 
@@ -159,7 +189,7 @@ if there are 0 custom words it shows a toast instead of opening the popup).
   handling; a button inside the back face won't register clicks). Session
   action buttons live in `.session-actions`, outside the card.
 - **Service worker is network-first**, not cache-first (`sw.js`, cache name
-  currently `nhat-chu-v8` — bump it on every `index.html`/asset change). A
+  currently `nhat-chu-v11` — bump it on every `index.html`/asset change). A
   cache-first version was shipped first and
   caused already-installed phones to keep serving a stale `index.html`
   forever after a code update — don't revert this without re-solving that.
@@ -273,6 +303,19 @@ if there are 0 custom words it shows a toast instead of opening the popup).
    the user — markup, CSS, the `quick-notes` localStorage key, and its
    Export/Import handling are all gone; `sw.js` cache bumped to
    `nhat-chu-v8`.
+9. Two rounds of real-usage bug reports against the new dictionary, both
+   fixed as build-script rules rather than one-off data edits (see "Data
+   model" for `trim_gloss()`/`strip_verbose_paren()`): first "chó" showing
+   both its senses squashed into one Apply, then "máy in" → "printer; a
+   device, usually attached to a computer..." and "cua" → "crab (a
+   crustacean of the infraorder Brachyura)" — short terms polluted with a
+   long trailing explanation. The "+N more senses" note in `dictSenseRows()`
+   was also just static text with no way to actually see those senses —
+   turned into a real `<button>` that reveals them in place and removes
+   itself. Separately: "Add a word" moved off `home` entirely, now opened
+   via a small "+" icon button in the `wordlist` screen's header (see "UI
+   structure"), whose header was also made to stay fixed while the list
+   scrolls (previously the whole page scrolled the filters away).
 
 ## Planned next (not started)
 
