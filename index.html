@@ -117,6 +117,12 @@
 
   .home-actions{ display:flex; flex-direction:column; gap:10px; }
   .home-foot{ display:flex; flex-direction:column; gap:10px; margin-top:22px; }
+  .home-settings-btn{
+    position:absolute; top:14px; left:16px; z-index:5;
+    background:none; border:none; padding:0;
+    font-size:30px; line-height:1; cursor:pointer;
+  }
+  .home-settings-btn:active{ transform:scale(0.92); }
 
   .menu-btn{
     display:flex; align-items:center; gap:12px;
@@ -424,6 +430,7 @@
 
   <!-- HOME -->
   <section id="home" class="screen active">
+    <button type="button" id="settingsBtn" class="home-settings-btn" aria-label="Settings" title="Settings">⚙️</button>
     <div class="home-top">
       <h1 class="title">Nhặt Chữ</h1>
       <p class="title-en">Pick a Word, Learn a Word</p>
@@ -457,11 +464,6 @@
         <button class="menu-btn" type="button" id="issuesBtn">
           <span class="menu-btn-emoji">⚑</span>
           <span>Reported issues (<span id="issuesCount">0</span>)</span>
-          <span class="menu-btn-chevron">›</span>
-        </button>
-        <button class="menu-btn" type="button" id="settingsBtn">
-          <span class="menu-btn-emoji">⚙️</span>
-          <span>Settings</span>
           <span class="menu-btn-chevron">›</span>
         </button>
       </div>
