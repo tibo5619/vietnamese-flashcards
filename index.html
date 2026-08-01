@@ -435,6 +435,9 @@
     background:var(--surface); border:1px solid var(--line); border-radius:12px;
     padding:12px 14px; margin-bottom:20px;
   }
+  #issueDetailResolveBtn.resolved{ background:var(--jade-soft); border-color:var(--jade); }
+  #issueDetailResolveBtn.resolved #issueDetailResolveLabel{ color:#20463A; }
+  #issueResolutionInput{ background:var(--surface); }
 
   /* ---------- SETTINGS ---------- */
   .settings-section-title{ font-size:16px; margin-bottom:14px; }
@@ -646,6 +649,10 @@
       <textarea id="issueResolutionInput" class="report-note-input" rows="4" placeholder="What did you do about it?"></textarea>
     </div>
     <button class="btn btn-primary" id="saveIssueResolutionBtn">Save</button>
+    <button class="menu-btn" type="button" id="issueDetailResolveBtn" style="margin-top:10px;">
+      <span class="menu-btn-emoji" id="issueDetailResolveEmoji">⭘</span>
+      <span id="issueDetailResolveLabel">Mark as resolved</span>
+    </button>
   </section>
 
   <!-- SETTINGS -->
@@ -2119,8 +2126,25 @@ function openIssueDetail(id){
   document.getElementById('issueDetailMeta').textContent = [dirLabel, pageLbl, dateLabel].filter(Boolean).join(' · ');
   document.getElementById('issueDetailNote').textContent = report.note;
   document.getElementById('issueResolutionInput').value = report.resolution || '';
+  updateIssueDetailResolveBtn(report.resolved);
   showScreen('issueDetail');
 }
+
+function updateIssueDetailResolveBtn(resolved){
+  document.getElementById('issueDetailResolveBtn').classList.toggle('resolved', resolved);
+  document.getElementById('issueDetailResolveEmoji').textContent = resolved ? '✓' : '⭘';
+  document.getElementById('issueDetailResolveLabel').textContent = resolved ? 'Mark as unresolved' : 'Mark as resolved';
+}
+
+document.getElementById('issueDetailResolveBtn').addEventListener('click', async ()=>{
+  const report = issueReports.find(r => r.id === openIssueId);
+  if(!report) return;
+  report.resolved = !report.resolved;
+  await saveIssueReports();
+  updateIssueDetailResolveBtn(report.resolved);
+  renderIssuesList();
+  refreshStats();
+});
 
 document.getElementById('backFromIssueDetail').addEventListener('click', ()=>{
   showScreen('issues');
