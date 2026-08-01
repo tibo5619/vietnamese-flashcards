@@ -254,6 +254,12 @@
     font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:30px; text-align:center;
     line-height:1.2; margin:0; word-break:break-word; color:var(--ink);
   }
+  .card-sense-count{ color:var(--muted); font-weight:500; font-size:0.6em; }
+  .word-main.word-main-multi{
+    display:flex; flex-direction:column; gap:12px; text-align:left; font-size:18px;
+  }
+  .sense-line{ display:flex; gap:6px; align-items:baseline; }
+  .sense-index{ color:var(--muted); font-weight:700; flex-shrink:0; }
   .tap-hint{ position:absolute; bottom:44px; color:var(--muted); font-size:11px; letter-spacing:.04em;}
 
   .session-actions{ display:flex; flex-direction:column; gap:8px; opacity:0; pointer-events:none; transition:opacity .2s ease; }
@@ -373,6 +379,7 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;
   }
   .wl-divider{ width:1px; height:18px; background:var(--line); flex-shrink:0; }
+  .wl-sense-count{ color:var(--muted); font-weight:500; }
   .wl-dot{
     width:9px; height:9px; border-radius:50%; border:1.5px solid var(--line); background:transparent;
   }
@@ -1000,6 +1007,34 @@ function categorizeForDir(id, dir){
   return 'new';
 }
 
+// Some VN spellings legitimately belong to two+ unrelated words (true
+// homonyms, e.g. "chỉ" = "only" vs "chỉ" = "to guide" — see data model docs).
+// When a session draws two such entries in the same VN-front direction,
+// showing the same VN spelling twice as separate cards would look like a
+// bug. mergeVnCard() folds them into a single deck card up front; the front
+// shows "vn (N)" and the back lists every sense. EN-front cards are never
+// merged — each English gloss already disambiguates the word on its own.
+function mergeVnCard(group){
+  return {
+    id: group.map(g => g.id).join('+'),
+    ids: group.map(g => g.id),
+    vn: group[0].vn,
+    senses: group.map(g => ({ en: g.en, book: g.book, lesson: g.lesson })),
+    dir: 'vn2en',
+    merged: true
+  };
+}
+// Category of a deck candidate for the weighted draw — a merged card is as
+// advanced as its LEAST-known sense, so it keeps showing up until every
+// sense behind it has been answered correctly at least once.
+function candidateCategory(c){
+  if(!c.merged) return categorizeForDir(c.id, c.dir);
+  const cats = c.ids.map(id => categorizeForDir(id, 'vn2en'));
+  if(cats.includes('new')) return 'new';
+  if(cats.includes('review')) return 'review';
+  return 'known';
+}
+
 function refreshStats(){
   const all = activeVocab();
   const knownCount = all.filter(w => isKnownAnyDir(w.id)).length;
@@ -1036,13 +1071,25 @@ function buildDeck(){
   const total = activeVocab();
   const size = Math.min(selectedSize, total.length);
 
-  const candidates = total.map(w => {
+  const withDir = total.map(w => {
     const dir = selectedDirection === 'mix' ? (Math.random() < 0.5 ? 'vn2en' : 'en2vn') : selectedDirection;
     return {...w, dir};
   });
 
+  // Collapse same-spelling VN-front homonyms into single merged cards
+  // (see mergeVnCard above) before they're sorted into the draw pools.
+  const vnGroups = {};
+  const candidates = [];
+  withDir.forEach(c => {
+    if(c.dir !== 'vn2en'){ candidates.push(c); return; }
+    (vnGroups[c.vn] = vnGroups[c.vn] || []).push(c);
+  });
+  Object.values(vnGroups).forEach(group => {
+    candidates.push(group.length > 1 ? mergeVnCard(group) : group[0]);
+  });
+
   const pools = { new: [], review: [], known: [] };
-  candidates.forEach(c => pools[categorizeForDir(c.id, c.dir)].push(c));
+  candidates.forEach(c => pools[candidateCategory(c)].push(c));
   pools.new = shuffle(pools.new);
   pools.review = shuffle(pools.review);
   pools.known = shuffle(pools.known);
@@ -1112,10 +1159,6 @@ function renderCard(){
   tapHintEl.textContent = 'tap to reveal';
 
   const isVnFirst = currentCard.dir === 'vn2en';
-  const front = isVnFirst ? currentCard.vn : currentCard.en;
-  const back = isVnFirst ? currentCard.en : currentCard.vn;
-  const bookDef = BOOKS.find(b => b.id === currentCard.book);
-  const lessonLabel = bookDef ? `${bookDef.title} - Bài ${currentCard.lesson}` : 'Manual Input';
 
   frontFace.classList.toggle('lang-vn', isVnFirst);
   frontFace.classList.toggle('lang-en', !isVnFirst);
@@ -1125,12 +1168,50 @@ function renderCard(){
   document.getElementById('flagFront').textContent = isVnFirst ? '🇻🇳' : '🇬🇧';
   document.getElementById('flagBack').textContent = isVnFirst ? '🇬🇧' : '🇻🇳';
 
-  document.getElementById('wordFront').textContent = front;
-  document.getElementById('wordBack').textContent = back;
-  document.getElementById('lessonTagBack').textContent = lessonLabel;
+  const wordFront = document.getElementById('wordFront');
+  const wordBack = document.getElementById('wordBack');
+  const lessonTagBack = document.getElementById('lessonTagBack');
+  wordBack.classList.remove('word-main-multi');
+  wordFront.textContent = '';
+  wordBack.textContent = '';
+
+  let hasPastReport;
+  if(currentCard.merged){
+    // Same VN spelling, multiple unrelated senses (see mergeVnCard) — show
+    // the sense count on the front, and every sense as its own numbered
+    // line on the back instead of a single joined string.
+    wordFront.append(currentCard.vn, Object.assign(document.createElement('span'), {
+      className: 'card-sense-count', textContent: ` (${currentCard.senses.length})`
+    }));
+    wordBack.classList.add('word-main-multi');
+    currentCard.senses.forEach((s, i) => {
+      const line = document.createElement('span');
+      line.className = 'sense-line';
+      const idx = document.createElement('span');
+      idx.className = 'sense-index';
+      idx.textContent = `${i+1}.`;
+      line.append(idx, ' ' + s.en);
+      wordBack.appendChild(line);
+    });
+    lessonTagBack.textContent = currentCard.senses
+      .map(s => {
+        const bd = BOOKS.find(b => b.id === s.book);
+        return bd ? `${bd.title} - Bài ${s.lesson}` : 'Manual Input';
+      })
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .join(' · ');
+    hasPastReport = currentCard.ids.some(id => issueReports.some(r => r.wordId === id));
+  } else {
+    const front = isVnFirst ? currentCard.vn : currentCard.en;
+    const back = isVnFirst ? currentCard.en : currentCard.vn;
+    wordFront.textContent = front;
+    wordBack.textContent = back;
+    const bookDef = BOOKS.find(b => b.id === currentCard.book);
+    lessonTagBack.textContent = bookDef ? `${bookDef.title} - Bài ${currentCard.lesson}` : 'Manual Input';
+    hasPastReport = issueReports.some(r => r.wordId === currentCard.id);
+  }
   // Discreet reminder on the back face only — helps avoid reporting the
   // same word's issue over and over without having to check the list.
-  const hasPastReport = issueReports.some(r => r.wordId === currentCard.id);
   document.getElementById('cardReportFlag').classList.toggle('show', hasPastReport);
 
   document.getElementById('counter').textContent = (deckPos+1) + '/' + deck.length;
@@ -1138,12 +1219,16 @@ function renderCard(){
 }
 
 function markCard(known){
-  const id = currentCard.id;
   const dir = currentCard.dir;
-  if(!progress[id]) progress[id] = {};
-  if(!progress[id][dir]) progress[id][dir] = {correct:0, wrong:0};
-  if(known) progress[id][dir].correct++; else progress[id][dir].wrong++;
-  progress[id][dir].last = known ? 'correct' : 'wrong';
+  // A merged homonym card (see mergeVnCard) was shown as a single prompt,
+  // so the outcome applies to every sense behind it.
+  const ids = currentCard.merged ? currentCard.ids : [currentCard.id];
+  ids.forEach(id => {
+    if(!progress[id]) progress[id] = {};
+    if(!progress[id][dir]) progress[id][dir] = {correct:0, wrong:0};
+    if(known) progress[id][dir].correct++; else progress[id][dir].wrong++;
+    progress[id][dir].last = known ? 'correct' : 'wrong';
+  });
   saveProgress();
   deckPos++;
   renderCard();
@@ -1755,6 +1840,17 @@ function renderWordList(status){
     .slice()
     .sort((a, b) => wordlistSortKey(a, wordlistLang).localeCompare(wordlistSortKey(b, wordlistLang), wordlistLang === 'vn' ? 'vi' : 'en'));
 
+  // Multiple entries can legitimately share the same VN spelling (true
+  // homonyms, e.g. "chỉ" = "only" vs "chỉ" = "to guide"). Kept as separate
+  // cards so each English sense stays independent, but in the VN-primary
+  // view that makes them look like duplicates — so tag the VN spelling with
+  // a light "(N)" sense count. Counted over the full active vocab (not the
+  // filtered `words`) so the count doesn't change with the status filter.
+  const vnSenseCounts = {};
+  if(wordlistLang === 'vn'){
+    activeVocab().forEach(w => { vnSenseCounts[w.vn] = (vnSenseCounts[w.vn] || 0) + 1; });
+  }
+
   if(words.length === 0){
     const empty = document.createElement('div');
     empty.className = 'wordlist-empty';
@@ -1776,6 +1872,12 @@ function renderWordList(status){
     const primary = document.createElement('span');
     primary.className = 'wl-primary';
     primary.textContent = primaryText;
+    if(wordlistLang === 'vn' && vnSenseCounts[w.vn] > 1){
+      const count = document.createElement('span');
+      count.className = 'wl-sense-count';
+      count.textContent = ` (${vnSenseCounts[w.vn]})`;
+      primary.appendChild(count);
+    }
     wordsBox.appendChild(primary);
 
     const divider = document.createElement('span');
