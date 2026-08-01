@@ -214,6 +214,7 @@
   .swipe-stamp{
     position:absolute; top:40%; left:50%; transform:translate(-50%,-50%) rotate(-10deg);
     font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:20px; letter-spacing:.1em;
+    text-transform:uppercase; white-space:nowrap;
     padding:6px 16px; border-radius:8px; border:3px solid; opacity:0; pointer-events:none; z-index:3;
     background:var(--surface);
   }
@@ -240,6 +241,11 @@
     position:absolute; top:12px; left:50%; transform:translateX(-50%);
     font-size:44px; line-height:1;
   }
+  .card-report-flag{
+    position:absolute; top:14px; right:16px; font-size:15px; opacity:0.55;
+    display:none;
+  }
+  .card-report-flag.show{ display:block; }
   .lesson-tag{
     position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted);
@@ -349,7 +355,7 @@
      filters scroll away with the list. Capping just this screen's height
      makes .wordlist-scroll the actual scroll container, so .wl-sticky-header
      (everything above it) stays in place instead. */
-  #wordlist.screen{ max-height:100vh; max-height:100svh; }
+  #wordlist.screen, #issues.screen{ max-height:100vh; max-height:100svh; }
   .wl-sticky-header{ flex-shrink:0; }
   .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
   .wl-item{
@@ -406,10 +412,22 @@
     display:flex; align-items:center; justify-content:center; padding:0;
   }
   .issue-toggle.is-resolved{ background:var(--jade); border-color:var(--jade); color:#F3F8F6; }
-  .issue-body{ flex:1; min-width:0; }
+  .issue-delete-btn{
+    flex-shrink:0; background:none; border:none; cursor:pointer;
+    font-size:15px; color:var(--muted); padding:2px; margin-top:1px; line-height:1;
+  }
+  .issue-delete-btn:active{ transform:scale(0.9); }
+  .issue-body{ flex:1; min-width:0; cursor:pointer; }
   .issue-word{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink); }
   .issue-meta{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); margin:2px 0 6px; }
   .issue-note{ font-size:13px; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
+  .issue-detail-word{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:20px; color:var(--ink); margin-bottom:4px; }
+  .issue-detail-meta{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:14px; }
+  .issue-detail-note{
+    font-size:14px; color:var(--ink); white-space:pre-wrap; word-break:break-word;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; margin-bottom:20px;
+  }
 
   /* ---------- SETTINGS ---------- */
   .settings-section-title{ font-size:16px; margin-bottom:14px; }
@@ -527,6 +545,7 @@
         </div>
         <div class="face back">
           <span class="flag-tag" id="flagBack">🇬🇧</span>
+          <span class="card-report-flag" id="cardReportFlag" title="You've reported this word before">🚩</span>
           <p class="word-main" id="wordBack">—</p>
           <span class="lesson-tag" id="lessonTagBack">Bài —</span>
         </div>
@@ -534,8 +553,8 @@
     </div>
     <div class="session-actions" id="sessionActions">
       <div class="session-actions-main">
-        <button class="btn btn-review" id="reviewBtn">Needs work <span class="btn-emoji">🧠</span></button>
-        <button class="btn btn-known" id="knownBtn">Got it <span class="btn-emoji">✅</span></button>
+        <button class="btn btn-review" id="reviewBtn"><span class="btn-label">Needs work</span> <span class="btn-emoji">🧠</span></button>
+        <button class="btn btn-known" id="knownBtn"><span class="btn-label">Got it</span> <span class="btn-emoji">✅</span></button>
       </div>
     </div>
   </section>
@@ -591,6 +610,7 @@
 
   <!-- REPORTED ISSUES -->
   <section id="issues" class="screen">
+    <div class="wl-sticky-header">
     <div class="back-row">
       <button id="backFromIssues" aria-label="Back">←</button>
       <h2 style="margin:0;">Reported issues</h2>
@@ -601,7 +621,24 @@
       <button class="pill" data-value="open">Unresolved</button>
       <button class="pill" data-value="resolved">Resolved</button>
     </div>
+    </div>
     <div class="wordlist-scroll" id="issuesScroll"></div>
+  </section>
+
+  <!-- ISSUE DETAIL -->
+  <section id="issueDetail" class="screen">
+    <div class="back-row">
+      <button id="backFromIssueDetail" aria-label="Back">←</button>
+      <h2 style="margin:0;">Issue</h2>
+    </div>
+    <div class="issue-detail-word" id="issueDetailWord">—</div>
+    <div class="issue-detail-meta" id="issueDetailMeta">—</div>
+    <div class="issue-detail-note" id="issueDetailNote">—</div>
+    <div class="field">
+      <label for="issueResolutionInput">Solution / comments</label>
+      <textarea id="issueResolutionInput" class="report-note-input" rows="4" placeholder="What did you do about it?"></textarea>
+    </div>
+    <button class="btn btn-primary" id="saveIssueResolutionBtn">Save</button>
   </section>
 
   <!-- SETTINGS -->
@@ -734,6 +771,17 @@
       <div class="report-popup-actions">
         <button class="btn-apply" id="testModeCancelBtn" type="button">Cancel</button>
         <button class="btn btn-primary" id="testModeConfirmBtn" type="button" style="flex:1;">Activate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wl-popup-backdrop" id="deleteIssueConfirmBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" style="font-size:17px;">Delete this report?</div>
+      <div class="wl-popup-en" style="margin-bottom:16px;">This permanently removes the report and any solution notes. It can't be undone.</div>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="deleteIssueCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="deleteIssueConfirmBtn" type="button" style="flex:1;">Delete</button>
       </div>
     </div>
   </div>
@@ -1080,6 +1128,10 @@ function renderCard(){
   document.getElementById('wordFront').textContent = front;
   document.getElementById('wordBack').textContent = back;
   document.getElementById('lessonTagBack').textContent = lessonLabel;
+  // Discreet reminder on the back face only — helps avoid reporting the
+  // same word's issue over and over without having to check the list.
+  const hasPastReport = issueReports.some(r => r.wordId === currentCard.id);
+  document.getElementById('cardReportFlag').classList.toggle('show', hasPastReport);
 
   document.getElementById('counter').textContent = (deckPos+1) + '/' + deck.length;
   document.getElementById('progressFill').style.width = (100*deckPos/deck.length) + '%';
@@ -1107,6 +1159,10 @@ document.getElementById('exitBtn').addEventListener('click', ()=>{ showScreen('h
 const cardEl = document.getElementById('card');
 const stampKnow = document.getElementById('stampKnow');
 const stampLearning = document.getElementById('stampLearning');
+// Swipe stamps mirror the session buttons' own text (not hardcoded) so
+// relabeling "Needs work"/"Got it" later doesn't leave the card out of sync.
+stampKnow.textContent = document.querySelector('#knownBtn .btn-label').textContent;
+stampLearning.textContent = document.querySelector('#reviewBtn .btn-label').textContent;
 let dragStartX = 0, dragCurX = 0, isDragging = false;
 
 function flipCard(){
@@ -1733,16 +1789,14 @@ function renderWordList(status){
 
     item.appendChild(wordsBox);
 
-    if(wordlistStatus === 'all'){
-      const dir = dirForLang(wordlistLang);
-      const statusDot = document.createElement('span');
-      let statusClass = '', statusTitle = 'New';
-      if(isKnownInDir(w.id, dir)){ statusClass = ' on-known'; statusTitle = 'Known'; }
-      else if(isNeedsReviewInDir(w.id, dir)){ statusClass = ' on-review'; statusTitle = 'Needs review'; }
-      statusDot.className = 'wl-dot' + statusClass;
-      statusDot.title = `${statusTitle} (${wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN'})`;
-      item.appendChild(statusDot);
-    }
+    const dir = dirForLang(wordlistLang);
+    const statusDot = document.createElement('span');
+    let statusClass = '', statusTitle = 'New';
+    if(isKnownInDir(w.id, dir)){ statusClass = ' on-known'; statusTitle = 'Known'; }
+    else if(isNeedsReviewInDir(w.id, dir)){ statusClass = ' on-review'; statusTitle = 'Needs review'; }
+    statusDot.className = 'wl-dot' + statusClass;
+    statusDot.title = `${statusTitle} (${wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN'})`;
+    item.appendChild(statusDot);
 
     item.addEventListener('click', () => openWordPopup(primaryText, secondaryText));
 
@@ -1799,8 +1853,8 @@ let reportContext = null;
 
 const PAGE_LABELS = {
   home: 'Home', session: 'Session', add: 'Add a word', wordlist: 'Vocabulary list',
-  issues: 'Reported issues', settings: 'Settings', settingsSources: 'Settings',
-  settingsData: 'Settings'
+  issues: 'Reported issues', issueDetail: 'Reported issues', settings: 'Settings',
+  settingsSources: 'Settings', settingsData: 'Settings'
 };
 function pageLabel(id){ return PAGE_LABELS[id] || id; }
 
@@ -1911,15 +1965,72 @@ function renderIssuesList(status){
     meta.textContent = [dirLabel, pageLbl, dateLabel].filter(Boolean).join(' · ');
     body.appendChild(meta);
 
-    const note = document.createElement('div');
-    note.className = 'issue-note';
-    note.textContent = report.note;
-    body.appendChild(note);
+    // Note (and any resolution) is deliberately not shown here — only on
+    // the detail screen (openIssueDetail()), so the list stays scannable.
+    body.addEventListener('click', () => openIssueDetail(report.id));
 
     item.appendChild(body);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'issue-delete-btn';
+    deleteBtn.type = 'button';
+    deleteBtn.setAttribute('aria-label', 'Delete report');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.addEventListener('click', () => openDeleteIssueConfirm(report.id));
+    item.appendChild(deleteBtn);
+
     scroll.appendChild(item);
   });
 }
+
+let pendingDeleteIssueId = null;
+
+function openDeleteIssueConfirm(id){
+  pendingDeleteIssueId = id;
+  document.getElementById('deleteIssueConfirmBackdrop').classList.add('show');
+}
+document.getElementById('deleteIssueCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('deleteIssueConfirmBackdrop').classList.remove('show');
+});
+document.getElementById('deleteIssueConfirmBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'deleteIssueConfirmBackdrop') e.currentTarget.classList.remove('show');
+});
+document.getElementById('deleteIssueConfirmBtn').addEventListener('click', async ()=>{
+  issueReports = issueReports.filter(r => r.id !== pendingDeleteIssueId);
+  await saveIssueReports();
+  document.getElementById('deleteIssueConfirmBackdrop').classList.remove('show');
+  renderIssuesList();
+  refreshStats();
+  showToast('Report deleted');
+});
+
+let openIssueId = null;
+
+function openIssueDetail(id){
+  const report = issueReports.find(r => r.id === id);
+  if(!report) return;
+  openIssueId = id;
+  document.getElementById('issueDetailWord').textContent = report.vn ? `${report.vn} — ${report.en}` : 'General report';
+  const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : report.dir === 'en2vn' ? 'EN→VN' : (report.vn ? 'New word' : null);
+  const pageLbl = pageLabel(report.page);
+  const dateLabel = new Date(report.createdAt).toLocaleDateString();
+  document.getElementById('issueDetailMeta').textContent = [dirLabel, pageLbl, dateLabel].filter(Boolean).join(' · ');
+  document.getElementById('issueDetailNote').textContent = report.note;
+  document.getElementById('issueResolutionInput').value = report.resolution || '';
+  showScreen('issueDetail');
+}
+
+document.getElementById('backFromIssueDetail').addEventListener('click', ()=>{
+  showScreen('issues');
+});
+
+document.getElementById('saveIssueResolutionBtn').addEventListener('click', async ()=>{
+  const report = issueReports.find(r => r.id === openIssueId);
+  if(!report) return;
+  report.resolution = document.getElementById('issueResolutionInput').value.trim();
+  await saveIssueReports();
+  showToast('Saved');
+});
 
 document.getElementById('newIssueBtn').addEventListener('click', () => openReportPopup());
 document.querySelectorAll('#issuesStatusGroup .pill').forEach(btn=>{
@@ -1935,7 +2046,7 @@ function updateFloatingIcon(){
   const badge = document.getElementById('floatingIssueBadge');
   const flag = document.getElementById('floatingIssueFlag');
   const label = document.getElementById('floatingIssueLabel');
-  if(currentScreenId === 'issues'){
+  if(currentScreenId === 'issues' || currentScreenId === 'issueDetail'){
     btn.classList.add('hidden');
     return;
   }
@@ -1948,7 +2059,7 @@ function updateFloatingIcon(){
     badge.classList.toggle('show', unresolvedCount > 0);
   } else {
     flag.textContent = '📝';
-    label.textContent = 'Report';
+    label.textContent = '';
     badge.classList.remove('show');
   }
 }
