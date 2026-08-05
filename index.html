@@ -20,7 +20,7 @@
     --gold-soft:#F1E2BC;
     --jade:#12A150;
     --jade-soft:#DCEAE3;
-    --red:#9A3323;
+    --red:#D6412C;
     --red-soft:#F6DED6;
     --blue:#2B5773;
     --blue-soft:#DCE9F1;
@@ -85,11 +85,11 @@
 
   .stat-row{ margin-bottom:18px; }
   .vocab-card{
-    display:flex; flex-direction:column; gap:5px;
+    display:flex; flex-direction:column;
     width:100%;
     border:1px solid var(--line);
     border-radius:16px;
-    padding:16px 18px;
+    padding:14px 16px;
     background:var(--gold-soft);
     box-shadow:0 10px 24px -14px rgba(184,134,42,0.4);
     cursor:pointer;
@@ -101,11 +101,29 @@
   .vocab-card:active{ transform:scale(0.97); }
   .vocab-card-title{
     display:flex; align-items:center; gap:8px;
-    font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:18px; color:var(--ink);
+    font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:17px; color:var(--ink);
+    margin-bottom:9px;
   }
-  .vocab-card-emoji{ font-size:22px; line-height:1; }
-  .vocab-card-chevron{ margin-left:auto; color:var(--gold); font-size:20px; font-weight:700; }
-  .vocab-card-detail{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); }
+  .vocab-card-emoji{ font-size:20px; line-height:1; }
+  .vocab-card-chevron{ margin-left:auto; color:var(--gold); font-size:19px; font-weight:700; }
+  /* Two per-direction rows (VN→EN / EN→VN) instead of one merged line — a
+     word can be known in one direction and not the other, so a single
+     "known/review" total across both directions never added up cleanly
+     (see CLAUDE.md data model). Each row's own 3 percentages always sum to
+     that direction's word count. */
+  .vocab-stat-row{ display:flex; align-items:center; gap:8px; }
+  .vocab-stat-row + .vocab-stat-row{ margin-top:7px; }
+  .vocab-stat-label{ width:27%; flex-shrink:0; }
+  .vocab-stat-dir{ font-family:'IBM Plex Sans',sans-serif; font-weight:700; font-size:12px; color:var(--ink); line-height:1.2; }
+  .vocab-stat-count{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--muted); }
+  .vocab-stat-bar{ flex:1; height:20px; border-radius:6px; overflow:hidden; display:flex; }
+  .vocab-stat-seg{
+    height:100%; display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:700;
+  }
+  .vocab-stat-seg.known{ background:var(--jade); color:#FBF3EC; }
+  .vocab-stat-seg.review{ background:var(--red); color:#FBEFE9; }
+  .vocab-stat-seg.new{ background:rgba(43,35,28,0.15); color:var(--ink); }
 
   .btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
@@ -117,7 +135,7 @@
     transition:transform .12s ease, filter .12s ease;
   }
   .btn:active{ transform:scale(0.97); }
-  .btn-primary{ background:var(--red); color:#FBF3EC; box-shadow:0 10px 24px -10px rgba(154,51,35,0.45);}
+  .btn-primary{ background:var(--red); color:#FBF3EC; box-shadow:0 10px 24px -10px rgba(214,65,44,0.45);}
   .btn-primary:active{ filter:brightness(1.08); }
   .btn-primary:disabled{ background:var(--line); color:var(--muted); box-shadow:none; cursor:not-allowed; }
   .btn-primary:disabled:active{ transform:none; filter:none; }
@@ -146,6 +164,7 @@
      new word) is neutralized while testing — Check word / browsing /
      Settings navigation stay fully usable so the demo still feels real. */
   body.test-mode .lesson-tile,
+  body.test-mode .method-row,
   body.test-mode #importDataBtn,
   body.test-mode #resetLearningBtn,
   body.test-mode #resetCustomVocabBtn,
@@ -268,7 +287,7 @@
   .btn-review{
     flex:1; background:var(--red-soft); color:#7A2A1B; border:none;
     border-radius:16px; justify-content:center; gap:8px;
-    box-shadow:0 4px 0 rgba(154,51,35,0.35);
+    box-shadow:0 4px 0 rgba(214,65,44,0.35);
   }
   .btn-known{
     flex:1; background:var(--jade-soft); color:#20463A; border:none;
@@ -301,7 +320,7 @@
   .check-result.show{ display:block; }
   .check-result.ok{ background:var(--jade-soft); color:#20463A; border:1px solid rgba(47,82,69,0.3); }
   .check-result.issue{ background:var(--gold-soft); color:#7A5A12; border:1px solid rgba(184,134,42,0.4); }
-  .check-result.error{ background:var(--red-soft); color:#7A2A1B; border:1px solid rgba(154,51,35,0.3); }
+  .check-result.error{ background:var(--red-soft); color:#7A2A1B; border:1px solid rgba(214,65,44,0.3); }
   .check-result > div + div{ margin-top:8px; }
   .check-suggestion-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
   .dict-headword{ font-weight:600; font-size:13.5px; margin-top:10px; }
@@ -383,9 +402,19 @@
   .wl-dot{
     width:9px; height:9px; border-radius:50%; border:1.5px solid var(--line); background:transparent;
   }
-  .wl-dot.on-review{ background:var(--gold); border-color:var(--gold); }
+  .wl-dot.on-review{ background:var(--red); border-color:var(--red); }
   .wl-dot.on-known{ background:var(--jade); border-color:var(--jade); }
   .wl-item{ cursor:pointer; }
+  /* Streak badge (replaces the plain status dot) — magnitude 1-3 shown as a
+     digit, color carries the sign only (see CLAUDE.md data model). */
+  .wl-badge{
+    width:18px; height:18px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid var(--line); background:transparent;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:700;
+  }
+  .wl-badge.on-known{ background:var(--jade); border-color:var(--jade); color:#FBF3EC; }
+  .wl-badge.on-review{ background:var(--red); border-color:var(--red); color:#FBEFE9; }
 
   .wl-popup-backdrop{
     position:fixed; inset:0; background:rgba(43,35,28,0.45); z-index:20;
@@ -398,6 +427,18 @@
   }
   .wl-popup-vn{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:22px; color:var(--ink); margin-bottom:8px; word-break:break-word; }
   .wl-popup-en{ font-size:15px; color:var(--muted); line-height:1.4; word-break:break-word; }
+  /* Per-direction streak detail (5-pip track, pivot at the middle — see
+     CLAUDE.md data model for the -3..+3 skip-zero mechanic this renders). */
+  .wl-popup-tracks{ margin-top:16px; text-align:left; }
+  .wl-popup-track-row{ margin-bottom:12px; }
+  .wl-popup-track-row:last-child{ margin-bottom:0; }
+  .wl-popup-track-label{ font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .wl-popup-pips{ display:flex; gap:4px; }
+  .wl-popup-pip{
+    width:9px; height:9px; border-radius:50%; border:1.5px solid var(--line); background:transparent;
+  }
+  .wl-popup-pip.on-known{ background:var(--jade); border-color:var(--jade); }
+  .wl-popup-pip.on-review{ background:var(--red); border-color:var(--red); }
 
   .report-note-input{
     width:100%; background:var(--bg); border:1px solid var(--line); border-radius:10px;
@@ -461,6 +502,25 @@
   .lesson-tile-label{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:12.5px; color:var(--ink); }
   .lesson-tile-count{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--muted); }
 
+  /* ---------- SETTINGS > LEARNING METHOD ---------- */
+  .method-row{
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:13px 16px; margin-bottom:10px; min-height:56px;
+    cursor:pointer;
+  }
+  .method-row:last-child{ margin-bottom:0; }
+  .method-row.active{ border-color:var(--jade); border-width:1.5px; }
+  .method-row-text{ flex:1; }
+  .method-row-title{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:15px; color:var(--ink); margin-bottom:3px; }
+  .method-row-subtitle{ font-size:12px; color:var(--muted); line-height:1.35; }
+  .method-row-radio{
+    width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; color:#FBF3EC;
+  }
+  .method-row.active .method-row-radio{ background:var(--jade); border-color:var(--jade); }
+
   @media (prefers-reduced-motion: reduce){
     .card, .progress-fill, .btn, .session-actions{ transition:none !important; }
   }
@@ -473,8 +533,8 @@
     <!-- stylized coastline echoing Vietnam's S-curve, plus conical hat and lotus line-art: a quiet background texture, not a literal map -->
     <path d="M 300 20 C 200 90, 340 160, 250 230 C 160 300, 320 360, 260 430 C 210 490, 300 540, 250 610 C 200 680, 300 720, 240 800 C 210 840, 260 870, 230 900"
           fill="none" stroke="#B8862A" stroke-width="2" opacity="0.35"/>
-    <circle cx="300" cy="20" r="4" fill="#9A3323" opacity="0.4"/>
-    <circle cx="230" cy="900" r="4" fill="#9A3323" opacity="0.4"/>
+    <circle cx="300" cy="20" r="4" fill="#D6412C" opacity="0.4"/>
+    <circle cx="230" cy="900" r="4" fill="#D6412C" opacity="0.4"/>
     <!-- conical hat (nón lá), top right -->
     <g transform="translate(360,90)" opacity="0.3">
       <path d="M -60 30 A 60 22 0 0 1 60 30 Z" fill="none" stroke="#2F5245" stroke-width="2"/>
@@ -482,9 +542,9 @@
     </g>
     <!-- lotus, bottom left -->
     <g transform="translate(90,780)" opacity="0.3">
-      <path d="M0,0 C -18,-30 -14,-55 0,-70 C 14,-55 18,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
-      <path d="M0,0 C -34,-18 -46,-42 -36,-64 C -14,-58 -6,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
-      <path d="M0,0 C 34,-18 46,-42 36,-64 C 14,-58 6,-30 0,0 Z" fill="none" stroke="#9A3323" stroke-width="2"/>
+      <path d="M0,0 C -18,-30 -14,-55 0,-70 C 14,-55 18,-30 0,0 Z" fill="none" stroke="#D6412C" stroke-width="2"/>
+      <path d="M0,0 C -34,-18 -46,-42 -36,-64 C -14,-58 -6,-30 0,0 Z" fill="none" stroke="#D6412C" stroke-width="2"/>
+      <path d="M0,0 C 34,-18 46,-42 36,-64 C 14,-58 6,-30 0,0 Z" fill="none" stroke="#D6412C" stroke-width="2"/>
     </g>
     <!-- bamboo stalks, mid right -->
     <g transform="translate(420,480)" opacity="0.25">
@@ -514,7 +574,7 @@
       <div class="stat-row">
         <button type="button" class="vocab-card" id="statDirectoryBtn">
           <div class="vocab-card-title"><span class="vocab-card-emoji">📖</span> Vocabulary <span class="vocab-card-chevron">›</span></div>
-          <div class="vocab-card-detail" id="directoryDetail">— words · — known · — to review</div>
+          <div id="vocabStats"></div>
         </button>
       </div>
       <div class="session-settings">
@@ -676,6 +736,11 @@
       <span>Reset</span>
       <span class="menu-btn-chevron">›</span>
     </button>
+    <button class="menu-btn" type="button" id="openLearningModeBtn">
+      <span class="menu-btn-emoji">🎯</span>
+      <span>Learning method</span>
+      <span class="menu-btn-chevron">›</span>
+    </button>
     <button class="menu-btn" type="button" id="testModeBtn">
       <span class="menu-btn-emoji">🚧</span>
       <span>Test mode</span>
@@ -697,6 +762,15 @@
       <span class="menu-btn-emoji">🗑️</span>
       <span>Reset manually added words</span>
     </button>
+  </section>
+
+  <!-- SETTINGS > LEARNING METHOD -->
+  <section id="settingsLearningMode" class="screen">
+    <div class="back-row">
+      <button id="backFromLearningMode" aria-label="Back">←</button>
+      <h2 style="margin:0;">Learning method</h2>
+    </div>
+    <div id="learningModeList"></div>
   </section>
 
   <!-- SETTINGS > VOCABULARY SOURCES -->
@@ -730,6 +804,7 @@
     <div class="wl-popup-card" id="wlPopupCard">
       <div class="wl-popup-vn" id="wlPopupPrimary">—</div>
       <div class="wl-popup-en" id="wlPopupSecondary">—</div>
+      <div class="wl-popup-tracks" id="wlPopupTracks"></div>
     </div>
   </div>
 
@@ -849,6 +924,7 @@ function loadDictionaryData(){
 
 let selectedDirection = 'mix';
 let selectedSize = 20;
+let learningMode = 'balanced';
 
 let customVocab = [];
 let progress = {};
@@ -897,6 +973,8 @@ async function loadState(){
   customVocab = loadJSON('custom-vocab', []);
   progress = loadJSON('progress', {});
   issueReports = loadJSON('issue-reports', []);
+  learningMode = loadJSON('learning-mode', 'balanced');
+  if(migrateProgressStreaks()) await saveProgress();
 }
 
 async function saveIssueReports(){
@@ -976,42 +1054,80 @@ function activeVocab(){
   return baseVocab.filter(w => scope[w.book] && scope[w.book][w.lesson]).concat(customVocab);
 }
 
-// Per-direction progress helpers (learning memory system v2 — last-outcome based).
-// progress[id] shape: { vn2en: {correct, wrong, last}, en2vn: {correct, wrong, last} }
-// `correct`/`wrong` are cumulative counters (kept for reference/stats).
-// `last` is 'correct' | 'wrong' — the outcome of the MOST RECENT time this word
-// was shown in this direction. Category (known / needs review) is driven only
-// by `last`, so a word flips between the two each time it's answered.
-// Either sub-key may be absent if that direction has never been shown.
+// Per-direction progress (signed streak model — see CLAUDE.md data model).
+// progress[id] shape: { vn2en: {correct, wrong, last, streak}, en2vn: {...} }
+// `correct`/`wrong` are cumulative counters (kept for reference/stats only).
+// `streak` is the live value: -3..-1 or 1..3, NEVER 0 — a correct answer
+// moves it one step toward +3 (jumping straight from -1 to +1, skipping 0),
+// a wrong answer moves it one step toward -3 (jumping from +1 to -1). Either
+// sub-key may be absent if that direction has never been shown at all.
 function dirProgress(id, dir){
   return (progress[id] && progress[id][dir]) || null;
 }
-function lastResultInDir(id, dir){
+// Best-effort reconstruction for progress saved before streaks existed: the
+// order answers happened in was never recorded, only running totals — so a
+// word never missed (or never gotten right) can be reconstructed exactly
+// (nothing ever broke the run), but a mixed history can only restart at
+// +/-1 from its last known outcome.
+function migratedStreak(dp){
+  const correct = dp.correct || 0, wrong = dp.wrong || 0;
+  if(correct === 0 && wrong === 0) return null;
+  if(wrong === 0) return Math.min(correct, 3);
+  if(correct === 0) return -Math.min(wrong, 3);
+  const last = dp.last || (correct >= wrong ? 'correct' : 'wrong');
+  return last === 'correct' ? 1 : -1;
+}
+function getStreak(id, dir){
   const dp = dirProgress(id, dir);
-  if(!dp) return null;
-  if(dp.last) return dp.last;
-  // Fallback for progress recorded before "last outcome" tracking existed.
-  if(dp.correct > 0) return 'correct';
-  if(dp.wrong > 0) return 'wrong';
-  return null;
+  if(!dp) return null; // never seen in this direction
+  if(typeof dp.streak !== 'number') dp.streak = migratedStreak(dp);
+  return dp.streak;
+}
+function stepStreak(streak, correct){
+  if(streak === null) return correct ? 1 : -1;
+  if(correct) return streak > 0 ? Math.min(streak + 1, 3) : (streak === -1 ? 1 : streak + 1);
+  return streak < 0 ? Math.max(streak - 1, -3) : (streak === 1 ? -1 : streak - 1);
+}
+// Applies one answer to a word/direction: advances its streak (see
+// stepStreak) and updates the reference-only correct/wrong/last counters.
+function applyAnswer(id, dir, correct){
+  if(!progress[id]) progress[id] = {};
+  if(!progress[id][dir]) progress[id][dir] = {correct:0, wrong:0};
+  const dp = progress[id][dir];
+  const prevStreak = typeof dp.streak === 'number' ? dp.streak : migratedStreak(dp);
+  dp.streak = stepStreak(prevStreak, correct);
+  if(correct) dp.correct++; else dp.wrong++;
+  dp.last = correct ? 'correct' : 'wrong';
+}
+// One-time upgrade for progress saved before the streak field existed —
+// called once at startup (see loadState()); returns true if anything changed
+// so the caller knows to persist it.
+function migrateProgressStreaks(){
+  let changed = false;
+  Object.keys(progress).forEach(id => {
+    ['vn2en', 'en2vn'].forEach(dir => {
+      const dp = progress[id][dir];
+      if(dp && typeof dp.streak !== 'number'){
+        dp.streak = migratedStreak(dp);
+        changed = true;
+      }
+    });
+  });
+  return changed;
 }
 function isKnownInDir(id, dir){
-  return lastResultInDir(id, dir) === 'correct';
+  const s = getStreak(id, dir);
+  return s !== null && s > 0;
 }
 function isNeedsReviewInDir(id, dir){
-  return lastResultInDir(id, dir) === 'wrong';
+  const s = getStreak(id, dir);
+  return s !== null && s < 0;
 }
-function isKnownAnyDir(id){
-  return isKnownInDir(id, 'vn2en') || isKnownInDir(id, 'en2vn');
-}
-function isNeedsReviewAnyDir(id){
-  return isNeedsReviewInDir(id, 'vn2en') || isNeedsReviewInDir(id, 'en2vn');
-}
-// Category of a word for a specific direction, used by the weighted draw.
+// Category of a word for a specific direction, used by the weighted draw —
+// 'new' (never seen) or the streak value itself as a string ('-3'..'3', no 0).
 function categorizeForDir(id, dir){
-  if(isKnownInDir(id, dir)) return 'known';
-  if(isNeedsReviewInDir(id, dir)) return 'review';
-  return 'new';
+  const s = getStreak(id, dir);
+  return s === null ? 'new' : String(s);
 }
 
 // Some VN spellings legitimately belong to two+ unrelated words (true
@@ -1033,20 +1149,108 @@ function mergeVnCard(group){
 }
 // Category of a deck candidate for the weighted draw — a merged card is as
 // advanced as its LEAST-known sense, so it keeps showing up until every
-// sense behind it has been answered correctly at least once.
+// sense behind it has been answered correctly at least once. "new" wins if
+// any sense is unseen; otherwise the most negative streak among the senses
+// represents the whole card (worst sense drives the bucket it lands in).
 function candidateCategory(c){
   if(!c.merged) return categorizeForDir(c.id, c.dir);
-  const cats = c.ids.map(id => categorizeForDir(id, 'vn2en'));
-  if(cats.includes('new')) return 'new';
-  if(cats.includes('review')) return 'review';
-  return 'known';
+  const streaks = c.ids.map(id => getStreak(id, 'vn2en'));
+  if(streaks.includes(null)) return 'new';
+  return String(Math.min(...streaks));
+}
+
+// Per-direction breakdown for the home "Vocabulary" card — kept separate per
+// direction (VN→EN / EN→VN) rather than merged, because a word known in one
+// direction and not the other used to make "known + review" overshoot or
+// undershoot the total word count (see CLAUDE.md data model). "Known" lumps
+// together any positive streak (+1..+3) — only the sign matters here, the
+// magnitude is just extra detail shown per-word in the list/popup.
+function computeDirStats(dir){
+  const all = activeVocab();
+  const total = all.length;
+  let known = 0, review = 0;
+  all.forEach(w => {
+    const s = getStreak(w.id, dir);
+    if(s === null) return;
+    if(s > 0) known++; else review++;
+  });
+  const neverSeen = total - known - review;
+  return {
+    total, known, review, neverSeen,
+    knownPct: total ? known/total*100 : 0,
+    reviewPct: total ? review/total*100 : 0,
+    neverSeenPct: total ? neverSeen/total*100 : 0
+  };
+}
+
+// Guarantees each non-zero segment a minimum visual width so its own
+// percentage stays legible, borrowing the difference proportionally from
+// the other segments — the numbers shown stay the true percentages, only
+// the bar's own proportions are nudged (validated with the user: cropping
+// neighboring segments is fine, a separate space for the number is not).
+const MIN_SEG_PCT = 12;
+function renderStatBar(container, pcts){
+  const order = ['known', 'review', 'new'];
+  // A category that rounds to 0% (e.g. 1 word out of 346) has nothing to
+  // show — hide it outright rather than drawing a colored sliver labeled
+  // "0%". Only categories with an actual rounded percentage compete for
+  // the minimum-width guarantee below.
+  const disp = {};
+  order.forEach(k => { disp[k] = Math.round(pcts[k]); });
+  const shown = order.filter(k => disp[k] > 0);
+
+  const visual = {};
+  shown.forEach(k => { visual[k] = pcts[k]; });
+  // Single-pass correction (not sequential) so boosting one small segment
+  // can never undercut another back below the minimum: every segment that
+  // needs a boost borrows from the segments that don't, all at once.
+  const small = shown.filter(k => visual[k] < MIN_SEG_PCT);
+  const big = shown.filter(k => visual[k] >= MIN_SEG_PCT);
+  if(small.length && big.length){
+    const deficit = small.reduce((sum, k) => sum + (MIN_SEG_PCT - visual[k]), 0);
+    const bigTotal = big.reduce((sum, k) => sum + visual[k], 0);
+    big.forEach(k => { visual[k] -= deficit * (visual[k] / bigTotal); });
+    small.forEach(k => { visual[k] = MIN_SEG_PCT; });
+  }
+
+  container.innerHTML = '';
+  shown.forEach(key => {
+    const seg = document.createElement('div');
+    seg.className = 'vocab-stat-seg ' + key;
+    seg.style.width = visual[key] + '%';
+    seg.textContent = disp[key] + '%';
+    container.appendChild(seg);
+  });
 }
 
 function refreshStats(){
-  const all = activeVocab();
-  const knownCount = all.filter(w => isKnownAnyDir(w.id)).length;
-  const reviewCount = all.filter(w => isNeedsReviewAnyDir(w.id)).length;
-  document.getElementById('directoryDetail').textContent = `${all.length} words · ${knownCount} known · ${reviewCount} to review`;
+  const container = document.getElementById('vocabStats');
+  container.innerHTML = '';
+  [['vn2en', 'VN → EN'], ['en2vn', 'EN → VN']].forEach(([dir, label]) => {
+    const stats = computeDirStats(dir);
+    const row = document.createElement('div');
+    row.className = 'vocab-stat-row';
+
+    const labelBox = document.createElement('div');
+    labelBox.className = 'vocab-stat-label';
+    const dirLbl = document.createElement('div');
+    dirLbl.className = 'vocab-stat-dir';
+    dirLbl.textContent = label;
+    const countLbl = document.createElement('div');
+    countLbl.className = 'vocab-stat-count';
+    countLbl.textContent = `${stats.total} words`;
+    labelBox.append(dirLbl, countLbl);
+    row.appendChild(labelBox);
+
+    const bar = document.createElement('div');
+    bar.className = 'vocab-stat-bar';
+    if(stats.total > 0){
+      renderStatBar(bar, { known: stats.knownPct, review: stats.reviewPct, new: stats.neverSeenPct });
+    }
+    row.appendChild(bar);
+
+    container.appendChild(row);
+  });
   updateFloatingIcon();
 }
 
@@ -1059,20 +1263,54 @@ function shuffle(arr){
   return a;
 }
 
-// Weighted session draw (learning memory system v2).
-// Target quotas per session: 60% new / 30% needs-review / 10% known,
-// evaluated per-word against the direction that word will actually be
-// tested in (fixed direction, or a per-card coin flip when direction is 'mix').
-// "needs review" / "known" reflect only the LAST outcome in that direction
-// (see categorizeForDir) — a word flips category the next time it's answered.
+// Learning method presets — each is a full quota table over the 7 draw
+// buckets (see BUCKET_ORDER below), picked by the user in Settings > Learning
+// method. Percentages always sum to 100 and are each a multiple of ten at
+// the new/review/maintenance level, so a 10-word session divides evenly;
+// the finer -3/-2/-1 and +1/+2/+3 splits inside review/maintenance are
+// internal (never shown in the UI) and just weighted toward the more
+// severe/fresher end. See CLAUDE.md data model for the reasoning.
+const LEARNING_MODES = {
+  discovery: {
+    label: 'Discovery',
+    subtitle: 'Lots of new words, light on review.',
+    quotas: { new: 60, '-3': 12, '-2': 10, '-1': 8, '1': 5, '2': 3, '3': 2 }
+  },
+  balanced: {
+    label: 'Balanced',
+    subtitle: 'An even mix of new words and review.',
+    quotas: { new: 40, '-3': 18, '-2': 14, '-1': 8, '1': 10, '2': 6, '3': 4 }
+  },
+  review: {
+    label: 'Review',
+    subtitle: 'Focus on words that need reinforcing.',
+    quotas: { new: 20, '-3': 24, '-2': 16, '-1': 10, '1': 17, '2': 8, '3': 5 }
+  },
+  consolidation: {
+    label: 'Consolidation',
+    subtitle: "No new words — just reinforcing what you already know.",
+    quotas: { new: 0, '-3': 32, '-2': 24, '-1': 14, '1': 16, '2': 9, '3': 5 }
+  }
+};
+// Cascade order for deficit fallback: a bucket short on words hands its
+// shortfall to its closest neighbor in severity, from most-urgent (-3) to
+// most-settled (+3), with "new" first in line — mirrors the old 3-bucket
+// new→review→known cascade, just with finer steps.
+const BUCKET_ORDER = ['new', '-3', '-2', '-1', '1', '2', '3'];
+
+// Weighted session draw. Each word/direction candidate falls into one of the
+// 7 buckets above (see candidateCategory); the active learning mode's quota
+// table decides how many of each to pull, evaluated per-word against the
+// direction it will actually be tested in (fixed direction, or a per-card
+// coin flip when direction is 'mix').
 //
-// Fallback rule (validated):
-// - Case A (new pool non-empty but smaller than its quota): take what's
-//   available, report the deficit onto needs-review, then onto known if
-//   that pool is also short. Ratios unchanged.
-// - Case B (new pool fully empty): switch to 0% new / 80% needs-review /
-//   20% known before applying the same deficit cascade as Case A.
-// - Safety net: if all three pools combined can't fill the session, pad
+// Fallback rule (same shape as before, just over more buckets):
+// - A bucket short on words hands its shortfall to the next bucket in
+//   BUCKET_ORDER (see the `carry` cascade below).
+// - If the "new" pool is completely empty, its whole quota share is
+//   redistributed across the other 6 buckets, scaled up proportionally so
+//   they still sum to 100 — same shape as the mode, just without "new".
+// - Safety net: if every pool combined still can't fill the session, pad
 //   with whatever remains regardless of category (tiny vocab edge case).
 function buildDeck(){
   const total = activeVocab();
@@ -1095,34 +1333,33 @@ function buildDeck(){
     candidates.push(group.length > 1 ? mergeVnCard(group) : group[0]);
   });
 
-  const pools = { new: [], review: [], known: [] };
+  const pools = {};
+  BUCKET_ORDER.forEach(b => { pools[b] = []; });
   candidates.forEach(c => pools[candidateCategory(c)].push(c));
-  pools.new = shuffle(pools.new);
-  pools.review = shuffle(pools.review);
-  pools.known = shuffle(pools.known);
+  BUCKET_ORDER.forEach(b => { pools[b] = shuffle(pools[b]); });
 
-  let newQuota, reviewQuota, knownQuota;
+  const mode = LEARNING_MODES[learningMode] || LEARNING_MODES.balanced;
+  const pcts = {};
   if(pools.new.length === 0){
-    newQuota = 0;
-    knownQuota = Math.round(size * 0.20);
-    reviewQuota = size - knownQuota;
+    const restTotal = 100 - mode.quotas.new;
+    BUCKET_ORDER.forEach(b => {
+      pcts[b] = b === 'new' ? 0 : (restTotal > 0 ? mode.quotas[b] * (100 / restTotal) : mode.quotas[b]);
+    });
   } else {
-    newQuota = Math.round(size * 0.6);
-    reviewQuota = Math.round(size * 0.3);
-    knownQuota = size - newQuota - reviewQuota;
+    BUCKET_ORDER.forEach(b => { pcts[b] = mode.quotas[b]; });
   }
 
-  const newTaken = pools.new.splice(0, newQuota);
-  reviewQuota += (newQuota - newTaken.length);
+  let picked = [];
+  let carry = 0;
+  BUCKET_ORDER.forEach(b => {
+    const want = Math.round(size * pcts[b] / 100) + carry;
+    const taken = pools[b].splice(0, want);
+    picked.push(...taken);
+    carry = want - taken.length;
+  });
 
-  const reviewTaken = pools.review.splice(0, reviewQuota);
-  knownQuota += (reviewQuota - reviewTaken.length);
-
-  const knownTaken = pools.known.splice(0, knownQuota);
-
-  let picked = [...newTaken, ...reviewTaken, ...knownTaken];
   if(picked.length < size){
-    const leftover = shuffle([...pools.new, ...pools.review, ...pools.known]);
+    const leftover = shuffle(BUCKET_ORDER.flatMap(b => pools[b]));
     picked = picked.concat(leftover.slice(0, size - picked.length));
   }
 
@@ -1230,12 +1467,7 @@ function markCard(known){
   // A merged homonym card (see mergeVnCard) was shown as a single prompt,
   // so the outcome applies to every sense behind it.
   const ids = currentCard.merged ? currentCard.ids : [currentCard.id];
-  ids.forEach(id => {
-    if(!progress[id]) progress[id] = {};
-    if(!progress[id][dir]) progress[id][dir] = {correct:0, wrong:0};
-    if(known) progress[id][dir].correct++; else progress[id][dir].wrong++;
-    progress[id][dir].last = known ? 'correct' : 'wrong';
-  });
+  ids.forEach(id => applyAnswer(id, dir, known));
   saveProgress();
   deckPos++;
   renderCard();
@@ -1899,23 +2131,68 @@ function renderWordList(status){
     item.appendChild(wordsBox);
 
     const dir = dirForLang(wordlistLang);
-    const statusDot = document.createElement('span');
-    let statusClass = '', statusTitle = 'New';
-    if(isKnownInDir(w.id, dir)){ statusClass = ' on-known'; statusTitle = 'Known'; }
-    else if(isNeedsReviewInDir(w.id, dir)){ statusClass = ' on-review'; statusTitle = 'Needs review'; }
-    statusDot.className = 'wl-dot' + statusClass;
-    statusDot.title = `${statusTitle} (${wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN'})`;
-    item.appendChild(statusDot);
+    const streak = getStreak(w.id, dir);
+    const dirLabel = wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN';
+    const badge = document.createElement('span');
+    if(streak === null){
+      badge.className = 'wl-badge';
+      badge.title = `New (${dirLabel})`;
+    } else {
+      badge.className = 'wl-badge ' + (streak > 0 ? 'on-known' : 'on-review');
+      badge.textContent = Math.abs(streak);
+      badge.title = `${streak > 0 ? 'Known' : 'Needs review'} (${dirLabel})`;
+    }
+    item.appendChild(badge);
 
-    item.addEventListener('click', () => openWordPopup(primaryText, secondaryText));
+    item.addEventListener('click', () => openWordPopup(w));
 
     scroll.appendChild(item);
   });
 }
 
-function openWordPopup(vn, en){
-  document.getElementById('wlPopupPrimary').textContent = vn;
-  document.getElementById('wlPopupSecondary').textContent = en;
+// Renders one direction's 5-pip streak track (see CLAUDE.md data model): the
+// middle pip is magnitude 1 (colored by sign), the two pips on either side
+// are magnitude 2 and 3 — never seen means all 5 stay empty.
+function renderStreakPips(streak){
+  const wrap = document.createElement('div');
+  wrap.className = 'wl-popup-pips';
+  const filled = [false, false, false, false, false];
+  let cls = '';
+  if(streak !== null){
+    cls = streak > 0 ? 'on-known' : 'on-review';
+    const mag = Math.abs(streak);
+    filled[2] = true;
+    if(streak > 0){
+      if(mag >= 2) filled[3] = true;
+      if(mag >= 3) filled[4] = true;
+    } else {
+      if(mag >= 2) filled[1] = true;
+      if(mag >= 3) filled[0] = true;
+    }
+  }
+  filled.forEach(isFilled => {
+    const pip = document.createElement('span');
+    pip.className = 'wl-popup-pip' + (isFilled ? ' ' + cls : '');
+    wrap.appendChild(pip);
+  });
+  return wrap;
+}
+
+function openWordPopup(w){
+  document.getElementById('wlPopupPrimary').textContent = w.vn;
+  document.getElementById('wlPopupSecondary').textContent = w.en;
+  const tracks = document.getElementById('wlPopupTracks');
+  tracks.innerHTML = '';
+  [['vn2en', 'VN → EN'], ['en2vn', 'EN → VN']].forEach(([dir, label]) => {
+    const row = document.createElement('div');
+    row.className = 'wl-popup-track-row';
+    const lbl = document.createElement('div');
+    lbl.className = 'wl-popup-track-label';
+    lbl.textContent = label;
+    row.appendChild(lbl);
+    row.appendChild(renderStreakPips(getStreak(w.id, dir)));
+    tracks.appendChild(row);
+  });
   document.getElementById('wlPopupBackdrop').classList.add('show');
 }
 function closeWordPopup(){
@@ -2308,6 +2585,47 @@ document.getElementById('openDataBtn').addEventListener('click', ()=>{
   showScreen('settingsData');
 });
 document.getElementById('backFromData').addEventListener('click', ()=>{
+  showScreen('settings');
+});
+
+// ---------- Settings: learning method (which quota table buildDeck() uses) ----------
+function renderLearningModeList(){
+  const container = document.getElementById('learningModeList');
+  container.innerHTML = '';
+  Object.entries(LEARNING_MODES).forEach(([key, mode]) => {
+    const row = document.createElement('div');
+    row.className = 'method-row' + (learningMode === key ? ' active' : '');
+
+    const text = document.createElement('div');
+    text.className = 'method-row-text';
+    const title = document.createElement('div');
+    title.className = 'method-row-title';
+    title.textContent = mode.label;
+    const subtitle = document.createElement('div');
+    subtitle.className = 'method-row-subtitle';
+    subtitle.textContent = mode.subtitle;
+    text.append(title, subtitle);
+    row.appendChild(text);
+
+    const radio = document.createElement('div');
+    radio.className = 'method-row-radio';
+    radio.textContent = learningMode === key ? '✓' : '';
+    row.appendChild(radio);
+
+    row.addEventListener('click', () => {
+      learningMode = key;
+      saveJSON('learning-mode', learningMode);
+      renderLearningModeList();
+    });
+
+    container.appendChild(row);
+  });
+}
+document.getElementById('openLearningModeBtn').addEventListener('click', ()=>{
+  renderLearningModeList();
+  showScreen('settingsLearningMode');
+});
+document.getElementById('backFromLearningMode').addEventListener('click', ()=>{
   showScreen('settings');
 });
 

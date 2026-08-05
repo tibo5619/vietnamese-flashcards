@@ -57,11 +57,42 @@ session opened in this folder — keep it up to date after each chantier.
   `{id, vn, en, lesson:null}`, always included in `activeVocab()` regardless
   of active-scope — no toggle for these.
 - **Progress** (`progress` localStorage key): per-direction learning memory,
-  `{ [wordId]: { vn2en: {correct, wrong, last}, en2vn: {...} } }`. `last`
-  (`'correct'`|`'wrong'`) drives known/review categorization — a word flips
-  category each time it's answered again. Weighted session draw: 60% new /
-  30% review / 10% known (see the long comment above `buildDeck()` for the
-  fallback cascade when a pool is short or empty).
+  `{ [wordId]: { vn2en: {correct, wrong, last, streak}, en2vn: {...} } }`.
+  `correct`/`wrong` are cumulative counters kept for reference only; `last`
+  is kept for backward compatibility with pre-streak data (see migration
+  below). The live value driving everything is `streak` — a signed integer
+  that is **always -3..-1 or 1..3, never 0** — computed by `stepStreak()` in
+  `index.html`: a correct answer moves it one step toward +3 (jumping
+  straight from -1 to +1, skipping 0 — the two are the *same* pivot point,
+  just colored differently), a wrong answer moves it one step toward -3
+  (jumping from +1 to -1). Both directions are tracked fully independently —
+  knowing a word VN→EN says nothing about EN→VN. `isKnownInDir()` /
+  `isNeedsReviewInDir()` just check the sign (`streak > 0` / `streak < 0`);
+  the magnitude (1/2/3) is extra detail, not a separate category, everywhere
+  except the weighted draw (see below). **Migration**: progress saved before
+  `streak` existed is upgraded lazily (`migratedStreak()`, run once at
+  startup by `migrateProgressStreaks()` in `loadState()`) — if a word was
+  never missed (`wrong === 0`), its streak is reconstructed *exactly* as
+  `+min(correct, 3)` (nothing could have broken the run), symmetrically for
+  never-succeeded words; a genuinely mixed history (both `correct` and
+  `wrong` > 0) can't be reconstructed exactly since the order of past
+  answers was never recorded, so it restarts at `±1` from `last`.
+  **Weighted session draw** (`buildDeck()`): candidates fall into 7 buckets —
+  `new` (never seen) plus one per streak value (`-3`..`3`, skipping 0) — and
+  `LEARNING_MODES` (in `index.html`, selected in Settings → Learning method,
+  `learning-mode` localStorage key, default `balanced`) supplies the quota
+  table: `discovery` 60/30/10, `balanced` 40/40/20, `review` 20/50/30,
+  `consolidation` 0/70/30 (new / review-total / maintenance-total — always
+  multiples of ten so a 10-word session divides evenly). The review total is
+  split across `-3`/`-2`/`-1` weighted toward the worse end, and the
+  maintenance total across `1`/`2`/`3` weighted toward the fresher end —
+  these finer splits are internal only, never shown in the UI. Fallback
+  cascade: a bucket short on words hands its shortfall to the next bucket in
+  `BUCKET_ORDER` (`new`→`-3`→`-2`→`-1`→`1`→`2`→`3`); if `new` is completely
+  empty its whole share is redistributed proportionally across the other 6
+  (same shape, scaled up to still sum to 100). A merged VN-homonym card (see
+  `mergeVnCard()`) is represented by whichever underlying sense has the
+  lowest streak (most negative wins, `new` wins over everything).
 - **Other localStorage keys**: `issue-reports` (user-flagged
   translation/spelling/app-behavior issues),
   each `{id, wordId, vn, en, dir, page, note, resolved, createdAt}` — `page`
@@ -153,7 +184,7 @@ opens the report popup directly (`openReportPopup()`), capturing the current
 session card if there is one, else just the page. This replaced two older
 entry points: the session-only "Report an issue" button and the home-only
 "Reported issues" menu row.
-`settings` is a 3-entry menu (`.menu-btn` rows): **Vocabulary sources**
+`settings` is a 4-entry menu (`.menu-btn` rows): **Vocabulary sources**
 (→ `settingsSources`, per-book `.lesson-grid` of 3-column `.lesson-tile`s
 instead of stacked rows — compact enough that Connect 1 + Connect 2 (12
 lessons) fit on one screen with no scroll; the container still scrolls once a
@@ -162,7 +193,38 @@ lessons) fit on one screen with no scroll; the container still scrolls once a
 the pre-existing confirm popup — `progress = {}` — and **Reset manually added
 words**, opens a confirm popup naming the exact word count, then clears
 `customVocab` and deletes only the `progress` entries for those word ids;
-if there are 0 custom words it shows a toast instead of opening the popup).
+if there are 0 custom words it shows a toast instead of opening the popup)
+/ **Learning method** (→ `settingsLearningMode`, see "Data model" for what
+each mode actually changes) — a single-choice list of `.method-row`s built
+by `renderLearningModeList()`, one per key in `LEARNING_MODES`, each row a
+fixed `min-height` (so "Consolidation"'s two-line subtitle doesn't make that
+row taller than the others) showing only a title + plain-language subtitle,
+deliberately no percentages.
+The Vocabulary list (`wordlist`) and its per-word popup (`wlPopupBackdrop`)
+show the streak from "Data model" two ways: `renderWordList()` draws a
+compact `.wl-badge` per row (18px circle, jade if the streak is positive /
+`--red` if negative, the magnitude 1-3 as a digit inside, empty outline if
+never seen) for whichever single direction the `wlLangGroup` pill has
+selected — never both, since the list already shows one direction at a
+time. Tapping a row calls `openWordPopup(w)` (takes the whole word object,
+not just display strings, so it can look up both directions), which renders
+the full detail via `renderStreakPips()`: a 5-pip `.wl-popup-pip` row per
+direction, pivot at the middle pip (magnitude 1, colored by sign), extending
+outward to the two pips on either side for magnitude 2/3 — never seen shows
+all 5 empty. The home screen's Vocabulary card (`#vocabStats`, built by
+`refreshStats()`) shows the same per-direction split as two compact rows
+(`computeDirStats()` for the numbers), each a segmented `.vocab-stat-bar`
+with all 3 percentages (known/review/never-seen, no decimals) centered
+inside their own segment — deliberately not a single merged known/review
+total across both directions, since a word known in one direction and not
+the other used to make "known + review" over- or under-shoot the real word
+count. `renderStatBar()` guarantees each shown segment (skipping any that
+rounds to 0%) a minimum visual width so its own number stays legible,
+borrowing the difference from the other segments in one non-sequential pass
+(so boosting one small segment can never undercut another back below the
+minimum — the two "small" segments can't both need it beyond what the one
+guaranteed "big" segment can spare, since a real distribution can't have 2
+of the 3 categories under 12% and still sum to 100).
 `add` (Add a word) is no longer reachable from `home` — its entry point is
 now `#addBtn`, a small `.icon-btn` ("+") in the `wordlist` screen's
 back-row, next to the "Vocabulary" title. `backFromAdd` returns to
@@ -189,7 +251,7 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
   handling; a button inside the back face won't register clicks). Session
   action buttons live in `.session-actions`, outside the card.
 - **Service worker is network-first**, not cache-first (`sw.js`, cache name
-  currently `nhat-chu-v11` — bump it on every `index.html`/asset change). A
+  currently `nhat-chu-v16` — bump it on every `index.html`/asset change). A
   cache-first version was shipped first and
   caused already-installed phones to keep serving a stale `index.html`
   forever after a code update — don't revert this without re-solving that.
@@ -316,6 +378,26 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
    via a small "+" icon button in the `wordlist` screen's header (see "UI
    structure"), whose header was also made to stay fixed while the list
    scrolls (previously the whole page scrolled the filters away).
+10. Learning-memory system replaced end to end: the old last-outcome-only
+    known/review/new categorization became a signed streak (-3..-1/1..3,
+    skip zero) tracked independently per direction, with an exact-where-
+    possible migration for existing progress and a redesigned draw
+    algorithm (see "Data model" for all the mechanics). Also fixed a real
+    bug caught during this chantier's own testing: the home stat bar's
+    minimum-segment-width guarantee was drawing a visible colored sliver
+    labeled "0%" for a category that rounded down to nothing, and applying
+    the width correction sequentially could shrink an already-boosted
+    segment back below its own minimum — `renderStatBar()` now hides any
+    category that rounds to 0% and corrects all undersized segments in a
+    single non-sequential pass. New UI: streak badges/pips in the
+    Vocabulary list and its per-word popup, the home Vocabulary card's
+    two-direction percentage bars, and a Settings → Learning method screen
+    (4 named presets, no percentages shown — see "UI structure"). The
+    visible `--red` was also brightened from `#9A3323` to `#D6412C`
+    everywhere it's used (a single CSS variable, so one change cascades to
+    the session "needs work" stamp, buttons, badges, etc.) — the old value
+    read as too muted for something meant to draw attention. `sw.js` cache
+    bumped to `nhat-chu-v16`.
 
 ## Planned next (not started)
 
