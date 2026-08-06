@@ -380,7 +380,7 @@
      filters scroll away with the list. Capping just this screen's height
      makes .wordlist-scroll the actual scroll container, so .wl-sticky-header
      (everything above it) stays in place instead. */
-  #wordlist.screen, #issues.screen{ max-height:100vh; max-height:100svh; }
+  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen{ max-height:100vh; max-height:100svh; }
   .wl-sticky-header{ flex-shrink:0; }
   .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
   .wl-item{
@@ -480,6 +480,63 @@
   #issueDetailResolveBtn.resolved #issueDetailResolveLabel{ color:#20463A; }
   #issueResolutionInput{ background:var(--surface); }
 
+  /* ---------- GRAMMAR ---------- */
+  .grammar-card-detail{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); }
+  .lesson-group{ margin-bottom:22px; }
+  .lesson-group-title{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+    margin:0 0 8px; padding-left:2px;
+  }
+  .gram-row{
+    display:flex; align-items:center; gap:10px; width:100%;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:13px; margin-bottom:8px; cursor:pointer; font-family:inherit; text-align:left;
+  }
+  .gram-row-title{ flex:1; font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:15px; color:var(--ink); }
+  .gram-row-chevron{ flex-shrink:0; color:var(--muted); font-size:14px; }
+
+  /* detail page: sticky top block (title/structure/explanation) stays put,
+     only the examples list scrolls — reuses .wordlist-scroll for that. */
+  .gd-sticky{ flex-shrink:0; }
+  .gd-eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:6px;
+  }
+  .gd-title{ font-family:'Be Vietnam Pro',sans-serif; font-weight:800; font-size:25px; color:var(--ink); margin:0 0 14px; line-height:1.2; }
+  .gd-structure{
+    display:block; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500;
+    background:var(--gold-soft); color:#6B4E00; border-radius:10px; padding:9px 13px; margin-bottom:18px;
+  }
+  .gd-section-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:700; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--muted); margin:0 0 8px;
+  }
+  .gd-explanation{ font-size:15px; color:var(--ink); line-height:1.55; text-align:justify; margin-bottom:16px; }
+  .gd-examples{ display:flex; flex-direction:column; gap:10px; padding-bottom:4px; }
+  .gd-example{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:11px 13px; }
+  .gd-example.book{ border-left:3px solid var(--gold); }
+  .gd-example-vn{ font-family:'Be Vietnam Pro',sans-serif; font-weight:600; font-size:13.5px; color:var(--ink); line-height:1.4; }
+  .gd-example-en{ font-size:12px; color:var(--muted); line-height:1.4; margin-top:4px; }
+
+  /* placeholder words in a structure formula: [noun], [verb], [subject]... */
+  .gd-ph{ font-style:italic; font-weight:400; }
+  /* the rule's own literal keywords, wherever they appear inline */
+  mark.hl{ background:none; color:var(--red); font-weight:700; font-family:inherit; }
+
+  /* degrees-of-liking scale (Bài 1 only): red -> gold -> green gradient bar
+     mirroring the app's existing streak colors, one tick per level, each
+     level's label angled directly under its own tick. */
+  .gd-scale{ margin-bottom:8px; }
+  .gd-scale-bar{ position:relative; height:8px; width:76%; margin:0 auto; border-radius:4px; background:linear-gradient(to right, var(--red), var(--gold), var(--jade)); }
+  .gd-scale-tick{ position:absolute; top:50%; width:9px; height:9px; border-radius:50%; background:var(--bg); border:2px solid var(--ink); transform:translate(-50%,-50%); }
+  .gd-scale-labels{ position:relative; width:76%; height:40px; margin:2px auto 0; }
+  .gd-scale-label{
+    position:absolute; top:2px; transform-origin:top left; transform:rotate(22deg);
+    font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--ink);
+    white-space:nowrap; letter-spacing:-0.2px;
+  }
+
   /* ---------- SETTINGS ---------- */
   .settings-section-title{ font-size:16px; margin-bottom:14px; }
   .source-book{ margin-bottom:16px; }
@@ -575,6 +632,12 @@
         <button type="button" class="vocab-card" id="statDirectoryBtn">
           <div class="vocab-card-title"><span class="vocab-card-emoji">📖</span> Vocabulary <span class="vocab-card-chevron">›</span></div>
           <div id="vocabStats"></div>
+        </button>
+      </div>
+      <div class="stat-row">
+        <button type="button" class="vocab-card" id="grammarCardBtn">
+          <div class="vocab-card-title"><span class="vocab-card-emoji">🔤</span> Grammar <span class="vocab-card-chevron">›</span></div>
+          <div class="grammar-card-detail" id="grammarCardDetail">Connect 1</div>
         </button>
       </div>
       <div class="session-settings">
@@ -676,6 +739,34 @@
     </div>
     </div>
     <div class="wordlist-scroll" id="wordlistScroll"></div>
+  </section>
+
+  <!-- GRAMMAR (tap-through from home) -->
+  <section id="grammar" class="screen">
+    <div class="wl-sticky-header">
+    <div class="back-row">
+      <button id="backFromGrammar" aria-label="Back">←</button>
+      <h2 style="margin:0;">Grammar</h2>
+    </div>
+    </div>
+    <div class="wordlist-scroll" id="grammarScroll"></div>
+  </section>
+
+  <!-- GRAMMAR DETAIL -->
+  <section id="grammarDetail" class="screen">
+    <div class="gd-sticky">
+      <div class="back-row"><button id="backFromGrammarDetail" aria-label="Back">←</button></div>
+      <p class="gd-eyebrow" id="gdEyebrow">—</p>
+      <h1 class="gd-title" id="gdTitle">—</h1>
+      <div class="gd-structure" id="gdStructure"></div>
+      <p class="gd-section-label">What it means</p>
+      <p class="gd-explanation" id="gdExplanation"></p>
+      <div id="gdScaleContainer"></div>
+    </div>
+    <div class="wordlist-scroll">
+      <p class="gd-section-label">Examples</p>
+      <div class="gd-examples" id="gdExamples"></div>
+    </div>
   </section>
 
   <!-- REPORTED ISSUES -->
@@ -884,7 +975,7 @@
 // below. Newly added lessons default to inactive in active-scope until the
 // user turns them on in Settings — see getActiveScope() further down.
 const BOOKS = [
-  { id: 'connect1', title: 'Connect 1', file: 'data/connect1.json', lessonsCount: 6 },
+  { id: 'connect1', title: 'Connect 1', file: 'data/connect1.json', lessonsCount: 6, grammarFile: 'data/grammar-connect1.json' },
   { id: 'connect2', title: 'Connect 2', file: 'data/connect2.json', lessonsCount: 6 },
 ];
 
@@ -901,6 +992,27 @@ async function loadBooksData(){
     }
   }));
   baseVocab = loaded.flat();
+}
+
+// Grammar rules (Settings > Sources active-scope drives these too — a rule
+// only shows once its book+lesson is active, same as vocabulary). Lazily
+// fetched the first time the Grammar screen opens (not at startup), like
+// the reference dictionary below; cached by the service worker afterward.
+let grammarData = [];
+let grammarLoadPromise = null;
+function loadGrammarData(){
+  if(!grammarLoadPromise){
+    grammarLoadPromise = Promise.all(BOOKS.filter(b => b.grammarFile).map(async (book) => {
+      try{
+        const res = await fetch(book.grammarFile);
+        const data = await res.json();
+        return data.map(c => ({...c, book: book.id}));
+      }catch(e){
+        return [];
+      }
+    })).then(loaded => { grammarData = loaded.flat(); });
+  }
+  return grammarLoadPromise;
 }
 
 // Reference Vietnamese-English dictionary (FVDP/OVDP data, GNU GPL — see
@@ -1052,6 +1164,12 @@ function setLessonActive(bookId, lesson, active){
 function activeVocab(){
   const scope = getActiveScope();
   return baseVocab.filter(w => scope[w.book] && scope[w.book][w.lesson]).concat(customVocab);
+}
+// Same active-scope filtering as vocabulary — a grammar rule is tied to a
+// book+lesson and only appears once that lesson is turned on in Settings.
+function activeGrammar(){
+  const scope = getActiveScope();
+  return grammarData.filter(c => scope[c.book] && scope[c.book][c.lesson]);
 }
 
 // Per-direction progress (signed streak model — see CLAUDE.md data model).
@@ -1251,7 +1369,20 @@ function refreshStats(){
 
     container.appendChild(row);
   });
+  refreshGrammarCard();
   updateFloatingIcon();
+}
+
+// Home card summary line — no known/review split like Vocabulary (grammar
+// has no learning-memory tracking, it's pure consultation), just how many
+// rules are currently unlocked given the active lessons.
+function refreshGrammarCard(){
+  const el = document.getElementById('grammarCardDetail');
+  if(!el) return;
+  const cards = activeGrammar();
+  el.textContent = cards.length > 0
+    ? `${cards.length} rule${cards.length > 1 ? 's' : ''} unlocked · Connect 1`
+    : 'Activate a lesson in Settings to unlock rules';
 }
 
 function shuffle(arr){
@@ -2061,6 +2192,64 @@ function wordlistSortKey(word, lang){
   return key;
 }
 
+// ---------- Grammar ----------
+// Rows are grouped by book+lesson (BOOKS order, then lesson number) — the
+// list stays intentionally light (title only); the full rule (structure,
+// explanation, examples) only renders once a row is opened, on its own page.
+function renderGrammarList(){
+  const scroll = document.getElementById('grammarScroll');
+  const cards = activeGrammar();
+  if(cards.length === 0){
+    scroll.innerHTML = '<div class="wordlist-empty">No grammar rules unlocked yet — activate a lesson in Settings → Vocabulary sources.</div>';
+    return;
+  }
+  const groups = {};
+  cards.forEach(c => {
+    const key = c.book + '|' + c.lesson;
+    (groups[key] = groups[key] || []).push(c);
+  });
+  const groupKeys = Object.keys(groups).sort((a, b) => {
+    const [bookA, lessonA] = a.split('|');
+    const [bookB, lessonB] = b.split('|');
+    const orderA = BOOKS.findIndex(bk => bk.id === bookA);
+    const orderB = BOOKS.findIndex(bk => bk.id === bookB);
+    return orderA !== orderB ? orderA - orderB : Number(lessonA) - Number(lessonB);
+  });
+  scroll.innerHTML = groupKeys.map(key => {
+    const [bookId, lesson] = key.split('|');
+    const bookDef = BOOKS.find(bk => bk.id === bookId);
+    const rows = groups[key].map(c => `
+      <button class="gram-row" data-id="${c.id}">
+        <div class="gram-row-title">${c.title}</div>
+        <div class="gram-row-chevron">›</div>
+      </button>`).join('');
+    return `<div class="lesson-group">
+      <p class="lesson-group-title">${bookDef.title} — Bài ${lesson}</p>
+      ${rows}
+    </div>`;
+  }).join('');
+  scroll.querySelectorAll('.gram-row').forEach(btn => {
+    btn.addEventListener('click', () => openGrammarDetail(btn.dataset.id));
+  });
+}
+
+function openGrammarDetail(cardId){
+  const card = grammarData.find(c => c.id === cardId);
+  if(!card) return;
+  const bookDef = BOOKS.find(bk => bk.id === card.book);
+  document.getElementById('gdEyebrow').textContent = bookDef ? `${bookDef.title} - Bài ${card.lesson}` : `Bài ${card.lesson}`;
+  document.getElementById('gdTitle').textContent = card.title;
+  document.getElementById('gdStructure').innerHTML = card.structure;
+  document.getElementById('gdExplanation').innerHTML = card.explanation;
+  document.getElementById('gdScaleContainer').innerHTML = card.scaleHtml || '';
+  document.getElementById('gdExamples').innerHTML = card.examples.map(ex => `
+    <div class="gd-example${ex.book ? ' book' : ''}">
+      <div class="gd-example-vn">${ex.vn}</div>
+      <div class="gd-example-en">${ex.en}</div>
+    </div>`).join('');
+  showScreen('grammarDetail');
+}
+
 function renderWordList(status){
   if(status) wordlistStatus = status;
   const scroll = document.getElementById('wordlistScroll');
@@ -2212,6 +2401,18 @@ document.getElementById('statDirectoryBtn').addEventListener('click', ()=>{
 document.getElementById('backFromWordlist').addEventListener('click', ()=>{
   showScreen('home');
   refreshStats();
+});
+
+document.getElementById('grammarCardBtn').addEventListener('click', async ()=>{
+  await loadGrammarData();
+  renderGrammarList();
+  showScreen('grammar');
+});
+document.getElementById('backFromGrammar').addEventListener('click', ()=>{
+  showScreen('home');
+});
+document.getElementById('backFromGrammarDetail').addEventListener('click', ()=>{
+  showScreen('grammar');
 });
 document.querySelectorAll('#wlStatusGroup .pill').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -2631,6 +2832,7 @@ document.getElementById('backFromLearningMode').addEventListener('click', ()=>{
 
 (async function init(){
   await loadBooksData();
+  await loadGrammarData();
   await loadState();
   refreshStats();
 })();

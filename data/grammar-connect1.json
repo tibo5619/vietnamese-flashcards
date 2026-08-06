@@ -1,0 +1,751 @@
+[
+  {
+    "id": "c1-l1-1",
+    "lesson": 1,
+    "title": "Degrees of liking",
+    "structure": "<span class=\"gd-ph\">[degree word]</span> + <mark class=\"hl\">thích</mark> / <mark class=\"hl\">mê</mark> + <span class=\"gd-ph\">[activity]</span>",
+    "explanation": "Placing an intensity word before <mark class=\"hl\">thích</mark> (or using <mark class=\"hl\">mê</mark> instead) shows how much you like something, from mild to very strong.",
+    "examples": [
+      {
+        "vn": "Anh Nam <mark class=\"hl\">mê</mark> chơi gôn <mark class=\"hl\">lắm</mark>.",
+        "en": "Nam is <mark class=\"hl\">obsessed with</mark> golf.",
+        "book": true
+      },
+      {
+        "vn": "Chị Nga <mark class=\"hl\">cực kỳ thích</mark> làm bánh.",
+        "en": "Nga <mark class=\"hl\">really loves</mark> baking.",
+        "book": true
+      },
+      {
+        "vn": "Em Hà <mark class=\"hl\">không thích</mark> chơi game <mark class=\"hl\">lắm</mark>.",
+        "en": "Ha <mark class=\"hl\">doesn't like</mark> playing games <mark class=\"hl\">very much</mark>.",
+        "book": false
+      },
+      {
+        "vn": "Chị Mai <mark class=\"hl\">rất thích</mark> đọc sách.",
+        "en": "Mai <mark class=\"hl\">really likes</mark> reading books.",
+        "book": false
+      },
+      {
+        "vn": "Anh Peter <mark class=\"hl\">rất là thích</mark> ăn phở.",
+        "en": "Peter <mark class=\"hl\">really likes</mark> eating phở.",
+        "book": false
+      }
+    ],
+    "scaleHtml": "<div class=\"gd-scale\">\n        <div class=\"gd-scale-bar\">\n          <span class=\"gd-scale-tick\" style=\"left:0%\"></span>\n          <span class=\"gd-scale-tick\" style=\"left:20%\"></span>\n          <span class=\"gd-scale-tick\" style=\"left:40%\"></span>\n          <span class=\"gd-scale-tick\" style=\"left:60%\"></span>\n          <span class=\"gd-scale-tick\" style=\"left:80%\"></span>\n          <span class=\"gd-scale-tick\" style=\"left:100%\"></span>\n        </div>\n        <div class=\"gd-scale-labels\">\n          <span class=\"gd-scale-label\" style=\"left:0%\">không thích ... lắm</span>\n          <span class=\"gd-scale-label\" style=\"left:20%\">thích</span>\n          <span class=\"gd-scale-label\" style=\"left:40%\">rất thích</span>\n          <span class=\"gd-scale-label\" style=\"left:60%\">rất là thích</span>\n          <span class=\"gd-scale-label\" style=\"left:80%\">cực kỳ thích</span>\n          <span class=\"gd-scale-label\" style=\"left:100%\">mê ... lắm</span>\n        </div>\n      </div>"
+  },
+  {
+    "id": "c1-l1-2",
+    "lesson": 1,
+    "title": "... biết + verb",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">biết</mark> + <span class=\"gd-ph\">[verb]</span> (+ <span class=\"gd-ph\">[object]</span>)",
+    "explanation": "<mark class=\"hl\">Biết</mark> before a verb means \"to know how to\" — it states that the subject has the skill or ability to do something.",
+    "examples": [
+      {
+        "vn": "Chị Mai <mark class=\"hl\">biết nấu ăn</mark> và chị ấy nấu ăn rất là ngon.",
+        "en": "Mai <mark class=\"hl\">knows how to cook</mark>, and she's really good at it.",
+        "book": true
+      },
+      {
+        "vn": "Em Thảo mới <mark class=\"hl\">biết chơi</mark> cầu lông nhưng em ấy chơi rất giỏi.",
+        "en": "Thao only just <mark class=\"hl\">learned to play</mark> badminton, but she's already great.",
+        "book": true
+      },
+      {
+        "vn": "Em bé chưa <mark class=\"hl\">biết</mark> đi xe đạp.",
+        "en": "The child doesn't <mark class=\"hl\">know how to</mark> ride a bike yet.",
+        "book": false
+      },
+      {
+        "vn": "Anh ấy <mark class=\"hl\">biết</mark> nói tiếng Việt một chút.",
+        "en": "He <mark class=\"hl\">knows how to</mark> speak a little Vietnamese.",
+        "book": false
+      },
+      {
+        "vn": "Chị có <mark class=\"hl\">biết</mark> bơi không?",
+        "en": "Do you <mark class=\"hl\">know how to</mark> swim?",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l1-3",
+    "lesson": 1,
+    "title": "... chỉ ... (thôi)",
+    "structure": "(<mark class=\"hl\">chỉ</mark>) + <span class=\"gd-ph\">[verb/quantity]</span> + (<mark class=\"hl\">thôi</mark>)",
+    "explanation": "<mark class=\"hl\">Chỉ</mark> means \"only.\" Adding <mark class=\"hl\">thôi</mark> at the end of the sentence reinforces that sense of limitation (emphasis).",
+    "examples": [
+      {
+        "vn": "Mỗi ngày anh ấy <mark class=\"hl\">chỉ</mark> uống một ly cà phê đen.",
+        "en": "He drinks <mark class=\"hl\">only</mark> one black coffee a day.",
+        "book": true
+      },
+      {
+        "vn": "Chị thích nhiều loại trái cây Việt Nam, <mark class=\"hl\">chỉ</mark> không thích sầu riêng <mark class=\"hl\">thôi</mark>.",
+        "en": "She likes most Vietnamese fruit — <mark class=\"hl\">just</mark> not durian.",
+        "book": true
+      },
+      {
+        "vn": "Tôi <mark class=\"hl\">chỉ</mark> có 5 phút <mark class=\"hl\">thôi</mark>.",
+        "en": "I <mark class=\"hl\">only</mark> have 5 minutes.",
+        "book": false
+      },
+      {
+        "vn": "Cô ấy <mark class=\"hl\">chỉ</mark> ăn rau <mark class=\"hl\">thôi</mark>, không ăn thịt.",
+        "en": "She <mark class=\"hl\">only</mark> eats vegetables, not meat.",
+        "book": false
+      },
+      {
+        "vn": "Chúng tôi <mark class=\"hl\">chỉ</mark> học tiếng Việt hai tiếng một tuần <mark class=\"hl\">thôi</mark>.",
+        "en": "We <mark class=\"hl\">only</mark> study Vietnamese two hours a week.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l1-4",
+    "lesson": 1,
+    "title": "... mới + verb",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">mới</mark> + <span class=\"gd-ph\">[verb]</span>",
+    "explanation": "<mark class=\"hl\">Mới</mark> before a verb means the action happened recently, or not long ago. It's often paired with \"chỉ ... thôi\" to further emphasize how recent it was.",
+    "examples": [
+      {
+        "vn": "Phim <mark class=\"hl\">mới</mark> chiếu 5 phút thôi.",
+        "en": "The movie <mark class=\"hl\">just</mark> started, 5 minutes ago (only).",
+        "book": true
+      },
+      {
+        "vn": "Tôi <mark class=\"hl\">mới</mark> làm ở công ty này từ tháng 4 năm nay.",
+        "en": "I've <mark class=\"hl\">recently</mark> started at this company, since April.",
+        "book": true
+      },
+      {
+        "vn": "Chị <mark class=\"hl\">mới</mark> về nhà.",
+        "en": "She <mark class=\"hl\">just</mark> got home.",
+        "book": false
+      },
+      {
+        "vn": "Chúng tôi <mark class=\"hl\">mới</mark> bắt đầu học tiếng Việt được hai tuần.",
+        "en": "We've <mark class=\"hl\">just</mark> started learning Vietnamese, two weeks ago.",
+        "book": false
+      },
+      {
+        "vn": "Anh ấy <mark class=\"hl\">mới</mark> mua xe máy hôm qua.",
+        "en": "He <mark class=\"hl\">just</mark> bought a motorbike yesterday.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l1-5",
+    "lesson": 1,
+    "title": "Noun + nào ... cũng ...",
+    "structure": "<span class=\"gd-ph\">[noun]</span> + <mark class=\"hl\">nào</mark> + ... + <mark class=\"hl\">cũng</mark> + <span class=\"gd-ph\">[verb/adj]</span>",
+    "explanation": "The noun comes right before <mark class=\"hl\">nào</mark>, and <mark class=\"hl\">cũng</mark> appears later in the sentence — together they mean \"every single one, without exception.\"",
+    "examples": [
+      {
+        "vn": "Thứ Bảy <mark class=\"hl\">nào</mark> anh ấy <mark class=\"hl\">cũng</mark> đi học tiếng Việt ở VLS.",
+        "en": "<mark class=\"hl\">Every</mark> Saturday, he's at Vietnamese class at VLS.",
+        "book": true
+      },
+      {
+        "vn": "Nhà hàng <mark class=\"hl\">nào</mark> ở đây <mark class=\"hl\">cũng</mark> đóng cửa trước 11 giờ đêm.",
+        "en": "<mark class=\"hl\">Every</mark> restaurant around here closes before 11pm.",
+        "book": true
+      },
+      {
+        "vn": "Ngày <mark class=\"hl\">nào</mark> chị <mark class=\"hl\">cũng</mark> tập thể dục.",
+        "en": "<mark class=\"hl\">Every</mark> day, she exercises.",
+        "book": false
+      },
+      {
+        "vn": "Món <mark class=\"hl\">nào</mark> ở đây <mark class=\"hl\">cũng</mark> ngon.",
+        "en": "<mark class=\"hl\">Every</mark> dish here is delicious.",
+        "book": false
+      },
+      {
+        "vn": "Quán cà phê <mark class=\"hl\">nào</mark> gần đây <mark class=\"hl\">cũng</mark> đông khách.",
+        "en": "<mark class=\"hl\">Every</mark> coffee shop nearby is crowded.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l2-1",
+    "lesson": 2,
+    "title": "bị / được",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">bị</mark> / <mark class=\"hl\">được</mark> + <span class=\"gd-ph\">[verb/event]</span>",
+    "explanation": "<mark class=\"hl\">Bị</mark> is used before something the speaker experiences as negative or unwanted; <mark class=\"hl\">được</mark> before something experienced as positive or wanted.",
+    "examples": [
+      {
+        "vn": "Trời mưa to nên nhiều đường <mark class=\"hl\">bị</mark> ngập nước.",
+        "en": "It rained heavily, so many streets got <mark class=\"hl\">flooded</mark>.",
+        "book": true
+      },
+      {
+        "vn": "Anh ấy thích đi du lịch ở Nhật vào mùa đông vì <mark class=\"hl\">được</mark> trượt tuyết.",
+        "en": "He likes traveling to Japan in winter because he <mark class=\"hl\">gets to</mark> ski.",
+        "book": true
+      },
+      {
+        "vn": "Hôm qua con gái của chị Kim <mark class=\"hl\">bị</mark> bệnh.",
+        "en": "Yesterday, Kim's daughter <mark class=\"hl\">got</mark> sick.",
+        "book": false
+      },
+      {
+        "vn": "Tuần trước anh Tuấn thi đấu cầu lông và <mark class=\"hl\">được</mark> giải nhất.",
+        "en": "Last week, Tuan competed in badminton and <mark class=\"hl\">won</mark> first prize.",
+        "book": false
+      },
+      {
+        "vn": "Sáng nay tôi đi làm trễ vì <mark class=\"hl\">bị</mark> kẹt xe.",
+        "en": "I was late for work this morning because I <mark class=\"hl\">got</mark> stuck in traffic.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l2-2",
+    "lesson": 2,
+    "title": "Vì ... nên ...",
+    "structure": "(<mark class=\"hl\">vì</mark>) + <span class=\"gd-ph\">[cause]</span> + (<mark class=\"hl\">nên</mark>) + <span class=\"gd-ph\">[effect]</span>",
+    "explanation": "<mark class=\"hl\">Vì</mark> introduces the cause, <mark class=\"hl\">nên</mark> introduces the effect. In casual speech either word can be dropped — \"vì\" is optional, and \"nên\" is dropped when the sentence leads with the effect.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Vì</mark> tối qua thức khuya <mark class=\"hl\">nên</mark> sáng nay anh Nam dậy trễ.",
+        "en": "Because he stayed up late last night, Nam got up late this morning.",
+        "book": true
+      },
+      {
+        "vn": "Tối qua anh Nam thức khuya <mark class=\"hl\">nên</mark> sáng nay dậy trễ.",
+        "en": "Nam stayed up late last night, so he got up late this morning.",
+        "book": true
+      },
+      {
+        "vn": "Sáng nay anh Nam dậy trễ <mark class=\"hl\">vì</mark> tối qua thức khuya.",
+        "en": "Nam got up late this morning because he stayed up late last night.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Vì</mark> trời mưa to <mark class=\"hl\">nên</mark> chuyến bay bị hủy.",
+        "en": "Because it rained heavily, the flight was cancelled.",
+        "book": false
+      },
+      {
+        "vn": "Tôi bị trễ làm <mark class=\"hl\">vì</mark> kẹt xe.",
+        "en": "I was late for work because of traffic.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l3-1",
+    "lesson": 3,
+    "title": "gì / ai / đâu ... cũng ...",
+    "structure": "<mark class=\"hl\">gì</mark> / <mark class=\"hl\">ai</mark> / <mark class=\"hl\">đâu</mark> ... + <mark class=\"hl\">cũng</mark> + <span class=\"gd-ph\">[verb/adj]</span>",
+    "explanation": "Like <mark class=\"hl\">noun</mark> + <mark class=\"hl\">nào</mark> + <mark class=\"hl\">cũng</mark> (Bài 1), but with an open-ended question word — gì (what), ai (who), đâu (where) — instead of a specific noun. Used when the group isn't limited to a defined set of options.",
+    "examples": [
+      {
+        "vn": "Trong công ty này, <mark class=\"hl\">ai</mark> <mark class=\"hl\">cũng</mark> biết ông sếp là một người khó tính.",
+        "en": "In this company, everyone knows the boss is a difficult person.",
+        "book": true
+      },
+      {
+        "vn": "Cô Mai nấu <mark class=\"hl\">gì</mark> <mark class=\"hl\">cũng</mark> được.",
+        "en": "Whatever Mai cooks turns out fine.",
+        "book": true
+      },
+      {
+        "vn": "Anh Steve rất thích đi du lịch ở Việt Nam, <mark class=\"hl\">đâu</mark> anh ấy <mark class=\"hl\">cũng</mark> muốn đi.",
+        "en": "Steve loves traveling in Vietnam — he wants to go everywhere.",
+        "book": true
+      },
+      {
+        "vn": "Phim <mark class=\"hl\">gì</mark> em <mark class=\"hl\">cũng</mark> thích xem.",
+        "en": "Whatever movie it is, I like watching it.",
+        "book": true
+      },
+      {
+        "vn": "Chị ấy rất tốt bụng, <mark class=\"hl\">ai</mark> <mark class=\"hl\">cũng</mark> quý chị ấy.",
+        "en": "She's very kind, everyone likes her.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l3-2",
+    "lesson": 3,
+    "title": "... thì ..., (còn) ... thì ...",
+    "structure": "<span class=\"gd-ph\">[topic A]</span> + <mark class=\"hl\">thì</mark> + <span class=\"gd-ph\">[detail A]</span>, (<mark class=\"hl\">còn</mark>) <span class=\"gd-ph\">[topic B]</span> + <mark class=\"hl\">thì</mark> + <span class=\"gd-ph\">[detail B]</span>",
+    "explanation": "Used to contrast two topics side by side — <mark class=\"hl\">thì</mark> marks each topic before its detail, and <mark class=\"hl\">còn</mark> (optional) signals the switch between them.",
+    "examples": [
+      {
+        "vn": "Vào mùa mưa <mark class=\"hl\">thì</mark> thời tiết mát mẻ và dễ chịu, <mark class=\"hl\">còn</mark> vào mùa khô <mark class=\"hl\">thì</mark> thời tiết rất nóng và ẩm.",
+        "en": "In the rainy season the weather is cool and pleasant, while in the dry season it's very hot and humid.",
+        "book": true
+      },
+      {
+        "vn": "Chỗ ở mới của anh Nam <mark class=\"hl\">thì</mark> gần công ty hơn, chỗ ở trước đây <mark class=\"hl\">thì</mark> xa quá.",
+        "en": "Nam's new place is closer to work, his old place was too far.",
+        "book": true
+      },
+      {
+        "vn": "Phở bò ở quán này <mark class=\"hl\">thì</mark> rẻ <mark class=\"hl\">còn</mark> phở bò ở quán kia <mark class=\"hl\">thì</mark> mắc.",
+        "en": "The beef phở at this place is cheap, while at that other place it's expensive.",
+        "book": true
+      },
+      {
+        "vn": "Nhà ở chung cư <mark class=\"hl\">thì</mark> hiện đại, <mark class=\"hl\">còn</mark> nhà ở ngoại thành <mark class=\"hl\">thì</mark> yên tĩnh hơn.",
+        "en": "Apartments are modern, while houses in the suburbs are quieter.",
+        "book": false
+      },
+      {
+        "vn": "Đi làm bằng xe máy <mark class=\"hl\">thì</mark> nhanh, <mark class=\"hl\">còn</mark> đi làm bằng xe buýt <mark class=\"hl\">thì</mark> rẻ hơn.",
+        "en": "Going to work by motorbike is fast, while going by bus is cheaper.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l3-3",
+    "lesson": 3,
+    "title": "... mới ... (later than expected)",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">mới</mark> + <span class=\"gd-ph\">[verb]</span>",
+    "explanation": "A second use of \"mới\" (different from the \"just did X\" meaning in Bài 1): placed before a verb, it marks an action happening later than usual or later than expected.",
+    "examples": [
+      {
+        "vn": "Hôm qua, nó học đến 1 giờ sáng <mark class=\"hl\">mới</mark> đi ngủ.",
+        "en": "Yesterday, they studied until 1am before finally going to sleep.",
+        "book": true
+      },
+      {
+        "vn": "Đến giữa tháng 6 các con chị Lan <mark class=\"hl\">mới</mark> được nghỉ hè.",
+        "en": "Lan's kids won't start summer break until mid-June.",
+        "book": true
+      },
+      {
+        "vn": "Tám giờ tối em <mark class=\"hl\">mới</mark> về đến nhà.",
+        "en": "I didn't get home until 8pm.",
+        "book": true
+      },
+      {
+        "vn": "Anh ấy làm việc đến 10 giờ tối <mark class=\"hl\">mới</mark> xong.",
+        "en": "He didn't finish working until 10pm.",
+        "book": false
+      },
+      {
+        "vn": "Chờ mãi, xe buýt <mark class=\"hl\">mới</mark> đến.",
+        "en": "After a long wait, the bus finally arrived.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l4-1",
+    "lesson": 4,
+    "title": "còn / hết",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">còn</mark> / <mark class=\"hl\">hết</mark> + <span class=\"gd-ph\">[verb/adj]</span>",
+    "explanation": "<mark class=\"hl\">Còn</mark> before a verb or adjective emphasizes that something is still ongoing; <mark class=\"hl\">hết</mark> signals that it has ended or run out.",
+    "examples": [
+      {
+        "vn": "Nước này <mark class=\"hl\">còn</mark> nóng lắm. Anh đừng uống.",
+        "en": "This water is still very hot. Don't drink it.",
+        "book": true
+      },
+      {
+        "vn": "Điện thoại anh <mark class=\"hl\">hết</mark> pin rồi nên bây giờ anh phải sạc pin.",
+        "en": "My phone is out of battery, so now I have to charge it.",
+        "book": true
+      },
+      {
+        "vn": "Em (thì) <mark class=\"hl\">hết</mark> bệnh rồi, chị ấy thì <mark class=\"hl\">còn</mark> bệnh.",
+        "en": "I've recovered, but she's still sick.",
+        "book": true
+      },
+      {
+        "vn": "Trời <mark class=\"hl\">còn</mark> đang mưa.",
+        "en": "It's still raining.",
+        "book": false
+      },
+      {
+        "vn": "Sau khi uống thuốc và nghỉ ngơi thì chị Mai <mark class=\"hl\">hết</mark> đau đầu rồi.",
+        "en": "After taking medicine and resting, Mai's headache is gone.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l4-2",
+    "lesson": 4,
+    "title": "... mà ...",
+    "structure": "<span class=\"gd-ph\">[clause A]</span> + <mark class=\"hl\">mà</mark> + <span class=\"gd-ph\">[unexpected clause B]</span>",
+    "explanation": "Placed between two clauses, <mark class=\"hl\">mà</mark> signals that the second part is surprising or contrary to what the first part would lead you to expect.",
+    "examples": [
+      {
+        "vn": "Hôm nay là Chủ nhật <mark class=\"hl\">mà</mark> anh Nam phải làm báo cáo từ sáng đến tối.",
+        "en": "It's Sunday, and yet Nam has to work on a report all day.",
+        "book": true
+      },
+      {
+        "vn": "Chị Lan đang ăn kiêng để giảm cân <mark class=\"hl\">mà</mark> thấy gì cũng muốn ăn.",
+        "en": "Lan is on a diet to lose weight, yet she wants to eat everything she sees.",
+        "book": true
+      },
+      {
+        "vn": "Anh ấy uống thuốc 2 ngày rồi <mark class=\"hl\">mà</mark> anh ấy còn sốt.",
+        "en": "He's been taking medicine for 2 days, and yet he still has a fever.",
+        "book": true
+      },
+      {
+        "vn": "Trời mưa to <mark class=\"hl\">mà</mark> anh ấy vẫn đi tắm biển.",
+        "en": "It's pouring rain, and yet he still went to the beach.",
+        "book": false
+      },
+      {
+        "vn": "Bà ấy bị đau lưng nhiều năm rồi <mark class=\"hl\">mà</mark> không đi khám bệnh.",
+        "en": "She's had back pain for years, and yet she hasn't seen a doctor.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l4-3",
+    "lesson": 4,
+    "title": "hơn (comparative)",
+    "structure": "<span class=\"gd-ph\">[A]</span> + <span class=\"gd-ph\">[adjective]</span> + <mark class=\"hl\">hơn</mark> + <span class=\"gd-ph\">[B]</span>",
+    "explanation": "Placed after an adjective, <mark class=\"hl\">hơn</mark> (\"more than\") compares two things and shows that A has more of that quality than B. Can also be phrased as \"So với A, B ... hơn.\"",
+    "examples": [
+      {
+        "vn": "So với anh ấy, em lười chơi thể thao <mark class=\"hl\">hơn</mark>.",
+        "en": "Compared to him, I'm lazier about playing sports.",
+        "book": true
+      },
+      {
+        "vn": "Mua trái cây ở chợ rẻ <mark class=\"hl\">hơn</mark> mua ở siêu thị.",
+        "en": "Buying fruit at the market is cheaper than at the supermarket.",
+        "book": true
+      },
+      {
+        "vn": "Dạo này anh hút thuốc nhiều <mark class=\"hl\">hơn</mark> so với trước đây.",
+        "en": "Lately he smokes more than he used to.",
+        "book": true
+      },
+      {
+        "vn": "Thời tiết ở Đà Lạt mát <mark class=\"hl\">hơn</mark> thời tiết ở Thành phố Hồ Chí Minh.",
+        "en": "The weather in Da Lat is cooler than in Ho Chi Minh City.",
+        "book": false
+      },
+      {
+        "vn": "Thuê nhà ở Quận 1 mắc <mark class=\"hl\">hơn</mark> thuê nhà ở Quận 11.",
+        "en": "Renting in District 1 is more expensive than in District 11.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l4-4",
+    "lesson": 4,
+    "title": "nên / không nên (đừng)",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">nên</mark> / <mark class=\"hl\">không nên</mark> / <mark class=\"hl\">đừng</mark> + <span class=\"gd-ph\">[verb]</span>",
+    "explanation": "<mark class=\"hl\">Nên</mark> gives a recommendation or expectation (\"should\"); <mark class=\"hl\">không nên</mark> or <mark class=\"hl\">đừng</mark> says the opposite — that something isn't recommended or shouldn't be done.",
+    "examples": [
+      {
+        "vn": "Chúng ta <mark class=\"hl\">nên</mark> hạn chế sử dụng túi ni lông.",
+        "en": "We should limit our use of plastic bags.",
+        "book": true
+      },
+      {
+        "vn": "Bạn <mark class=\"hl\">nên</mark> tập thể dục thường xuyên để tăng sức đề kháng.",
+        "en": "You should exercise regularly to boost your immune system.",
+        "book": true
+      },
+      {
+        "vn": "Mắt em còn bị đau. Em <mark class=\"hl\">đừng</mark> sử dụng máy tính nhiều.",
+        "en": "Your eyes are still sore. Don't use the computer too much.",
+        "book": true
+      },
+      {
+        "vn": "Mắt em còn bị đau. Em <mark class=\"hl\">không nên</mark> sử dụng máy tính nhiều.",
+        "en": "Your eyes are still sore. You shouldn't use the computer too much.",
+        "book": true
+      },
+      {
+        "vn": "Trời sắp mưa rồi, bạn <mark class=\"hl\">nên</mark> mang theo áo mưa.",
+        "en": "It's about to rain, you should bring a raincoat.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l5-1",
+    "lesson": 5,
+    "title": "... hơi ...",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <mark class=\"hl\">hơi</mark> + <span class=\"gd-ph\">[adjective]</span>",
+    "explanation": "Placed before an adjective, <mark class=\"hl\">hơi</mark> (\"a little,\" \"somewhat\") softens a statement — usually about something slightly unwanted or unexpected.",
+    "examples": [
+      {
+        "vn": "Từ nhà tôi đến trường <mark class=\"hl\">hơi</mark> xa.",
+        "en": "From my house to school is a little far.",
+        "book": true
+      },
+      {
+        "vn": "Em Ngọc <mark class=\"hl\">hơi</mark> buồn vì mẹ không cho em đi xem phim với các bạn.",
+        "en": "Ngoc is a little sad because her mom won't let her go to the movies with friends.",
+        "book": true
+      },
+      {
+        "vn": "Phòng này <mark class=\"hl\">hơi</mark> chật.",
+        "en": "This room is a little cramped.",
+        "book": false
+      },
+      {
+        "vn": "Giá thuê nhà này <mark class=\"hl\">hơi</mark> mắc.",
+        "en": "The rent for this place is a little expensive.",
+        "book": false
+      },
+      {
+        "vn": "Hôm nay tôi thấy <mark class=\"hl\">hơi</mark> mệt.",
+        "en": "I feel a little tired today.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l5-2",
+    "lesson": 5,
+    "title": "adjective + nhất (superlative)",
+    "structure": "<span class=\"gd-ph\">[subject]</span> + <span class=\"gd-ph\">[adjective]</span> + <mark class=\"hl\">nhất</mark>",
+    "explanation": "Adding <mark class=\"hl\">nhất</mark> after an adjective marks the highest (or lowest) degree of that quality among a group of three or more.",
+    "examples": [
+      {
+        "vn": "Anh Lâm cao <mark class=\"hl\">nhất</mark>.",
+        "en": "Lam is the tallest.",
+        "book": true
+      },
+      {
+        "vn": "Trong gia đình tôi, ba tôi là người đẹp trai <mark class=\"hl\">nhất</mark>.",
+        "en": "In my family, my dad is the most handsome.",
+        "book": true
+      },
+      {
+        "vn": "VLS là một trong những trung tâm ngôn ngữ lâu đời <mark class=\"hl\">nhất</mark> ở Thành phố Hồ Chí Minh.",
+        "en": "VLS is one of the oldest language centers in Ho Chi Minh City.",
+        "book": true
+      },
+      {
+        "vn": "Căn hộ A220 giá thuê mắc hơn căn hộ A210. Căn hộ A205 mắc <mark class=\"hl\">nhất</mark>.",
+        "en": "Apartment A220 costs more to rent than A210. Apartment A205 is the most expensive.",
+        "book": true
+      },
+      {
+        "vn": "Trong nhóm bạn tôi, tôi đi làm xa <mark class=\"hl\">nhất</mark>.",
+        "en": "Among my friends, I have the longest commute.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l5-3",
+    "lesson": 5,
+    "title": "Nếu ... thì ...",
+    "structure": "(<mark class=\"hl\">Nếu</mark>) + <span class=\"gd-ph\">[condition]</span> + (<mark class=\"hl\">thì</mark>) + <span class=\"gd-ph\">[result]</span>",
+    "explanation": "Introduces a condition and its likely result — <mark class=\"hl\">nếu</mark> (\"if\") marks the condition, <mark class=\"hl\">thì</mark> marks the result. \"Nếu\" can also come after the result clause instead.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Nếu</mark> có tiền <mark class=\"hl\">thì</mark> tôi sẽ mua nhà ở trung tâm thành phố.",
+        "en": "If I had money, I would buy a house downtown.",
+        "book": true
+      },
+      {
+        "vn": "Tôi sẽ đi du lịch vòng quanh thế giới <mark class=\"hl\">nếu</mark> có nhiều tiền.",
+        "en": "I would travel around the world if I had a lot of money.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Nếu</mark> được nghỉ làm <mark class=\"hl\">thì</mark> tôi sẽ chỉ ở nhà ngủ.",
+        "en": "If I had the day off, I'd just stay home and sleep.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Nếu</mark> trời mưa <mark class=\"hl\">thì</mark> chúng ta sẽ ở nhà.",
+        "en": "If it rains, we'll stay home.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Nếu</mark> thuê nhà ở gần trung tâm <mark class=\"hl\">thì</mark> giá sẽ mắc hơn.",
+        "en": "If you rent close to downtown, the price will be higher.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l5-4",
+    "lesson": 5,
+    "title": "... chắc là ...",
+    "structure": "<mark class=\"hl\">Chắc là</mark> + <span class=\"gd-ph\">[prediction]</span>",
+    "explanation": "Placed at the start of a clause, <mark class=\"hl\">chắc là</mark> (\"probably,\" \"must be\") signals a guess about something likely to be true.",
+    "examples": [
+      {
+        "vn": "Lan nói cô ấy có nhiều việc quá. <mark class=\"hl\">Chắc là</mark> Lan không đến buổi họp tối nay.",
+        "en": "Lan said she has too much work. She's probably not coming to tonight's meeting.",
+        "book": true
+      },
+      {
+        "vn": "Ngày mai anh John chuyển nhà nên <mark class=\"hl\">chắc là</mark> anh ấy bận lắm.",
+        "en": "John is moving tomorrow, so he's probably very busy.",
+        "book": true
+      },
+      {
+        "vn": "Trời nhiều mây quá, <mark class=\"hl\">chắc là</mark> sắp mưa.",
+        "en": "It's very cloudy, it's probably about to rain.",
+        "book": false
+      },
+      {
+        "vn": "Chị ấy không nghe điện thoại, <mark class=\"hl\">chắc là</mark> chị ấy đang bận.",
+        "en": "She's not answering her phone, she's probably busy.",
+        "book": false
+      },
+      {
+        "vn": "Anh ấy chưa đi làm về, <mark class=\"hl\">chắc là</mark> kẹt xe.",
+        "en": "He's not back from work yet, he's probably stuck in traffic.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l6-1",
+    "lesson": 6,
+    "title": "trước khi / sau khi",
+    "structure": "<mark class=\"hl\">trước khi</mark> / <mark class=\"hl\">sau khi</mark> + <span class=\"gd-ph\">[event]</span>",
+    "explanation": "<mark class=\"hl\">Trước khi</mark> (\"before\") marks something that happens earlier; <mark class=\"hl\">sau khi</mark> (\"after\") marks something that happens later, following the other event.",
+    "examples": [
+      {
+        "vn": "Anh John phải đi xem nhà ở nhiều nơi <mark class=\"hl\">trước khi</mark> quyết định thuê nhà.",
+        "en": "John has to look at many places before deciding which one to rent.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Sau khi</mark> chuyển nhà, tôi phải mua sắm thêm nội thất.",
+        "en": "After moving, I had to buy more furniture.",
+        "book": true
+      },
+      {
+        "vn": "Mỗi ngày, <mark class=\"hl\">sau khi</mark> về đến nhà tôi thấy rất mệt mỏi.",
+        "en": "Every day, after getting home I felt very tired.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Trước khi</mark> đi ngủ, tôi thường đọc sách.",
+        "en": "Before going to sleep, I usually read a book.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Sau khi</mark> ăn cơm, chúng tôi đi dạo.",
+        "en": "After eating, we went for a walk.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l6-2",
+    "lesson": 6,
+    "title": "khi / trong khi",
+    "structure": "<mark class=\"hl\">khi</mark> / <mark class=\"hl\">trong khi</mark> + <span class=\"gd-ph\">[event A]</span>, ... + <span class=\"gd-ph\">[event B]</span>",
+    "explanation": "Both mean \"when\" / \"while,\" marking two things happening at the same time — <mark class=\"hl\">trong khi</mark> leans slightly more toward emphasizing the contrast between the two.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Trong khi</mark> Nam đang nghỉ ngơi ở nhà thì hàng xóm của anh hát karaoke rất ồn ào.",
+        "en": "While Nam was resting at home, his neighbor was singing karaoke very loudly.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Khi</mark> chị gọi thì tôi đang ở ngoài đường.",
+        "en": "When you called, I was out on the street.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Khi</mark> tôi đến thì cuộc họp đã bắt đầu.",
+        "en": "When I arrived, the meeting had already started.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Trong khi</mark> tôi nấu ăn thì anh ấy dọn bàn.",
+        "en": "While I was cooking, he set the table.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Khi</mark> rảnh, tôi thích đọc sách.",
+        "en": "When I'm free, I like to read.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l6-3",
+    "lesson": 6,
+    "title": "... để ...",
+    "structure": "<span class=\"gd-ph\">[action]</span> + <mark class=\"hl\">để</mark> + <span class=\"gd-ph\">[purpose]</span>",
+    "explanation": "Introduces the purpose or goal behind an action — \"in order to.\"",
+    "examples": [
+      {
+        "vn": "James xuống cửa hàng tiện lợi ở dưới chung cư <mark class=\"hl\">để</mark> mua đồ ăn.",
+        "en": "James went down to the convenience store below the apartment to buy food.",
+        "book": true
+      },
+      {
+        "vn": "Tôi học tiếng Việt <mark class=\"hl\">để</mark> nói chuyện với gia đình bạn gái.",
+        "en": "I'm learning Vietnamese to talk with my girlfriend's family.",
+        "book": false
+      },
+      {
+        "vn": "Chúng ta nên tập thể dục <mark class=\"hl\">để</mark> có sức khỏe tốt.",
+        "en": "We should exercise to stay healthy.",
+        "book": false
+      },
+      {
+        "vn": "Chị ấy tiết kiệm tiền <mark class=\"hl\">để</mark> mua nhà.",
+        "en": "She's saving money to buy a house.",
+        "book": false
+      },
+      {
+        "vn": "Anh ấy dậy sớm <mark class=\"hl\">để</mark> tránh kẹt xe.",
+        "en": "He gets up early to avoid traffic.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c1-l6-4",
+    "lesson": 6,
+    "title": "... tuy nhiên ...",
+    "structure": "<span class=\"gd-ph\">[statement]</span>, <mark class=\"hl\">tuy nhiên</mark> + <span class=\"gd-ph\">[contrast]</span>",
+    "explanation": "Introduces a contrasting idea — \"although,\" \"however.\"",
+    "examples": [
+      {
+        "vn": "Anh ấy chơi cầu lông rất giỏi, <mark class=\"hl\">tuy nhiên</mark> anh ấy không được giải nhất trong giải đấu này.",
+        "en": "He plays badminton very well, however he didn't win first place in this tournament.",
+        "book": true
+      },
+      {
+        "vn": "Căn hộ này rất đẹp, <mark class=\"hl\">tuy nhiên</mark> giá thuê hơi mắc.",
+        "en": "This apartment is very nice, however the rent is a bit expensive.",
+        "book": false
+      },
+      {
+        "vn": "Trời đang mưa to, <mark class=\"hl\">tuy nhiên</mark> chúng tôi vẫn đi ra ngoài.",
+        "en": "It's raining heavily, however we still went outside.",
+        "book": false
+      },
+      {
+        "vn": "Cô ấy mới học tiếng Việt được 3 tháng, <mark class=\"hl\">tuy nhiên</mark> cô ấy nói rất giỏi.",
+        "en": "She's only been learning Vietnamese for 3 months, however she speaks very well.",
+        "book": false
+      },
+      {
+        "vn": "Công việc này lương cao, <mark class=\"hl\">tuy nhiên</mark> rất áp lực.",
+        "en": "This job pays well, however it's very stressful.",
+        "book": false
+      }
+    ]
+  }
+]
