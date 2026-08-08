@@ -32,6 +32,9 @@ session opened in this folder — keep it up to date after each chantier.
 - `manifest.json`, `icons/` — PWA manifest + app icons (Add to Home Screen).
 - `sw.js` — service worker, network-first caching (see "Known constraints").
 - `.gitignore` — excludes `.claude/` (local Claude Code config) and `.DS_Store`.
+- `VOCAB_CLEANUP_LOG.md` — **not loaded automatically**, read only on
+  request: word-by-word record of the Aug 2026 VN/EN duplicate-vocabulary
+  cleanup (which words got merged, reworded, or kept separate, and why).
 
 ## Data model
 
