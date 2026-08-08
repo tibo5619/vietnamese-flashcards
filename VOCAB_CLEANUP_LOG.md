@@ -81,7 +81,7 @@ into one card (all senses listed) on VN-front session cards. Code:
 - **nghỉ ngơi** → "to rest" / **thư giãn** → "to relax" — kept separate,
   reworded.
 
-## 2026-08-08 — commit `<pending>`
+## 2026-08-08 — commit `1215a2d`
 
 - **nghỉ** → "to stop; to take a break; to have a day off" / **nghỉ ngơi**
   → "to rest" — kept separate, reworded for clarity.
