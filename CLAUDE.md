@@ -225,6 +225,9 @@ session opened in this folder — keep it up to date after each chantier.
 
 Screens (each a `<section class="screen">`, shown via `showScreen(id)`):
 `home` → `session` / `add` / `wordlist` / `grammar` / `issues` / `settings`.
+`session` → `sessionResults` once the deck is exhausted (see "Data model" for
+what it shows and how) — only on full completion; exiting early via `#exitBtn`
+still goes straight to `home` as before, unchanged.
 `grammar` (list, tapped from the home screen's Grammar card, styled like the
 Vocabulary card but with a plain "N rules unlocked" count instead of
 known/review bars) → `grammarDetail` (one rule, full page — not a popup,
@@ -604,6 +607,64 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     "all". Deleting down to zero words auto-returns to the Reset screen;
     a partial delete just re-renders the picker with the remainder.
     `sw.js` cache bumped to `nhat-chu-v29`.
+
+16. End-of-session "Results" recap card. Finishing a full session (deck
+    exhausted, `deckPos >= deck.length` inside `renderCard()`) no longer
+    tosses a generic toast and jumps to `home` — it now routes to a new
+    `sessionResults` screen (see "UI structure") built around a card that
+    reuses the flashcard's exact flip mechanic. Front face is static:
+    "Results" / *Kết quả* (italic, below), same "tap to reveal" convention.
+    Back face is **two independent columns**, ✅ (correct answers) and 🧠
+    (wrong answers, mirroring the session buttons' own emoji) — each row
+    is fully self-contained (`[before pastille] → [after pastille] × N`,
+    both badges live in every row, no shared middle column). A word can
+    only ever start a session from one of 7 pastilles (`null`/new, `-3`..
+    `-1`, `1`..`3` — see `stepStreak()`, "Data model"), each with exactly
+    one correct-answer destination and one wrong-answer destination
+    (computed live via `stepStreak(pos, correct)`, never hardcoded), so
+    each column always shows exactly those same 7 rows — fixed, so no
+    scrolling is ever needed. A row whose count is `0` still shows its
+    `[before] → [after]` pastilles (the point of the column is to make
+    every reachable transition visible, not just what happened) — only the
+    `× N` count text itself is omitted for that row, never printed as
+    `×0`. The two columns deliberately run in **opposite directions**:
+    `RESULTS_LADDER_CORRECT` (`[-3,-2,-1,null,1,2,3]`) reads worst-review-
+    first, top to bottom, matching the ladder order used elsewhere (e.g.
+    `renderStreakPips`); `RESULTS_LADDER_WRONG` is the reverse
+    (`[3,2,1,null,-1,-2,-3]`) so the 🧠 column reads least-bad-first,
+    ending on the single worst possible outcome — 🔴3 answered wrong again
+    (`-3` "staying" `-3`) — at the very bottom. A "maintained" row (🟢3
+    correct again, or 🔴3 wrong again) needs no special-casing: its
+    destination badge is simply identical to its own starting pastille,
+    which already reads as "stayed here." This is the *second* design
+    pass — the very first version (a single shared-position 7×3 grid) was
+    rejected by the user for burying the "worst" outcome in the middle of
+    the grid instead of at a clear end, and for having no obvious reason
+    the grid couldn't show an impossible transition; this two-column,
+    opposite-direction, zero-omitted layout was specified directly by the
+    user and validated by them before being built. Both design passes were
+    proposed and confirmed with the user *before* code was written for
+    either — worth preserving as the pattern for any future
+    visually-driven feature request. Data capture (unchanged across both
+    passes): `markCard()` reads the pre-answer streak via the existing
+    `getStreak()` before calling `applyAnswer()`, and pushes
+    `{prevStreak, newStreak, correct}` into a session-scoped
+    `sessionResults` array (reset at the top of `buildDeck()`); for a
+    merged VN-homonym card, only the first id's streak is recorded — one
+    entry per card *drawn*, not per underlying id, same "representative
+    sense" convention `mergeVnCard` already uses elsewhere. The results
+    card's own front/back faces deliberately do **not** reuse the session
+    card's `.face` class (new `.rs-face` instead) — `flipCard()`/
+    `renderCard()` grab `.face.front`/`.face.back` via a bare
+    `document.querySelector()`, and since every screen's markup stays in
+    the DOM at once (only hidden via CSS), a shared class name would have
+    let the wrong card answer that query depending on source order; the
+    results screen gets its own small `flipResultsCard()` instead.
+    `#sessionResults.screen` was still added to the existing
+    `#wordlist.screen`-style `max-height:100svh` selector (see "Known
+    constraints") as a safety net even though this bounded layout no
+    longer strictly needs it to avoid overflow. `sw.js` cache bumped to
+    `nhat-chu-v33`.
 
 ## Planned next (not started)
 

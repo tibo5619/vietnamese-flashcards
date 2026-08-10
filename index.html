@@ -312,6 +312,47 @@
   }
   .btn-emoji{ font-size:28px; line-height:1; }
 
+  /* ---------- SESSION RESULTS ---------- */
+  /* Separate class from .face (not shared) so this card's flip never
+     collides with the session card's global `.face.front`/`.face.back`
+     querySelector calls in flipCard()/renderCard() — both cards sit in the
+     DOM at once (screens are hidden via CSS, not removed). */
+  #resultsCard{ cursor:pointer; }
+  .rs-face{
+    position:absolute; inset:0;
+    border-radius:22px;
+    display:none;
+    flex-direction:column;
+    border:1px solid var(--line);
+    box-shadow:0 20px 40px -22px rgba(43,35,28,0.35);
+    background:linear-gradient(165deg, var(--gold-soft), var(--surface) 70%);
+  }
+  .rs-face.visible{ display:flex; }
+  .rs-face::before, .rs-face::after{
+    content:''; position:absolute; width:20px; height:20px; opacity:0.6;
+  }
+  .rs-face::before{ top:10px; left:10px; border-top:1.5px solid var(--gold); border-left:1.5px solid var(--gold); border-radius:4px 0 0 0;}
+  .rs-face::after{ bottom:10px; right:10px; border-bottom:1.5px solid var(--gold); border-right:1.5px solid var(--gold); border-radius:0 0 4px 0;}
+  .rs-face.front{ align-items:center; justify-content:center; padding:28px 22px; }
+  .rs-subtitle{ font-family:'IBM Plex Sans',sans-serif; font-style:italic; font-size:15px; color:var(--muted); margin:6px 0 0; text-align:center; }
+  .rs-face.back{ padding:22px 16px 18px; justify-content:center; align-items:center; }
+  .rs-total{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--muted); text-align:center; margin:0 0 14px; flex-shrink:0; }
+  /* Two self-contained columns, each its own [before badge] -> [after
+     badge] x count list (never a shared middle column — every row carries
+     both its own pastilles). A word only ever starts a session from one of
+     7 pastilles (see stepStreak()), so each column has at most 7 rows —
+     bounded, no scrolling needed. Columns size to their own content
+     (not stretched to equal halves) and the pair is centered as a group —
+     `align-items:center` above — so the margin from the card's left edge
+     to column 1 and from column 2 to the card's right edge stay equal,
+     regardless of which column's content happens to be wider. */
+  .rs-columns{ display:flex; gap:50px; }
+  .rs-col{ flex:0 0 auto; }
+  .rs-col-head{ font-size:15px; text-align:center; color:var(--muted); margin:0 0 10px; }
+  .rs-col-row{ display:flex; align-items:center; justify-content:flex-start; gap:4px; padding:5px 0; font-size:11px; }
+  .rs-arrow{ color:var(--muted); font-size:11px; }
+  .rs-outcome-count{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); min-width:14px; }
+
   /* ---------- ADD WORD ---------- */
   #add h2, #home h2{ font-family:'Be Vietnam Pro',sans-serif; font-size:22px; margin:0 0 18px; color:var(--ink);}
   .field{ margin-bottom:16px; }
@@ -399,7 +440,7 @@
      filters scroll away with the list. Capping just this screen's height
      makes .wordlist-scroll the actual scroll container, so .wl-sticky-header
      (everything above it) stays in place instead. */
-  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen, #settingsResetVocab.screen{ max-height:100vh; max-height:100svh; }
+  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen, #settingsResetVocab.screen, #sessionResults.screen{ max-height:100vh; max-height:100svh; }
   .wl-sticky-header{ flex-shrink:0; }
   .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
   .wl-item{
@@ -749,6 +790,36 @@
         <button class="btn btn-review" id="reviewBtn"><span class="btn-label">Needs work</span> <span class="btn-emoji">🧠</span></button>
         <button class="btn btn-known" id="knownBtn"><span class="btn-label">Got it</span> <span class="btn-emoji">✅</span></button>
       </div>
+    </div>
+  </section>
+
+  <!-- SESSION RESULTS -->
+  <section id="sessionResults" class="screen">
+    <div class="card-zone">
+      <div class="card" id="resultsCard">
+        <div class="rs-face front visible" id="resultsFront">
+          <span class="flag-tag">🏁</span>
+          <p class="word-main">Results</p>
+          <p class="rs-subtitle">Kết quả</p>
+          <span class="tap-hint" id="resultsTapHint">tap to reveal</span>
+        </div>
+        <div class="rs-face back" id="resultsBack">
+          <p class="rs-total" id="resultsTotal">— words this session</p>
+          <div class="rs-columns">
+            <div class="rs-col">
+              <p class="rs-col-head">✅</p>
+              <div id="resultsColCorrect"></div>
+            </div>
+            <div class="rs-col">
+              <p class="rs-col-head">🧠</p>
+              <div id="resultsColWrong"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-primary" id="resultsHomeBtn">Back to home</button>
     </div>
   </section>
 
@@ -1131,6 +1202,10 @@ let currentCard = null;
 let storageOk = true;
 let revealed = false;
 let testMode = false;
+// One entry per card drawn this session — {prevStreak, newStreak, correct} —
+// reset at the start of buildDeck(), consumed by renderSessionResults() once
+// the deck is exhausted. See CLAUDE.md "Chantier 16" for the shape.
+let sessionResults = [];
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -1566,6 +1641,7 @@ const BUCKET_ORDER = ['new', '-3', '-2', '-1', '1', '2', '3'];
 // - Safety net: if every pool combined still can't fill the session, pad
 //   with whatever remains regardless of category (tiny vocab edge case).
 function buildDeck(){
+  sessionResults = [];
   const total = activeVocab();
   const size = Math.min(selectedSize, total.length);
 
@@ -1632,9 +1708,8 @@ function showScreen(id){
 
 function renderCard(){
   if(deckPos >= deck.length){
-    showToast('Session complete — nice work!');
-    showScreen('home');
-    refreshStats();
+    renderSessionResults();
+    showScreen('sessionResults');
     return;
   }
   currentCard = deck[deckPos];
@@ -1720,7 +1795,13 @@ function markCard(known){
   // A merged homonym card (see mergeVnCard) was shown as a single prompt,
   // so the outcome applies to every sense behind it.
   const ids = currentCard.merged ? currentCard.ids : [currentCard.id];
+  // Recorded once per card drawn (not per underlying id) using the first
+  // sense as the representative — same "lowest streak wins" convention
+  // mergeVnCard already uses to pick which pastille a merged card shows.
+  const prevStreak = getStreak(ids[0], dir);
   ids.forEach(id => applyAnswer(id, dir, known));
+  const newStreak = getStreak(ids[0], dir);
+  sessionResults.push({prevStreak, newStreak, correct: known});
   saveProgress();
   deckPos++;
   renderCard();
@@ -1732,6 +1813,88 @@ document.getElementById('startBtn').addEventListener('click', ()=>{
   renderCard();
 });
 document.getElementById('exitBtn').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
+
+// ---------- Session results (end-of-session recap card) ----------
+function streakBadge(streak){
+  const badge = document.createElement('span');
+  if(streak === null){
+    badge.className = 'wl-badge';
+  } else {
+    const mag = Math.abs(streak);
+    badge.className = `wl-badge ${streak > 0 ? 'on-known' : 'on-review'} mag${mag}`;
+    badge.textContent = mag;
+  }
+  return badge;
+}
+
+// A word can only ever start this session from one of 7 pastilles (see
+// stepStreak()), each with exactly one correct-answer destination and one
+// wrong-answer destination — so each column below always lists all 7 of
+// those starting pastilles as a [before]->[after] row (bounded, so no
+// scrolling is ever needed); a row whose count is 0 keeps its pastilles
+// but shows no count text (not "×0" — just nothing). The two columns
+// deliberately run in OPPOSITE directions: the correct-answer column goes
+// worst-review-first (-3..3, matches the ladder used elsewhere, e.g.
+// renderStreakPips), while the needs-review column is reversed —
+// least-bad first, ending on the worst possible outcome (🔴3 answered
+// wrong again, i.e. "still" -3) at the bottom.
+const RESULTS_LADDER_CORRECT = [-3, -2, -1, null, 1, 2, 3];
+const RESULTS_LADDER_WRONG = [3, 2, 1, null, -1, -2, -3];
+
+function renderResultsColumn(containerId, positions, correct){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  positions.forEach(pos => {
+    const count = sessionResults.filter(r => r.prevStreak === pos && r.correct === correct).length;
+    const dest = stepStreak(pos, correct);
+    const row = document.createElement('div');
+    row.className = 'rs-col-row';
+    const arrow = document.createElement('span');
+    arrow.className = 'rs-arrow';
+    arrow.textContent = '→';
+    row.append(streakBadge(pos), arrow, streakBadge(dest));
+    if(count > 0){
+      const countEl = document.createElement('span');
+      countEl.className = 'rs-outcome-count';
+      countEl.textContent = `×${count}`;
+      row.appendChild(countEl);
+    }
+    container.appendChild(row);
+  });
+}
+
+function renderSessionResults(){
+  document.getElementById('resultsTotal').textContent =
+    `${sessionResults.length} word${sessionResults.length === 1 ? '' : 's'} this session`;
+
+  renderResultsColumn('resultsColCorrect', RESULTS_LADDER_CORRECT, true);
+  renderResultsColumn('resultsColWrong', RESULTS_LADDER_WRONG, false);
+
+  // Always land on the front face, unrevealed — mirrors renderCard()'s
+  // reset of the session card at the start of every new draw.
+  resultsRevealed = false;
+  resultsCardEl.style.transition = 'none';
+  resultsCardEl.style.transform = 'scaleX(1)';
+  document.getElementById('resultsFront').classList.add('visible');
+  document.getElementById('resultsBack').classList.remove('visible');
+  document.getElementById('resultsTapHint').style.visibility = 'visible';
+}
+
+const resultsCardEl = document.getElementById('resultsCard');
+let resultsRevealed = false;
+function flipResultsCard(){
+  resultsCardEl.style.transition = 'transform .16s ease';
+  resultsCardEl.style.transform = 'scaleX(0.04)';
+  setTimeout(()=>{
+    resultsRevealed = !resultsRevealed;
+    document.getElementById('resultsFront').classList.toggle('visible', !resultsRevealed);
+    document.getElementById('resultsBack').classList.toggle('visible', resultsRevealed);
+    document.getElementById('resultsTapHint').style.visibility = resultsRevealed ? 'hidden' : 'visible';
+    resultsCardEl.style.transform = 'scaleX(1)';
+  }, 150);
+}
+resultsCardEl.addEventListener('click', flipResultsCard);
+document.getElementById('resultsHomeBtn').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
 
 const cardEl = document.getElementById('card');
 const stampKnow = document.getElementById('stampKnow');
