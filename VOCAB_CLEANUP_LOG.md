@@ -99,3 +99,13 @@ into one card (all senses listed) on VN-front session cards. Code:
   precision (was just "to go on a holiday").
 - **buổi học** → "class; lesson session" / **bài** → "lesson;
   practice/exercise" — kept separate, reworded for clarity.
+
+## 2026-08-08 — commit `<pending>`
+
+- **rửa** → "to wash (with water)" — reworded.
+- **vệ sinh** → "to clean; to maintain hygiene" — reworded.
+- **xài** → "to use" / **sử dụng** → "to use" — kept as 2 separate VN
+  cards (different spelling) but given the identical English gloss, by
+  request — no casual/formal tag this time.
+- **xài tiền** → "to spend (money)" — unchanged; now the sole "to spend"
+  card since "xài" dropped that sense.
