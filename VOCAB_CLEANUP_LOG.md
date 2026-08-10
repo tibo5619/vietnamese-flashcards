@@ -100,7 +100,7 @@ into one card (all senses listed) on VN-front session cards. Code:
 - **buổi học** → "class; lesson session" / **bài** → "lesson;
   practice/exercise" — kept separate, reworded for clarity.
 
-## 2026-08-08 — commit `<pending>`
+## 2026-08-08 — commit `ed481b0`
 
 - **rửa** → "to wash (with water)" — reworded.
 - **vệ sinh** → "to clean; to maintain hygiene" — reworded.
