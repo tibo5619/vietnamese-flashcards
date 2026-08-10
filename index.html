@@ -399,7 +399,7 @@
      filters scroll away with the list. Capping just this screen's height
      makes .wordlist-scroll the actual scroll container, so .wl-sticky-header
      (everything above it) stays in place instead. */
-  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen{ max-height:100vh; max-height:100svh; }
+  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen, #settingsResetVocab.screen{ max-height:100vh; max-height:100svh; }
   .wl-sticky-header{ flex-shrink:0; }
   .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
   .wl-item{
@@ -507,6 +507,23 @@
   #issueDetailResolveBtn.resolved{ background:var(--jade-soft); border-color:var(--jade); }
   #issueDetailResolveBtn.resolved #issueDetailResolveLabel{ color:#20463A; }
   #issueResolutionInput{ background:var(--surface); }
+
+  /* ---------- RESET > PICK WORDS TO DELETE ---------- */
+  .reset-picker-selectall{
+    display:flex; align-items:center; gap:10px; padding:10px 14px; margin-bottom:14px;
+    border:1px solid var(--line); border-radius:12px; background:var(--surface); cursor:pointer;
+  }
+  .picker-row{
+    border:1px solid var(--line); border-radius:12px; background:var(--surface);
+    padding:12px 14px; margin-bottom:10px; display:flex; gap:10px; align-items:center; cursor:pointer;
+  }
+  .picker-toggle{
+    flex-shrink:0; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line);
+    color:#F3F8F6; font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .picker-toggle.checked{ background:var(--jade); border-color:var(--jade); }
+  .picker-word{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink); }
 
   /* ---------- GRAMMAR ---------- */
   .grammar-card-detail{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); }
@@ -860,7 +877,12 @@
     </div>
     <button class="menu-btn" type="button" id="openSourcesBtn">
       <span class="menu-btn-emoji">📚</span>
-      <span>Vocabulary sources</span>
+      <span>Sources</span>
+      <span class="menu-btn-chevron">›</span>
+    </button>
+    <button class="menu-btn" type="button" id="openLearningModeBtn">
+      <span class="menu-btn-emoji">🎯</span>
+      <span>Learning method</span>
       <span class="menu-btn-chevron">›</span>
     </button>
     <button class="menu-btn" type="button" id="openDataBtn">
@@ -871,11 +893,6 @@
     <button class="menu-btn" type="button" id="openResetBtn">
       <span class="menu-btn-emoji">🔄</span>
       <span>Reset</span>
-      <span class="menu-btn-chevron">›</span>
-    </button>
-    <button class="menu-btn" type="button" id="openLearningModeBtn">
-      <span class="menu-btn-emoji">🎯</span>
-      <span>Learning method</span>
       <span class="menu-btn-chevron">›</span>
     </button>
     <button class="menu-btn" type="button" id="testModeBtn">
@@ -901,6 +918,23 @@
     </button>
   </section>
 
+  <!-- SETTINGS > RESET > PICK WORDS TO DELETE -->
+  <section id="settingsResetVocab" class="screen">
+    <div class="wl-sticky-header">
+      <div class="back-row">
+        <button id="backFromResetVocab" aria-label="Back">←</button>
+        <h2 style="margin:0;">Delete added words</h2>
+      </div>
+      <div class="reset-picker-selectall" id="resetVocabSelectAllRow">
+        <span class="picker-toggle" id="resetVocabSelectAllToggle"></span>
+        <span>Select all</span>
+        <span class="menu-btn-status" id="resetVocabCount" style="margin-left:auto;"></span>
+      </div>
+    </div>
+    <div class="wordlist-scroll" id="resetVocabPickerScroll"></div>
+    <button class="btn btn-primary" id="resetVocabPickerDeleteBtn" type="button" disabled style="margin-top:14px;">Delete selected (0)</button>
+  </section>
+
   <!-- SETTINGS > LEARNING METHOD -->
   <section id="settingsLearningMode" class="screen">
     <div class="back-row">
@@ -914,7 +948,7 @@
   <section id="settingsSources" class="screen">
     <div class="back-row">
       <button id="backFromSources" aria-label="Back">←</button>
-      <h2 style="margin:0;">Vocabulary sources</h2>
+      <h2 style="margin:0;">Sources</h2>
     </div>
     <div class="wordlist-scroll" id="sourcesList"></div>
   </section>
@@ -927,7 +961,11 @@
     </div>
     <button class="menu-btn" type="button" id="exportDataBtn">
       <span class="menu-btn-emoji">⬇️</span>
-      <span>Export data</span>
+      <span>Export data (all)</span>
+    </button>
+    <button class="menu-btn" type="button" id="exportIssuesBtn">
+      <span class="menu-btn-emoji">📋</span>
+      <span>Export data (issues only)</span>
     </button>
     <button class="menu-btn" type="button" id="importDataBtn">
       <span class="menu-btn-emoji">⬆️</span>
@@ -2115,14 +2153,80 @@ document.getElementById('resetConfirmBtn').addEventListener('click', async ()=>{
   showToast('Progress reset');
 });
 
+// ---------- Reset > pick words to delete ----------
+let resetVocabSelected = new Set();
+let resetVocabPendingIds = [];
+
 document.getElementById('resetCustomVocabBtn').addEventListener('click', ()=>{
-  const count = customVocab.length;
-  if(count === 0){
+  if(customVocab.length === 0){
     showToast('No manually added words yet');
     return;
   }
+  resetVocabSelected = new Set();
+  renderResetVocabPicker();
+  showScreen('settingsResetVocab');
+});
+document.getElementById('backFromResetVocab').addEventListener('click', ()=>{
+  showScreen('settingsReset');
+});
+
+function renderResetVocabPicker(){
+  const scroll = document.getElementById('resetVocabPickerScroll');
+  scroll.innerHTML = '';
+  customVocab.forEach(w => {
+    const row = document.createElement('div');
+    row.className = 'picker-row';
+
+    const toggle = document.createElement('span');
+    const checked = resetVocabSelected.has(w.id);
+    toggle.className = 'picker-toggle' + (checked ? ' checked' : '');
+    toggle.textContent = checked ? '✓' : '';
+    row.appendChild(toggle);
+
+    const word = document.createElement('span');
+    word.className = 'picker-word';
+    word.textContent = `${w.vn} — ${w.en}`;
+    row.appendChild(word);
+
+    row.addEventListener('click', () => {
+      if(resetVocabSelected.has(w.id)) resetVocabSelected.delete(w.id);
+      else resetVocabSelected.add(w.id);
+      renderResetVocabPicker();
+    });
+
+    scroll.appendChild(row);
+  });
+  updateResetVocabPickerFooter();
+}
+
+function updateResetVocabPickerFooter(){
+  const total = customVocab.length;
+  const n = resetVocabSelected.size;
+  const allSelected = total > 0 && n === total;
+  const selectAllToggle = document.getElementById('resetVocabSelectAllToggle');
+  selectAllToggle.className = 'picker-toggle' + (allSelected ? ' checked' : '');
+  selectAllToggle.textContent = allSelected ? '✓' : '';
+  document.getElementById('resetVocabCount').textContent = `${n}/${total} selected`;
+  const deleteBtn = document.getElementById('resetVocabPickerDeleteBtn');
+  deleteBtn.textContent = `Delete selected (${n})`;
+  deleteBtn.disabled = n === 0;
+}
+
+document.getElementById('resetVocabSelectAllRow').addEventListener('click', () => {
+  if(resetVocabSelected.size === customVocab.length){
+    resetVocabSelected = new Set();
+  } else {
+    resetVocabSelected = new Set(customVocab.map(w => w.id));
+  }
+  renderResetVocabPicker();
+});
+
+document.getElementById('resetVocabPickerDeleteBtn').addEventListener('click', () => {
+  const count = resetVocabSelected.size;
+  if(count === 0) return;
+  resetVocabPendingIds = Array.from(resetVocabSelected);
   document.getElementById('resetVocabConfirmMsg').textContent =
-    `This permanently deletes the ${count} word${count === 1 ? '' : 's'} you added manually via "Add a word", along with their progress. It can't be undone.`;
+    `This permanently deletes the ${count} selected word${count === 1 ? '' : 's'}, along with ${count === 1 ? 'its' : 'their'} progress. It can't be undone.`;
   document.getElementById('resetVocabConfirmBackdrop').classList.add('show');
 });
 document.getElementById('resetVocabCancelBtn').addEventListener('click', ()=>{
@@ -2132,13 +2236,21 @@ document.getElementById('resetVocabConfirmBackdrop').addEventListener('click', (
   if(e.target.id === 'resetVocabConfirmBackdrop') e.currentTarget.classList.remove('show');
 });
 document.getElementById('resetVocabConfirmBtn').addEventListener('click', async ()=>{
-  customVocab.forEach(w => { delete progress[w.id]; });
-  customVocab = [];
+  const idsToDelete = new Set(resetVocabPendingIds);
+  idsToDelete.forEach(id => { delete progress[id]; });
+  customVocab = customVocab.filter(w => !idsToDelete.has(w.id));
+  resetVocabSelected = new Set();
+  resetVocabPendingIds = [];
   await saveCustomVocab();
   await saveProgress();
   document.getElementById('resetVocabConfirmBackdrop').classList.remove('show');
   refreshStats();
   showToast('Added words deleted');
+  if(customVocab.length === 0){
+    showScreen('settingsReset');
+  } else {
+    renderResetVocabPicker();
+  }
 });
 
 // ---------- Export / Import (data portability across devices/browsers) ----------
@@ -2161,6 +2273,21 @@ function exportData(){
   a.remove();
   URL.revokeObjectURL(url);
   showToast('Backup downloaded');
+}
+
+function exportIssues(){
+  const unresolved = issueReports.filter(r => !r.resolved);
+  if(unresolved.length === 0){ showToast('No unresolved issues to export'); return; }
+  const blob = new Blob([JSON.stringify(unresolved, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `issues_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast(`${unresolved.length} issue${unresolved.length === 1 ? '' : 's'} exported`);
 }
 
 let pendingImportData = null;
@@ -2290,7 +2417,7 @@ function renderGrammarList(){
   const scroll = document.getElementById('grammarScroll');
   const cards = activeGrammar();
   if(cards.length === 0){
-    scroll.innerHTML = '<div class="wordlist-empty">No grammar rules unlocked yet — activate a lesson in Settings → Vocabulary sources.</div>';
+    scroll.innerHTML = '<div class="wordlist-empty">No grammar rules unlocked yet — activate a lesson in Settings → Sources.</div>';
     return;
   }
   const groups = {};
@@ -2742,6 +2869,7 @@ document.getElementById('saveIssueResolutionBtn').addEventListener('click', asyn
 });
 
 document.getElementById('newIssueBtn').addEventListener('click', () => openReportPopup());
+document.getElementById('exportIssuesBtn').addEventListener('click', exportIssues);
 document.querySelectorAll('#issuesStatusGroup .pill').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('#issuesStatusGroup .pill').forEach(b=>b.classList.remove('active'));
