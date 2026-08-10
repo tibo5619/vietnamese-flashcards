@@ -1,0 +1,716 @@
+[
+  {
+    "id": "c2-l1-1",
+    "lesson": 1,
+    "title": "... nè (friendly attention)",
+    "structure": "<span class=\"gd-ph\">[statement]</span> + <mark class=\"hl\">nè</mark>.",
+    "explanation": "Adding <mark class=\"hl\">nè</mark> to the end of a sentence gives it a warm, casual, attention-drawing tone — used to point something out, offer a friendly suggestion, or soften a statement in everyday spoken Vietnamese.",
+    "examples": [
+      {
+        "vn": "Tụi chị đang ngồi ở đây <mark class=\"hl\">nè</mark>.",
+        "en": "We're sitting right here, see.",
+        "book": true
+      },
+      {
+        "vn": "Mua tủ lạnh ở cửa hàng này tốt <mark class=\"hl\">nè</mark> anh.",
+        "en": "Buying a fridge at this store is a good idea, you know.",
+        "book": true
+      },
+      {
+        "vn": "Cái áo này đẹp <mark class=\"hl\">nè</mark>, chị thử đi.",
+        "en": "This shirt is nice, look — try it on.",
+        "book": false
+      },
+      {
+        "vn": "Có bánh mì mới <mark class=\"hl\">nè</mark>, em ăn không?",
+        "en": "There's fresh bánh mì here, want some?",
+        "book": false
+      },
+      {
+        "vn": "Anh để chìa khóa ở đây <mark class=\"hl\">nè</mark>.",
+        "en": "I'm leaving the keys right here, okay?",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l1-2",
+    "lesson": 1,
+    "title": "vừa ... vừa ...",
+    "structure": "<mark class=\"hl\">vừa</mark> + <span class=\"gd-ph\">[verb/adjective 1]</span> + <mark class=\"hl\">vừa</mark> + <span class=\"gd-ph\">[verb/adjective 2]</span>",
+    "explanation": "Pairs two actions happening together, or two qualities that are both true at once.",
+    "examples": [
+      {
+        "vn": "Tuần này chị Mai <mark class=\"hl\">vừa</mark> phải chuyển nhà <mark class=\"hl\">vừa</mark> có nhiều việc phải làm ở công ty.",
+        "en": "This week Mai is both moving house and swamped with work at the office.",
+        "book": true
+      },
+      {
+        "vn": "Cái lò nướng này <mark class=\"hl\">vừa</mark> có nhiều chức năng <mark class=\"hl\">vừa</mark> rất tiết kiệm điện.",
+        "en": "This oven both has lots of features and saves a lot of electricity.",
+        "book": true
+      },
+      {
+        "vn": "Bạn <mark class=\"hl\">vừa</mark> có thể mua sắm <mark class=\"hl\">vừa</mark> có thể ăn uống khi đến chợ Bến Thành.",
+        "en": "At Bến Thành Market you can shop and eat at the same time.",
+        "book": true
+      },
+      {
+        "vn": "Cô ấy <mark class=\"hl\">vừa</mark> thông minh <mark class=\"hl\">vừa</mark> chăm chỉ.",
+        "en": "She's both smart and hard-working.",
+        "book": false
+      },
+      {
+        "vn": "Tôi <mark class=\"hl\">vừa</mark> nghe nhạc <mark class=\"hl\">vừa</mark> nấu ăn.",
+        "en": "I listen to music while cooking, at the same time.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l1-3",
+    "lesson": 1,
+    "title": "vẫn ...",
+    "structure": "<mark class=\"hl\">vẫn</mark> + <span class=\"gd-ph\">[verb/adjective]</span>",
+    "explanation": "Placed before a verb or adjective, vẫn shows the action or state is still going on, or still true, right up to now (or up to whatever moment is being talked about).",
+    "examples": [
+      {
+        "vn": "Chị <mark class=\"hl\">vẫn</mark> làm ở chỗ đó hả?",
+        "en": "Are you still working there?",
+        "book": true
+      },
+      {
+        "vn": "Bây giờ anh về nhà chưa hay <mark class=\"hl\">vẫn</mark> đang ở công ty?",
+        "en": "Are you home yet, or still at the office?",
+        "book": true
+      },
+      {
+        "vn": "An về trước đi. Mình <mark class=\"hl\">vẫn</mark> chưa làm việc xong.",
+        "en": "Go on home, An. I still haven't finished working.",
+        "book": true
+      },
+      {
+        "vn": "Bà tôi đã 80 tuổi nhưng <mark class=\"hl\">vẫn</mark> khỏe mạnh.",
+        "en": "My grandmother is 80 but is still healthy.",
+        "book": false
+      },
+      {
+        "vn": "Trời mưa nhưng chúng tôi <mark class=\"hl\">vẫn</mark> đi làm.",
+        "en": "It's raining but we're still going to work.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l1-4",
+    "lesson": 1,
+    "title": "Tuy ... nhưng ...",
+    "structure": "<mark class=\"hl\">Tuy</mark> + <span class=\"gd-ph\">[clause 1]</span> + <mark class=\"hl\">nhưng</mark> + <span class=\"gd-ph\">[clause 2]</span>",
+    "explanation": "Sets up a contrast between two facts within one sentence — the second half goes against what the first half would lead you to expect. Closely related to <mark class=\"hl\">tuy nhiên</mark> (\"however\", Connect 1 Bài 6), which links two separate sentences instead of pairing tuy with nhưng inside one.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Tuy</mark> giá thuê khá cao <mark class=\"hl\">nhưng</mark> nhà gần chỗ làm của Alan.",
+        "en": "Although the rent is quite high, the house is close to Alan's work.",
+        "book": true
+      },
+      {
+        "vn": "Cái ti-vi này <mark class=\"hl\">tuy</mark> giá rẻ <mark class=\"hl\">nhưng</mark> chất lượng rất tốt.",
+        "en": "Although this TV is cheap, its quality is very good.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Tuy</mark> cái tủ lạnh đó có chất lượng tốt <mark class=\"hl\">nhưng</mark> to quá nên tôi không mua.",
+        "en": "Although that fridge has good quality, it's too big so I didn't buy it.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Tuy</mark> trời lạnh <mark class=\"hl\">nhưng</mark> các em vẫn muốn đi chơi công viên.",
+        "en": "Although it's cold, the kids still want to go play in the park.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Tuy</mark> mới học tiếng Việt <mark class=\"hl\">nhưng</mark> anh ấy nói khá tốt.",
+        "en": "Although he just started learning Vietnamese, he speaks quite well.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l2-1",
+    "lesson": 2,
+    "title": "chưa đến / dưới / gần + level",
+    "structure": "<mark class=\"hl\">chưa đến</mark> + <span class=\"gd-ph\">[level]</span> · <mark class=\"hl\">dưới</mark> + <span class=\"gd-ph\">[level]</span> · <mark class=\"hl\">gần</mark> + <span class=\"gd-ph\">[level]</span>",
+    "explanation": "Three ways to talk about a quantity below (or close to) a reference level: <mark class=\"hl\">chưa đến</mark> (\"not even reaching\") and <mark class=\"hl\">dưới</mark> (\"under/below\") both mean less than the level, while <mark class=\"hl\">gần</mark> (\"close to/nearly\") means approaching it without necessarily being exactly there.",
+    "examples": [
+      {
+        "vn": "Rẻ lắm, chị. <mark class=\"hl\">Chưa đến</mark> hai mươi triệu đồng ạ.",
+        "en": "It's cheap, really. Not even 20 million đồng.",
+        "book": true
+      },
+      {
+        "vn": "Có rất nhiều tủ lạnh tốt giá <mark class=\"hl\">dưới</mark> hai mươi triệu đồng. Em mua đi.",
+        "en": "There are lots of good fridges priced under 20 million đồng. Go ahead and buy one.",
+        "book": true
+      },
+      {
+        "vn": "Trời ơi, cái tủ lạnh này <mark class=\"hl\">gần</mark> năm mươi triệu đồng. Mắc quá!",
+        "en": "Wow, this fridge is almost 50 million đồng. So expensive!",
+        "book": true
+      },
+      {
+        "vn": "Chuyến bay <mark class=\"hl\">chưa đến</mark> hai tiếng là tới nơi.",
+        "en": "The flight takes less than two hours to arrive.",
+        "book": false
+      },
+      {
+        "vn": "Căn hộ này giá <mark class=\"hl\">dưới</mark> mười triệu một tháng.",
+        "en": "This apartment is priced under 10 million a month.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l2-2",
+    "lesson": 2,
+    "title": "bằng + level",
+    "structure": "<span class=\"gd-ph\">[amount]</span> + <mark class=\"hl\">bằng</mark> + <span class=\"gd-ph\">[level]</span>",
+    "explanation": "Bằng says an amount matches a reference level exactly — \"equal to,\" \"the same as.\"",
+    "examples": [
+      {
+        "vn": "Ồ, vậy là <mark class=\"hl\">bằng</mark> giá tủ lạnh của chị.",
+        "en": "Oh, that's the same price as mine.",
+        "book": true
+      },
+      {
+        "vn": "Lương tháng này <mark class=\"hl\">bằng</mark> lương tháng trước.",
+        "en": "This month's salary is the same as last month's.",
+        "book": false
+      },
+      {
+        "vn": "Chiều cao của em <mark class=\"hl\">bằng</mark> chiều cao của anh trai.",
+        "en": "Your height is the same as your older brother's.",
+        "book": false
+      },
+      {
+        "vn": "Giá vé xe lửa <mark class=\"hl\">bằng</mark> giá vé máy bay giá rẻ.",
+        "en": "The train ticket costs the same as a budget plane ticket.",
+        "book": false
+      },
+      {
+        "vn": "Số tiền tôi tiết kiệm được năm nay <mark class=\"hl\">bằng</mark> năm ngoái.",
+        "en": "The amount I saved this year is the same as last year.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l2-3",
+    "lesson": 2,
+    "title": "hơn / trên / gấp ... lần + level",
+    "structure": "<span class=\"gd-ph\">[amount]</span> + <mark class=\"hl\">hơn</mark> / <mark class=\"hl\">trên</mark> + <span class=\"gd-ph\">[level]</span> · <span class=\"gd-ph\">[amount]</span> + <mark class=\"hl\">gấp</mark> + <span class=\"gd-ph\">[number]</span> + <mark class=\"hl\">lần</mark> + <span class=\"gd-ph\">[level]</span>",
+    "explanation": "Hơn and trên both mean \"more than\" a level (trên can carry a stronger sense of a big margin); gấp ... lần expresses a multiple of a level — \"X times as much.\"",
+    "examples": [
+      {
+        "vn": "Dạ, hơi mắc, chị. <mark class=\"hl\">Hơn</mark> bốn mươi triệu đồng ạ.",
+        "en": "A bit expensive, yes. More than 40 million đồng.",
+        "book": true
+      },
+      {
+        "vn": "Bây giờ giá một cái tủ lạnh tốt thì thường <mark class=\"hl\">trên</mark> ba mươi triệu đồng.",
+        "en": "These days a good fridge usually costs over 30 million đồng.",
+        "book": true
+      },
+      {
+        "vn": "Giá nhà ở trung tâm thành phố <mark class=\"hl\">gấp</mark> ba <mark class=\"hl\">lần</mark> giá nhà ở ngoại ô.",
+        "en": "Housing downtown costs three times as much as housing in the suburbs.",
+        "book": false
+      },
+      {
+        "vn": "Chuyến du lịch này tốn <mark class=\"hl\">hơn</mark> năm mươi triệu đồng.",
+        "en": "This trip costs more than 50 million đồng.",
+        "book": false
+      },
+      {
+        "vn": "Lương của giám đốc <mark class=\"hl\">gấp</mark> năm <mark class=\"hl\">lần</mark> lương nhân viên mới.",
+        "en": "The director's salary is five times a new employee's.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l2-4",
+    "lesson": 2,
+    "title": "không ... gì / ai / đâu ... hết",
+    "structure": "<mark class=\"hl\">không</mark> + <span class=\"gd-ph\">[verb]</span> + gì / ai / đâu + <mark class=\"hl\">hết</mark>",
+    "explanation": "Adds hết after gì/ai/đâu to make a negative as total and emphatic as possible — \"not... anything/anyone/anywhere at all.\"",
+    "examples": [
+      {
+        "vn": "Bà ấy vào cửa hàng mà <mark class=\"hl\">không</mark> mua gì <mark class=\"hl\">hết</mark>.",
+        "en": "She went into the store and didn't buy anything at all.",
+        "book": true
+      },
+      {
+        "vn": "Anh ấy đến giao hàng mà <mark class=\"hl\">không</mark> gặp ai <mark class=\"hl\">hết</mark>.",
+        "en": "He came to deliver but didn't meet anyone at all.",
+        "book": true
+      },
+      {
+        "vn": "Cuối tuần tôi chỉ ở nhà nghỉ ngơi, <mark class=\"hl\">không</mark> muốn đi đâu <mark class=\"hl\">hết</mark>.",
+        "en": "On weekends I just stay home and rest, I don't want to go anywhere at all.",
+        "book": true
+      },
+      {
+        "vn": "Tôi tìm khắp nhà mà <mark class=\"hl\">không</mark> thấy chìa khóa đâu <mark class=\"hl\">hết</mark>.",
+        "en": "I searched the whole house and couldn't find the keys anywhere at all.",
+        "book": false
+      },
+      {
+        "vn": "Hôm nay công ty họp cả ngày nên tôi <mark class=\"hl\">không</mark> ăn gì <mark class=\"hl\">hết</mark>.",
+        "en": "The company had meetings all day today, so I didn't eat anything at all.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l2-5",
+    "lesson": 2,
+    "title": "Nhờ ... giúp / giùm ...",
+    "structure": "<mark class=\"hl\">Nhờ</mark> + <span class=\"gd-ph\">[person A]</span> + <span class=\"gd-ph\">[verb]</span> + <mark class=\"hl\">giúp</mark> / <mark class=\"hl\">giùm</mark> + <span class=\"gd-ph\">[person B]</span>",
+    "explanation": "A polite way to ask someone (A) to do a specific task as a favor for someone (B) — giúp and giùm both mean \"as a favor,\" interchangeably.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Nhờ</mark> em gửi gói hàng ở bảo vệ <mark class=\"hl\">giúp</mark> chị.",
+        "en": "Could you drop the package off with the guard for me?",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Nhờ</mark> anh lên sửa cái tủ lạnh <mark class=\"hl\">giùm</mark> tôi. Nó bị hư rồi.",
+        "en": "Could you come fix the fridge for me? It's broken.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Nhờ</mark> chị ký hóa đơn <mark class=\"hl\">giùm</mark> / <mark class=\"hl\">giúp</mark> em.",
+        "en": "Could you sign the invoice for me?",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Nhờ</mark> con đón em <mark class=\"hl\">giúp</mark> mẹ lúc 5 giờ.",
+        "en": "Could you pick up your sister for me at 5 o'clock?",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Nhờ</mark> chú xem <mark class=\"hl\">giùm</mark> tôi cái máy lạnh này bị gì.",
+        "en": "Could you take a look at what's wrong with this AC for me?",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l3-1",
+    "lesson": 3,
+    "title": "được (beneficial passive)",
+    "structure": "<span class=\"gd-ph\">[A]</span> + <mark class=\"hl\">được</mark> + (<span class=\"gd-ph\">[B]</span>) + <span class=\"gd-ph\">[verb]</span>",
+    "explanation": "Được marks A as receiving or benefiting from something — usually a positive, welcome outcome. A is whoever receives the action; B (optional) is whoever performs it.",
+    "examples": [
+      {
+        "vn": "Các nhân viên <mark class=\"hl\">được</mark> tài trợ 100% chi phí cho chuyến du lịch này.",
+        "en": "The employees get 100% of the trip's cost covered.",
+        "book": true
+      },
+      {
+        "vn": "Các nhân viên <mark class=\"hl\">được</mark> công ty tài trợ 100% chi phí cho chuyến du lịch này.",
+        "en": "The employees get 100% of the trip's cost covered by the company.",
+        "book": true
+      },
+      {
+        "vn": "Tôi <mark class=\"hl\">được</mark> nghỉ làm ba ngày vì bị bệnh.",
+        "en": "I get three days off from work because I was sick.",
+        "book": false
+      },
+      {
+        "vn": "Con gái tôi <mark class=\"hl\">được</mark> cô giáo khen vì học giỏi.",
+        "en": "My daughter got praised by her teacher for doing well in school.",
+        "book": false
+      },
+      {
+        "vn": "Nhân viên mới <mark class=\"hl\">được</mark> anh Nam hướng dẫn công việc.",
+        "en": "The new employee gets shown the ropes by Nam.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l3-2",
+    "lesson": 3,
+    "title": "(thì) mới (prerequisite)",
+    "structure": "<span class=\"gd-ph\">[condition]</span> + (<mark class=\"hl\">thì</mark>) + <mark class=\"hl\">mới</mark> + <span class=\"gd-ph\">[outcome]</span>",
+    "explanation": "Says the outcome only becomes true once the condition is met — \"only when/once X, then Y.\" Thì is optional and can be dropped without changing the meaning. Different from the <mark class=\"hl\">mới</mark> in Connect 1 Bài 1/Bài 3 (which marks \"just did X\" or \"not until X, later than expected\") — here mới marks a strict prerequisite rather than timing.",
+    "examples": [
+      {
+        "vn": "Hộ chiếu của em phải còn hạn ít nhất 6 tháng (<mark class=\"hl\">thì</mark>) <mark class=\"hl\">mới</mark> đi du lịch nước ngoài được.",
+        "en": "Your passport needs at least 6 months of validity left before you can travel abroad.",
+        "book": true
+      },
+      {
+        "vn": "Bạn phải thử thách bản thân (<mark class=\"hl\">thì</mark>) <mark class=\"hl\">mới</mark> biết giới hạn của mình.",
+        "en": "You have to push yourself before you find out your limits.",
+        "book": true
+      },
+      {
+        "vn": "Nhà hàng đó rất nổi tiếng, chị phải đặt bàn trước <mark class=\"hl\">thì</mark> <mark class=\"hl\">mới</mark> có bàn.",
+        "en": "That restaurant is very popular — you have to book a table ahead of time to get one.",
+        "book": true
+      },
+      {
+        "vn": "Anh phải có giấy phép lái xe <mark class=\"hl\">thì</mark> <mark class=\"hl\">mới</mark> lái xe được.",
+        "en": "You need a driver's license before you can drive.",
+        "book": false
+      },
+      {
+        "vn": "Em phải luyện tập nhiều (<mark class=\"hl\">thì</mark>) <mark class=\"hl\">mới</mark> nói tiếng Việt giỏi được.",
+        "en": "You have to practice a lot before you can speak Vietnamese well.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l3-3",
+    "lesson": 3,
+    "title": "càng ... càng ...",
+    "structure": "<span class=\"gd-ph\">[A]</span> + <mark class=\"hl\">càng</mark> ... + (<mark class=\"hl\">thì</mark>) + <span class=\"gd-ph\">[B]</span> + <mark class=\"hl\">càng</mark> ... · <mark class=\"hl\">càng ngày càng</mark> / <mark class=\"hl\">càng lúc càng</mark> + <span class=\"gd-ph\">[change]</span>",
+    "explanation": "The more A, the more B — a change in one factor tracks a proportional change in the other; thì is optional and, in some cases, the verb can come before càng. Càng ngày càng and càng lúc càng are set phrases for something increasing steadily \"more and more\" over time.",
+    "examples": [
+      {
+        "vn": "Khách sạn <mark class=\"hl\">càng</mark> sang trọng (<mark class=\"hl\">thì</mark>) giá <mark class=\"hl\">càng</mark> mắc.",
+        "en": "The more luxurious the hotel, the more expensive it is.",
+        "book": true
+      },
+      {
+        "vn": "Giáo viên <mark class=\"hl\">càng</mark> giải thích rõ ràng (<mark class=\"hl\">thì</mark>) chúng tôi <mark class=\"hl\">càng</mark> hiểu rõ bài học.",
+        "en": "The more clearly the teacher explains, the better we understand the lesson.",
+        "book": true
+      },
+      {
+        "vn": "Em <mark class=\"hl\">càng ngày càng</mark> thích đi du lịch khám phá.",
+        "en": "I like exploring on trips more and more every day.",
+        "book": true
+      },
+      {
+        "vn": "Dạo này thời tiết <mark class=\"hl\">càng lúc càng</mark> nóng.",
+        "en": "The weather has been getting hotter and hotter lately.",
+        "book": true
+      },
+      {
+        "vn": "Tiếng Việt của anh ấy <mark class=\"hl\">càng ngày càng</mark> tốt.",
+        "en": "His Vietnamese keeps getting better and better.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l3-4",
+    "lesson": 3,
+    "title": "không ... nào ... hết",
+    "structure": "<mark class=\"hl\">không</mark> + <span class=\"gd-ph\">[noun]</span> + <mark class=\"hl\">nào</mark> + <span class=\"gd-ph\">[verb phrase]</span> + <mark class=\"hl\">hết</mark>",
+    "explanation": "Negates every single member of a group — \"no [noun] at all, no exceptions.\" A close relative of không ... gì / ai / đâu ... hết (Bài 2), but built around a specific noun instead.",
+    "examples": [
+      {
+        "vn": "Vào cuối tuần, <mark class=\"hl\">không</mark> khách sạn <mark class=\"hl\">nào</mark> ở khu vực này còn chỗ <mark class=\"hl\">hết</mark>.",
+        "en": "On weekends, no hotel in this area has any vacancy at all.",
+        "book": true
+      },
+      {
+        "vn": "Nhà hàng đó rất nổi tiếng, <mark class=\"hl\">không</mark> lúc <mark class=\"hl\">nào</mark> vắng khách <mark class=\"hl\">hết</mark>.",
+        "en": "That restaurant is so popular, there's never a quiet moment, ever.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Không</mark> cửa hàng <mark class=\"hl\">nào</mark> ở đây bán món đó <mark class=\"hl\">hết</mark>.",
+        "en": "No store around here sells that at all.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Không</mark> ngày <mark class=\"hl\">nào</mark> tôi đi làm trễ <mark class=\"hl\">hết</mark>.",
+        "en": "I'm never late for work, not on any day.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Không</mark> học sinh <mark class=\"hl\">nào</mark> trong lớp biết câu trả lời <mark class=\"hl\">hết</mark>.",
+        "en": "No student in the class knew the answer, not one.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l4-1",
+    "lesson": 4,
+    "title": "Mặc dù ... nhưng ...",
+    "structure": "<mark class=\"hl\">Mặc dù</mark> + <span class=\"gd-ph\">[clause 1]</span> + <mark class=\"hl\">nhưng</mark> + <span class=\"gd-ph\">[clause 2]</span>",
+    "explanation": "Sets up the same kind of contrast as tuy ... nhưng ... (Bài 1) — the second clause goes against what the first would lead you to expect. Nhưng can be dropped without changing the meaning. Mặc dù and tuy are close to interchangeable; mặc dù tends to feel a touch more formal/emphatic.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Mặc dù</mark> sếp khó tính <mark class=\"hl\">nhưng</mark> tôi vẫn làm việc ở công ty đó vì đồng nghiệp vui vẻ và thân thiện.",
+        "en": "Although the boss is strict, I still work at that company because my coworkers are cheerful and friendly.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Mặc dù</mark> công việc của em rất bận rộn <mark class=\"hl\">nhưng</mark> giờ giấc linh hoạt.",
+        "en": "Although my job is very busy, the hours are flexible.",
+        "book": true
+      },
+      {
+        "vn": "Nga vẫn đi làm, <mark class=\"hl\">mặc dù</mark> chị ấy đang bị cảm.",
+        "en": "Nga still went to work, even though she has a cold.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Mặc dù</mark> trời mưa to <mark class=\"hl\">nhưng</mark> chúng tôi vẫn đi dã ngoại.",
+        "en": "Although it's raining hard, we're still going on the picnic.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Mặc dù</mark> mới ra trường <mark class=\"hl\">nhưng</mark> anh ấy làm việc rất chuyên nghiệp.",
+        "en": "Although he just graduated, he works very professionally.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l4-2",
+    "lesson": 4,
+    "title": "... lại ... (unexpected)",
+    "structure": "<span class=\"gd-ph\">[clause]</span> + <mark class=\"hl\">lại</mark> + <span class=\"gd-ph\">[unexpected outcome]</span>",
+    "explanation": "Lại flags that what follows is surprising or contrary to what you'd normally expect.",
+    "examples": [
+      {
+        "vn": "Em ấy học chuyên ngành kiến trúc nhưng <mark class=\"hl\">lại</mark> làm công việc quản lý nhà hàng khách sạn.",
+        "en": "She studied architecture but ended up working in hotel and restaurant management instead.",
+        "book": true
+      },
+      {
+        "vn": "Anh ấy lúc nào cũng đúng giờ nhưng không hiểu sao hôm nay <mark class=\"hl\">lại</mark> trễ hẹn với khách hàng quan trọng.",
+        "en": "He's always on time, but somehow today he was late for an important client meeting.",
+        "book": true
+      },
+      {
+        "vn": "Công việc này rất tốt, sao chị <mark class=\"hl\">lại</mark> nghỉ việc?",
+        "en": "This job is really good — why on earth would you quit?",
+        "book": true
+      },
+      {
+        "vn": "Trời đang nắng đẹp <mark class=\"hl\">lại</mark> đổ mưa bất ngờ.",
+        "en": "It was sunny and nice out, and then it suddenly rained out of nowhere.",
+        "book": false
+      },
+      {
+        "vn": "Anh ấy giỏi tiếng Việt vậy mà <mark class=\"hl\">lại</mark> không hiểu câu này.",
+        "en": "He's so good at Vietnamese, yet he doesn't understand this sentence.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l4-3",
+    "lesson": 4,
+    "title": "Ngay cả ...",
+    "structure": "<mark class=\"hl\">Ngay cả</mark> + <span class=\"gd-ph\">[surprising case]</span> + <span class=\"gd-ph\">[predicate]</span>",
+    "explanation": "Says something is true not just in the usual cases but even in surprising, unusual, or extreme ones — \"even...\"",
+    "examples": [
+      {
+        "vn": "Ngày nào anh ấy cũng phải làm việc, <mark class=\"hl\">ngay cả</mark> cuối tuần.",
+        "en": "He has to work every day, even on weekends.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Ngay cả</mark> sếp cũng không giải quyết được vấn đề này.",
+        "en": "Even the boss couldn't solve this problem.",
+        "book": true
+      },
+      {
+        "vn": "Dạ, nhiều dự án quá. <mark class=\"hl\">Ngay cả</mark> cuối tuần em cũng phải đi làm.",
+        "en": "There are so many projects. Even on weekends I have to work.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Ngay cả</mark> khi trời mưa, anh ấy cũng đi chạy bộ.",
+        "en": "Even when it's raining, he still goes jogging.",
+        "book": false
+      },
+      {
+        "vn": "Món này cay đến mức <mark class=\"hl\">ngay cả</mark> đầu bếp cũng phải uống nước.",
+        "en": "This dish is so spicy that even the chef needed a drink of water.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l4-4",
+    "lesson": 4,
+    "title": "... cũng ... (softening)",
+    "structure": "<span class=\"gd-ph\">[statement]</span> + <mark class=\"hl\">cũng</mark> + <span class=\"gd-ph\">[quality]</span>",
+    "explanation": "A softer, less direct way to state something — closer to \"kind of / fairly\" than an outright claim. A different use of cũng than the \"no matter which\" pattern in Noun + nào ... cũng ... (Connect 1 Bài 1).",
+    "examples": [
+      {
+        "vn": "Công việc <mark class=\"hl\">cũng</mark> căng thẳng nhưng Hà không muốn thay đổi công việc khác vì đồng nghiệp và sếp rất tốt.",
+        "en": "The job is kind of stressful, but Hà doesn't want to switch because her coworkers and boss are great.",
+        "book": true
+      },
+      {
+        "vn": "Mặc dù lương thưởng ở công ty này <mark class=\"hl\">cũng</mark> khá nhưng Lan muốn một công việc có giờ giấc linh hoạt hơn.",
+        "en": "Although the pay at this company is decent enough, Lan wants a job with more flexible hours.",
+        "book": true
+      },
+      {
+        "vn": "Làm việc ở công ty này tôi <mark class=\"hl\">cũng</mark> thích nhưng hơi xa nhà.",
+        "en": "I do kind of like working at this company, but it's a bit far from home.",
+        "book": true
+      },
+      {
+        "vn": "Món ăn ở đó <mark class=\"hl\">cũng</mark> ngon nhưng hơi mắc.",
+        "en": "The food there is pretty good, but a bit pricey.",
+        "book": false
+      },
+      {
+        "vn": "Học tiếng Nhật <mark class=\"hl\">cũng</mark> khó, nhưng thú vị.",
+        "en": "Learning Japanese is kind of hard, but interesting.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l5-1",
+    "lesson": 5,
+    "title": "Trong khi ... thì ...",
+    "structure": "<mark class=\"hl\">Trong khi</mark> + <span class=\"gd-ph\">[event A]</span> + <mark class=\"hl\">thì</mark> + <span class=\"gd-ph\">[event B]</span>",
+    "explanation": "Same idea as khi / trong khi (Connect 1 Bài 6): two things happening at the same time. Two extra details here: thì can be dropped without changing the meaning, and in speech khi ... thì ... or lúc ... thì ... often replace trong khi ... thì ..., depending on context.",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Trong khi</mark> mẹ nấu ăn <mark class=\"hl\">thì</mark> các anh chị em tôi phụ giúp chuẩn bị cho buổi sum họp gia đình.",
+        "en": "While Mom cooks, my siblings and I help get ready for the family get-together.",
+        "book": true
+      },
+      {
+        "vn": "Chúng tôi phụ giúp chuẩn bị cho buổi sum họp gia đình <mark class=\"hl\">trong khi</mark> mẹ tôi nấu ăn.",
+        "en": "We help get ready for the family get-together while my mom cooks.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Trong khi</mark> chị ấy làm việc nhà <mark class=\"hl\">thì</mark> chồng chị ấy dạy con học.",
+        "en": "While she does the housework, her husband helps the kids with schoolwork.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Trong khi</mark> tôi đợi xe buýt <mark class=\"hl\">thì</mark> trời bắt đầu mưa.",
+        "en": "While I was waiting for the bus, it started to rain.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Trong khi</mark> bố đọc báo <mark class=\"hl\">thì</mark> mẹ tưới cây ngoài sân.",
+        "en": "While Dad reads the paper, Mom waters the plants outside.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l5-2",
+    "lesson": 5,
+    "title": "... miễn là ...",
+    "structure": "<span class=\"gd-ph\">[statement]</span>, <mark class=\"hl\">miễn là</mark> + <span class=\"gd-ph\">[condition]</span>",
+    "explanation": "States a condition that must hold for the first part to be okay or possible — \"as long as...\"",
+    "examples": [
+      {
+        "vn": "Mọi việc sẽ tốt đẹp, <mark class=\"hl\">miễn là</mark> mọi người cùng cố gắng và giúp đỡ nhau trong công việc.",
+        "en": "Everything will turn out fine, as long as everyone tries hard and helps each other.",
+        "book": true
+      },
+      {
+        "vn": "Đi đâu, làm gì cũng được, <mark class=\"hl\">miễn là</mark> có thời gian cho gia đình.",
+        "en": "It doesn't matter where you go or what you do, as long as you make time for family.",
+        "book": true
+      },
+      {
+        "vn": "Sống độc thân cũng không sao <mark class=\"hl\">miễn là</mark> bạn cảm thấy vui với cuộc sống và lựa chọn của mình.",
+        "en": "Living single is fine too, as long as you're happy with your life and your choices.",
+        "book": true
+      },
+      {
+        "vn": "Con quyết định làm việc ở đâu cũng được <mark class=\"hl\">miễn là</mark> con thấy hạnh phúc.",
+        "en": "You can decide to work wherever, as long as you're happy.",
+        "book": false
+      },
+      {
+        "vn": "Nhà cửa thế nào cũng được, <mark class=\"hl\">miễn là</mark> gần chỗ làm.",
+        "en": "It doesn't matter what the house is like, as long as it's close to work.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l5-3",
+    "lesson": 5,
+    "title": "Hình như ...",
+    "structure": "<mark class=\"hl\">Hình như</mark> + <span class=\"gd-ph\">[guess]</span>",
+    "explanation": "Introduces a guess or inference based on what you know — \"it seems like... / I think... (but I'm not sure).\"",
+    "examples": [
+      {
+        "vn": "<mark class=\"hl\">Hình như</mark> em ấy là nhân viên mới. Chị mới thấy em ấy mấy hôm nay thôi.",
+        "en": "I think she's a new employee — I've only seen her the past few days.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Hình như</mark> tụi mình gặp chú Tư một lần vào Tết vừa rồi phải không?",
+        "en": "I think we met Uncle Tư once during last Tết, didn't we?",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Hình như</mark> công ty cho nghỉ Tết 7 ngày.",
+        "en": "It seems the company is giving 7 days off for Tết.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Hình như</mark> trời sắp mưa.",
+        "en": "It looks like it's about to rain.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Hình như</mark> anh ấy quên mang theo điện thoại.",
+        "en": "It seems like he forgot to bring his phone.",
+        "book": false
+      }
+    ]
+  },
+  {
+    "id": "c2-l5-4",
+    "lesson": 5,
+    "title": "các vs. những",
+    "structure": "<mark class=\"hl\">các</mark> + <span class=\"gd-ph\">[noun]</span> — a definite, whole group · <mark class=\"hl\">những</mark> + <span class=\"gd-ph\">[noun]</span> — an unspecified subset",
+    "explanation": "Both mark a plural noun, but differently: các points to a specific, complete group with nothing left out, while những points to some (unspecified) part of a larger group.",
+    "examples": [
+      {
+        "vn": "Vào ngày giỗ ông bà, <mark class=\"hl\">các</mark> thành viên trong gia đình luôn sắp xếp công việc để về quê cúng giỗ.",
+        "en": "On the anniversary of our grandparents' passing, all the family members always make time to go back home for the memorial.",
+        "book": true
+      },
+      {
+        "vn": "Vào ngày sum họp gia đình, <mark class=\"hl\">những</mark> người lớn tuổi thì ngồi nhắc lại chuyện cũ, còn <mark class=\"hl\">những</mark> người trẻ tuổi thì phụ giúp việc nấu nướng.",
+        "en": "At the family gathering, the older folks sit around reminiscing, while the younger ones help with the cooking.",
+        "book": true
+      },
+      {
+        "vn": "<mark class=\"hl\">Các</mark> bạn trong lớp đều đến dự tiệc sinh nhật của tôi.",
+        "en": "All my classmates came to my birthday party.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Những</mark> ngày mưa, tôi thích ở nhà đọc sách.",
+        "en": "On (some) rainy days, I like to stay home and read.",
+        "book": false
+      },
+      {
+        "vn": "<mark class=\"hl\">Các</mark> nhân viên trong công ty đều được thưởng Tết.",
+        "en": "All the employees in the company get a Tết bonus.",
+        "book": false
+      }
+    ]
+  }
+]

@@ -208,7 +208,18 @@ session opened in this folder — keep it up to date after each chantier.
   tracking** — no streak, no session draws, pure consultation, deliberately
   separate from the flashcard system; the home screen's Grammar card just
   shows a live count (`refreshGrammarCard()`, called from `refreshStats()`)
-  instead of the Vocabulary card's known/review bars.
+  instead of the Vocabulary card's known/review bars — deliberately
+  book-agnostic text (just "N rules unlocked"), since it now sums rules
+  across every book with a `grammarFile`, not just Connect 1.
+  `data/grammar-connect2.json` (21 cards, chantier 13) extracts from a
+  **different heading marker** than Connect 1's PDFs — Connect 2's grammar
+  boxes are tagged "Cấu trúc" (Structure) / "Ngữ dụng" (Language Usage)
+  instead of "Câu giao tiếp" — found by searching each page's text for
+  either string. Connect 2 Bài 6 is a pure review/capstone lesson (recycles
+  earlier structures like `vừa...vừa`/`tuy...nhưng` in new exercises) and
+  genuinely introduces no new grammar box of its own — confirmed by
+  exhausting every marker search on that PDF, not a missed extraction — so
+  it has zero cards and never appears as a group in the Grammar tab.
 
 ## UI structure
 
@@ -227,6 +238,18 @@ title-only `.gram-row`s — the full rule only renders once opened, on
 detail screen itself: `.gd-sticky` (title/structure/explanation, and the
 optional scale graphic) stays fixed, only `.gd-examples` scrolls, so a rule
 with many examples never pushes the explanation off-screen.
+Each `.lesson-group` is a self-contained accordion (chantier 13): its
+`.lesson-group-header` (the "Connect 1 — Bài 1 (5)" row, count from
+`groups[key].length`) toggles the `open` class on its own `.lesson-group`
+only, independent of every other group — plain `classList.toggle()`, no
+persisted JS state, since `renderGrammarList()` only re-runs on a fresh
+Home→Grammar entry (always starts every group `open` by default) and
+`backFromGrammarDetail` returns to `grammar` without re-rendering, so
+manually-collapsed groups stay collapsed across a detail-view round trip
+for free. `.lesson-group-rows` (wraps the `.gram-row`s) collapses via a
+`max-height` CSS transition rather than `display:none`, matching the app's
+no-animation-library convention; the chevron rotates 90° and turns gold
+when its group is open.
 `showScreen()` tracks the active screen in `currentScreenId` and calls
 `updateFloatingIcon()`, which drives `#floatingIssueBtn` — a single button
 positioned outside all `.screen` sections (direct child of `#app`, `position:
@@ -508,6 +531,29 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     since a lone light shade under the text is no longer guaranteed to have
     the old flat dark background. `sw.js` cache bumped to `nhat-chu-v25`.
 
+13. Grammar extended to Connect 2: `data/grammar-connect2.json` (21 rules
+    across Bài 1-5; Bài 6 is a review lesson with no new structures — see
+    "Data model" for how the extraction marker differs from Connect 1's and
+    why Bài 6 has zero cards), `BOOKS`' connect2 entry gained a `grammarFile`
+    field, `sw.js` `ASSETS` gained the new file. Several Connect 2 rules
+    revisit ground Connect 1 already covers with more depth or nuance
+    (`Trong khi ... thì ...` vs. Connect 1's `khi / trong khi`; `Tuy ...
+    nhưng ...` vs. `Mặc dù ... nhưng ...` within Connect 2 itself) — each
+    such card's explanation cross-references the earlier one instead of
+    silently duplicating it, per the project's one-word/one-concept
+    cross-check convention (see "Data model"). Also added a per-lesson
+    accordion to the Grammar list (see "UI structure" for the mechanics):
+    each `.lesson-group` header is now clickable, shows a rule count in
+    parentheses, and independently expands/collapses its rows — open by
+    default, multiple groups can stay open at once (user's explicit
+    preference, confirmed before building). Fixed a real staleness bug this
+    surfaced: `refreshGrammarCard()`'s home-screen summary hardcoded "·
+    Connect 1", which would have quietly misrepresented the count once a
+    second book started contributing rules — removed rather than made
+    dynamic, since the count itself was already book-agnostic and a second
+    book name would have made the line noisy. `sw.js` cache bumped to
+    `nhat-chu-v26`.
+
 ## Planned next (not started)
 
 - **Vocabulary content**: broaden Connect 1 beyond the end-of-book glossary
@@ -522,10 +568,6 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
   not-found word currently has no way into the vocab list except via
   "Report this word" for later manual review; that may need a deliberate
   "add anyway" escape hatch at some point.
-- **Grammar for Connect 2**: same extraction + card-writing process as
-  chantier 11, once Connect 2's grammar boxes are read from its lesson PDFs;
-  `BOOKS`' connect2 entry needs a `grammarFile` added (see "Data model" for
-  the recipe — same shape as `data/grammar-connect1.json`).
 - **Later**: extract example sentences per vocabulary word for a richer card
   back.
 - **Possible addition to the Reset screen**: clearing issue reports, if the
