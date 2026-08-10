@@ -281,11 +281,27 @@ row taller than the others) showing only a title + plain-language subtitle,
 deliberately no percentages.
 The Vocabulary list (`wordlist`) and its per-word popup (`wlPopupBackdrop`)
 show the streak from "Data model" two ways: `renderWordList()` draws a
-compact `.wl-badge` per row (18px circle, jade if the streak is positive /
-`--red` if negative, the magnitude 1-3 as a digit inside, empty outline if
-never seen) for whichever single direction the `wlLangGroup` pill has
-selected — never both, since the list already shows one direction at a
-time. Tapping a row calls `openWordPopup(w)` (takes the whole word object,
+compact `.wl-badge` per row (18px circle, the magnitude 1-3 as a digit
+inside, empty outline if never seen) for whichever single direction the
+`wlLangGroup` pill has selected — never both, since the list already shows
+one direction at a time. The badge fill color is magnitude-shaded to match
+the home Vocabulary card's stat-bar gradient exactly (chantier 12's
+`known-mag1/2/3` / `review-mag1/2/3` hex values, `wl-badge.on-known.mag1/2/3`
+/ `.on-review.mag1/2/3` in the CSS) rather than a flat jade/red — same
+darker-is-more-entrenched convention, same two light shades needing a dark
+text color override for legibility. A free-text search box
+(`#wlSearchInput`, chantier 14) sits below the language pill: it filters
+`words` against only the field for whichever language is currently
+selected (`wordlistLang` doubles as the word object's own field name, `vn`
+or `en`) via `wordlistSearchFilter()`, reusing `normalizeVn()` (see "Data
+model") so an unaccented query like "chao" still matches "chào" — the query
+never matches the other language's field, and it resets to empty every time
+the screen is reopened from `home` (`statDirectoryBtn`'s click handler,
+alongside the existing reset-to-"All" behavior). The header title
+(`#wordlistTitle`) is a plain static "Vocabulary" — an earlier version
+rewrote it live to "Vocabulary | Status (DIR→DIR)" on every filter change,
+removed per the user as unnecessary noise. Tapping a row calls
+`openWordPopup(w)` (takes the whole word object,
 not just display strings, so it can look up both directions), which renders
 the full detail via `renderStreakPips()`: a 5-pip `.wl-popup-pip` row per
 direction, pivot at the middle pip (magnitude 1, colored by sign), extending
@@ -553,6 +569,18 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     dynamic, since the count itself was already book-agnostic and a second
     book name would have made the line noisy. `sw.js` cache bumped to
     `nhat-chu-v26`.
+
+14. Vocabulary list search + badge polish: a free-text search box added
+    below the language toggle (`#wlSearchInput`), diacritic-insensitive
+    (reuses `normalizeVn()`) and scoped to whichever language is currently
+    selected — see "UI structure" for the mechanics. The per-row `.wl-badge`
+    streak indicator, previously a flat jade/red circle, now shades by
+    magnitude with the exact same 6 hex values as the home Vocabulary card's
+    stat-bar gradient from chantier 12, so the two known/review color scales
+    read as one consistent system across the app. Also removed the
+    `wordlistTitle` live rewrite ("Vocabulary | Status (DIR→DIR)") per the
+    user — the header is now always a plain static "Vocabulary" regardless
+    of the status/language filters. `sw.js` cache bumped to `nhat-chu-v27`.
 
 ## Planned next (not started)
 

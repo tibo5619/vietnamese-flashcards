@@ -383,6 +383,12 @@
   #wordlist{ padding-top:16px; }
   .wl-lang-toggle{ display:flex; justify-content:center; gap:10px; margin-bottom:14px; }
   .wl-lang-toggle .pill{ flex:1; text-align:center; }
+  .wl-search{ margin-bottom:14px; }
+  .wl-search input{
+    width:100%; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; padding:10px 14px; color:var(--ink); font-size:15px; font-family:inherit;
+  }
+  .wl-search input:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:transparent; }
   .wl-status-toggle{ display:flex; justify-content:center; gap:8px; margin-bottom:12px; flex-wrap:nowrap; }
   .wl-status-toggle .pill{ flex:1; padding:8px 6px; font-size:12px; text-align:center; white-space:nowrap; }
   .wl-legend{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
@@ -428,6 +434,15 @@
   }
   .wl-badge.on-known{ background:var(--jade); border-color:var(--jade); color:#FBF3EC; }
   .wl-badge.on-review{ background:var(--red); border-color:var(--red); color:#FBEFE9; }
+  /* Magnitude shading matches the home Vocabulary card's stat bar exactly
+     (see .vocab-stat-subseg): darker green = more entrenched known streak,
+     darker red = more entrenched review streak. */
+  .wl-badge.on-known.mag3{ background:#0C8A44; border-color:#0C8A44; }
+  .wl-badge.on-known.mag2{ background:#3FB876; border-color:#3FB876; }
+  .wl-badge.on-known.mag1{ background:#8BD9AE; border-color:#8BD9AE; color:#2B231C; }
+  .wl-badge.on-review.mag3{ background:#B7301D; border-color:#B7301D; }
+  .wl-badge.on-review.mag2{ background:#E06246; border-color:#E06246; }
+  .wl-badge.on-review.mag1{ background:#F0A28E; border-color:#F0A28E; color:#2B231C; }
 
   .wl-popup-backdrop{
     position:fixed; inset:0; background:rgba(43,35,28,0.45); z-index:20;
@@ -759,6 +774,9 @@
     <div class="wl-lang-toggle pill-group" id="wlLangGroup">
       <button class="pill active" data-value="vn">🇻🇳 Vietnamese</button>
       <button class="pill" data-value="en">🇬🇧 English</button>
+    </div>
+    <div class="wl-search">
+      <input type="text" id="wlSearchInput" placeholder="Search…" autocomplete="off" autocapitalize="off" spellcheck="false">
     </div>
     <div class="wl-legend" id="wlLegend">
       <div class="wl-legend-item"><span class="wl-dot"></span> New</div>
@@ -2212,14 +2230,9 @@ document.getElementById('sizeSlider').addEventListener('input', (e)=>{
 });
 
 // ---------- Word list ("Vocabulary" screen, tap-through from home) ----------
-const wordlistStatusLabels = {
-  all: 'All',
-  new: 'New',
-  known: 'Known',
-  review: 'Review'
-};
 let wordlistStatus = 'all';
 let wordlistLang = 'vn'; // 'vn' or 'en' — which language shows first + sort order
+let wordlistSearch = ''; // free-text filter, applied only to the currently-shown language field
 
 // The displayed language maps to the direction it's actually tested in:
 // showing the VN word means the vn2en direction is the relevant one, and vice versa.
@@ -2233,6 +2246,17 @@ function wordlistFilter(status){
   if(status === 'review') return w => isNeedsReviewInDir(w.id, dir);
   if(status === 'known') return w => isKnownInDir(w.id, dir);
   return () => true;
+}
+
+// Matches only the field for the currently-shown language (wordlistLang is
+// literally 'vn' or 'en', same as the word object's own field names) —
+// searching in Vietnamese never matches English text and vice versa.
+// Reuses normalizeVn (diacritic/case-insensitive) so an unaccented query
+// like "chao" still finds "chào".
+function wordlistSearchFilter(query){
+  const q = normalizeVn(query);
+  if(!q) return () => true;
+  return w => normalizeVn(w[wordlistLang]).includes(q);
 }
 
 // A handful of words don't alphabetize sensibly even after the generic
@@ -2330,9 +2354,6 @@ function renderWordList(status){
   if(status) wordlistStatus = status;
   const scroll = document.getElementById('wordlistScroll');
   scroll.innerHTML = '';
-  const statusLabel = wordlistStatusLabels[wordlistStatus] || 'All';
-  const dirLabel = wordlistLang === 'vn' ? 'VN→EN' : 'EN→VN';
-  document.getElementById('wordlistTitle').textContent = `Vocabulary | ${statusLabel} (${dirLabel})`;
 
   // The per-word status indicator (and its legend) is only meaningful on the
   // unfiltered "all" view — on "new"/"review"/"known" every row is already
@@ -2341,6 +2362,7 @@ function renderWordList(status){
 
   const words = activeVocab()
     .filter(wordlistFilter(wordlistStatus))
+    .filter(wordlistSearchFilter(wordlistSearch))
     .slice()
     .sort((a, b) => wordlistSortKey(a, wordlistLang).localeCompare(wordlistSortKey(b, wordlistLang), wordlistLang === 'vn' ? 'vi' : 'en'));
 
@@ -2358,7 +2380,7 @@ function renderWordList(status){
   if(words.length === 0){
     const empty = document.createElement('div');
     empty.className = 'wordlist-empty';
-    empty.textContent = 'No words here yet.';
+    empty.textContent = wordlistSearch.trim() ? 'No words match your search.' : 'No words here yet.';
     scroll.appendChild(empty);
     return;
   }
@@ -2403,8 +2425,9 @@ function renderWordList(status){
       badge.className = 'wl-badge';
       badge.title = `New (${dirLabel})`;
     } else {
-      badge.className = 'wl-badge ' + (streak > 0 ? 'on-known' : 'on-review');
-      badge.textContent = Math.abs(streak);
+      const mag = Math.abs(streak);
+      badge.className = `wl-badge ${streak > 0 ? 'on-known' : 'on-review'} mag${mag}`;
+      badge.textContent = mag;
       badge.title = `${streak > 0 ? 'Known' : 'Needs review'} (${dirLabel})`;
     }
     item.appendChild(badge);
@@ -2468,9 +2491,11 @@ document.getElementById('wlPopupBackdrop').addEventListener('click', (e)=>{
 });
 
 document.getElementById('statDirectoryBtn').addEventListener('click', ()=>{
-  // Always reopen on the unfiltered "All" view.
+  // Always reopen on the unfiltered "All" view, search cleared.
   document.querySelectorAll('#wlStatusGroup .pill').forEach(b=>b.classList.remove('active'));
   document.querySelector('#wlStatusGroup .pill[data-value="all"]').classList.add('active');
+  wordlistSearch = '';
+  document.getElementById('wlSearchInput').value = '';
   renderWordList('all');
   showScreen('wordlist');
 });
@@ -2504,6 +2529,10 @@ document.querySelectorAll('#wlLangGroup .pill').forEach(btn=>{
     wordlistLang = btn.dataset.value;
     renderWordList();
   });
+});
+document.getElementById('wlSearchInput').addEventListener('input', (e)=>{
+  wordlistSearch = e.target.value;
+  renderWordList();
 });
 
 // ---------- Report an issue (translation, spelling, or app behavior) ----------
