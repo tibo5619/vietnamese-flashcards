@@ -582,6 +582,29 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     user — the header is now always a plain static "Vocabulary" regardless
     of the status/language filters. `sw.js` cache bumped to `nhat-chu-v27`.
 
+15. Settings reorganized around Data/Reset. `exportIssues()` added in
+    Settings → Data ("Export data (issues only)"): downloads only
+    `issueReports` entries with `resolved: false` as
+    `issues_YYYY-MM-DD.json` — a lighter counterpart to the existing full
+    `exportData()` backup (renamed "Export data (all)" for contrast), reusing
+    the same `Blob`+anchor download pattern. Settings → "Vocabulary sources"
+    renamed to just "Sources" (menu entry, screen header, and the Grammar
+    empty-state hint) now that it gates both vocabulary *and* grammar
+    lessons via the same active-scope. Settings main menu reordered to
+    Sources → Learning method → Data → Reset → Test mode; Data screen
+    reordered to Export data (all) → Export data (issues only) → Import
+    data. Settings → Reset → "Reset manually added words" no longer deletes
+    everything in one tap: it now opens a new picker screen
+    (`settingsResetVocab`, reusing the wordlist screen's sticky-header +
+    scroll pattern) listing every custom word with an individually tappable
+    checkmark (`.picker-row`/`.picker-toggle`, styled after the Issues
+    list's resolved-toggle circle) plus a "Select all" row that toggles
+    every word at once; the existing confirm-delete popup is reused as-is,
+    its message now reporting the actual selected count instead of always
+    "all". Deleting down to zero words auto-returns to the Reset screen;
+    a partial delete just re-renders the picker with the remainder.
+    `sw.js` cache bumped to `nhat-chu-v29`.
+
 ## Planned next (not started)
 
 - **Vocabulary content**: broaden Connect 1 beyond the end-of-book glossary
