@@ -492,6 +492,22 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     (not red) there since it isn't really "mới"'s own meaning. `sw.js` cache
     bumped to `nhat-chu-v17`.
 
+12. Home screen's Vocabulary card stat bars (`renderStatBar()`) got
+    magnitude shading: the solid-green "known" segment and solid-red
+    "review" segment are now each subdivided into 3 inner shades matching
+    streak magnitude 1/2/3 (see "Data model" for the streak model) —
+    magnitude 3 darkest, magnitude 1 lightest. `computeDirStats()` gained
+    `knownByMag`/`reviewByMag` (additive, existing keys untouched) to feed
+    this. Purely cosmetic: the outer known/review/new percentages, widths,
+    and the `MIN_SEG_PCT` minimum-width legibility guarantee are all
+    unchanged — the magnitude sub-shading only divides up the width a
+    segment already got. Left-to-right order is deliberately different per
+    color: green goes dark→light (most solid first), red goes light→dark
+    (builds toward full "needs review") — chosen by the user, not
+    symmetric. Added `text-shadow` to the known/review percentage labels
+    since a lone light shade under the text is no longer guaranteed to have
+    the old flat dark background. `sw.js` cache bumped to `nhat-chu-v25`.
+
 ## Planned next (not started)
 
 - **Vocabulary content**: broaden Connect 1 beyond the end-of-book glossary

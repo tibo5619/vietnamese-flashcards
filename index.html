@@ -118,12 +118,25 @@
   .vocab-stat-count{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--muted); }
   .vocab-stat-bar{ flex:1; height:20px; border-radius:6px; overflow:hidden; display:flex; }
   .vocab-stat-seg{
+    position:relative;
     height:100%; display:flex; align-items:center; justify-content:center;
     font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:700;
   }
-  .vocab-stat-seg.known{ background:var(--jade); color:#FBF3EC; }
-  .vocab-stat-seg.review{ background:var(--red); color:#FBEFE9; }
+  .vocab-stat-seg.known{ background:var(--jade); color:#FBF3EC; text-shadow:0 1px 2px rgba(0,0,0,0.55); }
+  .vocab-stat-seg.review{ background:var(--red); color:#FBEFE9; text-shadow:0 1px 2px rgba(0,0,0,0.55); }
   .vocab-stat-seg.new{ background:rgba(43,35,28,0.15); color:var(--ink); }
+  /* Per-magnitude shading inside the known/review blocks — darker = streak
+     magnitude 3, lighter = magnitude 1 (see CLAUDE.md data model). Purely
+     cosmetic: the outer known/review/new percentages and widths above are
+     unaffected, these just subdivide whatever width a block already got. */
+  .vocab-stat-subsegs{ position:absolute; inset:0; display:flex; }
+  .vocab-stat-seg-label{ position:relative; z-index:1; }
+  .vocab-stat-subseg.known-mag3{ background:#0C8A44; }
+  .vocab-stat-subseg.known-mag2{ background:#3FB876; }
+  .vocab-stat-subseg.known-mag1{ background:#8BD9AE; }
+  .vocab-stat-subseg.review-mag3{ background:#B7301D; }
+  .vocab-stat-subseg.review-mag2{ background:#E06246; }
+  .vocab-stat-subseg.review-mag1{ background:#F0A28E; }
 
   .btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
@@ -488,6 +501,21 @@
     letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
     margin:0 0 8px; padding-left:2px;
   }
+  .lesson-group-header{
+    display:flex; align-items:center; gap:8px; width:100%;
+    background:none; border:none; padding:0; margin:0 0 8px; cursor:pointer;
+    font-family:inherit; text-align:left;
+  }
+  .lesson-group-header .lesson-group-title{ margin:0; flex:1; }
+  .lesson-group-chevron{
+    flex-shrink:0; color:var(--muted); font-size:12px; font-weight:700;
+    transition:transform .2s ease; transform:rotate(0deg);
+  }
+  .lesson-group.open .lesson-group-chevron{ transform:rotate(90deg); color:var(--gold); }
+  .lesson-group-rows{
+    overflow:hidden; max-height:0; transition:max-height .25s ease;
+  }
+  .lesson-group.open .lesson-group-rows{ max-height:2000px; }
   .gram-row{
     display:flex; align-items:center; gap:10px; width:100%;
     background:var(--surface); border:1px solid var(--line); border-radius:12px;
@@ -976,7 +1004,7 @@
 // user turns them on in Settings — see getActiveScope() further down.
 const BOOKS = [
   { id: 'connect1', title: 'Connect 1', file: 'data/connect1.json', lessonsCount: 6, grammarFile: 'data/grammar-connect1.json' },
-  { id: 'connect2', title: 'Connect 2', file: 'data/connect2.json', lessonsCount: 6 },
+  { id: 'connect2', title: 'Connect 2', file: 'data/connect2.json', lessonsCount: 6, grammarFile: 'data/grammar-connect2.json' },
 ];
 
 let baseVocab = []; // filled by loadBooksData(), each entry tagged with its `book` id
@@ -1281,23 +1309,28 @@ function candidateCategory(c){
 // direction (VN→EN / EN→VN) rather than merged, because a word known in one
 // direction and not the other used to make "known + review" overshoot or
 // undershoot the total word count (see CLAUDE.md data model). "Known" lumps
-// together any positive streak (+1..+3) — only the sign matters here, the
-// magnitude is just extra detail shown per-word in the list/popup.
+// together any positive streak (+1..+3) for the overall percentage — only
+// the sign matters there — but knownByMag/reviewByMag also break each down
+// by exact magnitude, used to shade the bar in renderStatBar().
 function computeDirStats(dir){
   const all = activeVocab();
   const total = all.length;
   let known = 0, review = 0;
+  const knownByMag = {1:0, 2:0, 3:0};
+  const reviewByMag = {1:0, 2:0, 3:0};
   all.forEach(w => {
     const s = getStreak(w.id, dir);
     if(s === null) return;
-    if(s > 0) known++; else review++;
+    if(s > 0){ known++; knownByMag[s]++; }
+    else { review++; reviewByMag[-s]++; }
   });
   const neverSeen = total - known - review;
   return {
     total, known, review, neverSeen,
     knownPct: total ? known/total*100 : 0,
     reviewPct: total ? review/total*100 : 0,
-    neverSeenPct: total ? neverSeen/total*100 : 0
+    neverSeenPct: total ? neverSeen/total*100 : 0,
+    knownByMag, reviewByMag
   };
 }
 
@@ -1331,12 +1364,41 @@ function renderStatBar(container, pcts){
     small.forEach(k => { visual[k] = MIN_SEG_PCT; });
   }
 
+  // Magnitude shading inside known/review: darker = more entrenched streak.
+  // Green reads dark→light left to right (most solid first); red reads
+  // light→dark left to right (builds up toward full "needs review").
+  const MAG_ORDER = { known: [3, 2, 1], review: [1, 2, 3] };
+
   container.innerHTML = '';
   shown.forEach(key => {
     const seg = document.createElement('div');
     seg.className = 'vocab-stat-seg ' + key;
     seg.style.width = visual[key] + '%';
-    seg.textContent = disp[key] + '%';
+
+    if(key === 'known' || key === 'review'){
+      const byMag = key === 'known' ? pcts.knownByMag : pcts.reviewByMag;
+      const segCount = key === 'known' ? pcts.knownCount : pcts.reviewCount;
+      const subsegs = document.createElement('div');
+      subsegs.className = 'vocab-stat-subsegs';
+      if(byMag && segCount > 0){
+        MAG_ORDER[key].forEach(mag => {
+          const n = byMag[mag] || 0;
+          if(n <= 0) return;
+          const sub = document.createElement('div');
+          sub.className = 'vocab-stat-subseg ' + key + '-mag' + mag;
+          sub.style.width = (n / segCount * 100) + '%';
+          subsegs.appendChild(sub);
+        });
+      }
+      seg.appendChild(subsegs);
+      const label = document.createElement('span');
+      label.className = 'vocab-stat-seg-label';
+      label.textContent = disp[key] + '%';
+      seg.appendChild(label);
+    } else {
+      seg.textContent = disp[key] + '%';
+    }
+
     container.appendChild(seg);
   });
 }
@@ -1363,7 +1425,11 @@ function refreshStats(){
     const bar = document.createElement('div');
     bar.className = 'vocab-stat-bar';
     if(stats.total > 0){
-      renderStatBar(bar, { known: stats.knownPct, review: stats.reviewPct, new: stats.neverSeenPct });
+      renderStatBar(bar, {
+        known: stats.knownPct, review: stats.reviewPct, new: stats.neverSeenPct,
+        knownByMag: stats.knownByMag, reviewByMag: stats.reviewByMag,
+        knownCount: stats.known, reviewCount: stats.review
+      });
     }
     row.appendChild(bar);
 
@@ -1381,7 +1447,7 @@ function refreshGrammarCard(){
   if(!el) return;
   const cards = activeGrammar();
   el.textContent = cards.length > 0
-    ? `${cards.length} rule${cards.length > 1 ? 's' : ''} unlocked · Connect 1`
+    ? `${cards.length} rule${cards.length > 1 ? 's' : ''} unlocked`
     : 'Activate a lesson in Settings to unlock rules';
 }
 
@@ -2223,13 +2289,23 @@ function renderGrammarList(){
         <div class="gram-row-title">${c.title}</div>
         <div class="gram-row-chevron">›</div>
       </button>`).join('');
-    return `<div class="lesson-group">
-      <p class="lesson-group-title">${bookDef.title} — Bài ${lesson}</p>
-      ${rows}
+    return `<div class="lesson-group open">
+      <button type="button" class="lesson-group-header">
+        <p class="lesson-group-title">${bookDef.title} — Bài ${lesson} (${groups[key].length})</p>
+        <span class="lesson-group-chevron">›</span>
+      </button>
+      <div class="lesson-group-rows">
+        ${rows}
+      </div>
     </div>`;
   }).join('');
   scroll.querySelectorAll('.gram-row').forEach(btn => {
     btn.addEventListener('click', () => openGrammarDetail(btn.dataset.id));
+  });
+  scroll.querySelectorAll('.lesson-group-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.closest('.lesson-group').classList.toggle('open');
+    });
   });
 }
 
