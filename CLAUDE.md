@@ -100,6 +100,19 @@ session opened in this folder — keep it up to date after each chantier.
   (same shape, scaled up to still sum to 100). A merged VN-homonym card (see
   `mergeVnCard()`) is represented by whichever underlying sense has the
   lowest streak (most negative wins, `new` wins over everything).
+  **`buildDeck()` rolls the 'mix'-mode direction coin flip once per VN-
+  spelling group, not once per word** (chantier 20) — true homonyms sharing
+  one spelling (e.g. "chỉ" = "only" vs "chỉ" = "to guide", 5 such pairs
+  currently: "bộ phận", "chỉ", "mới", "nên", "trả") must land on the same
+  direction together, otherwise one sense could roll vn2en while the other
+  rolled en2vn independently, which used to make the merge into "chỉ (2)"
+  happen only ~25% of the times both were drawn — the other ~75% split them
+  into a vn2en card and an unrelated-looking en2vn card, reported by the
+  user as the merge "randomly" not working. Grouping by spelling before the
+  coin flip makes it deterministic per session: the whole group is either
+  vn2en (merges into one card) or en2vn (each sense shows separately with
+  its own distinct English prompt — no merge needed there, fronts already
+  differ, so no visual ambiguity either way).
 - **Other localStorage keys**: `issue-reports` (user-flagged
   translation/spelling/app-behavior issues),
   each `{id, wordId, vn, en, dir, page, note, resolved, createdAt}` — `page`
@@ -251,8 +264,11 @@ session opened in this folder — keep it up to date after each chantier.
   entry; the other direction (if also stuck) is untouched. The Statistics
   screen's "Stuck cards" section flattens `stuckCards` into one list of
   `{id, dir, consecutiveAttempts, lastSeen}` instances (so a word stuck both
-  ways appears twice, once per direction), sorted by `lastSeen` desc, top 5
-  shown as a **2-line row** each — condensed from an initial 3-line design
+  ways appears twice, once per direction), sorted **worst offenders first**
+  (`consecutiveAttempts` desc, ties broken by `lastSeen` desc — chantier
+  20, changed from a pure recency sort so the cards that have been wrong
+  the most times in a row while stuck float to the top), top 5 shown as a
+  **2-line row** each — condensed from an initial 3-line design
   (chantier 18) specifically so all 3 sections fit one screen with no
   scroll on a typical current phone. Row layout, left to right (chantier
   19): direction flags, then the word pair, then the streak count pinned to
@@ -807,6 +823,29 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
       the word pair, then the streak count pinned to the far right —
       clearer scanning order than the chantier 18 layout.
     `sw.js` cache bumped to `nhat-chu-v41`.
+
+20. Two bug fixes from live usage (see "Data model" for the exact
+    mechanics touched):
+    - **VN-homonym merge fixed for 'mix' mode**: user reported "chỉ"
+      showing as 2 separate cards instead of merged "chỉ (2)". Root cause:
+      `buildDeck()` rolled the vn2en/en2vn coin flip independently per
+      *word*, so a homonym pair only landed on the same direction (a
+      prerequisite for `mergeVnCard()` to trigger) about 25% of the time
+      they were drawn together — the rest of the time they silently split
+      into a merged-looking-but-isn't pair of cards. Fixed by rolling the
+      coin flip once per VN-spelling *group* instead. Audited the rest of
+      the vocab for the same exposure: 5 homonym pairs total currently
+      exist ("bộ phận", "chỉ", "mới", "nên", "trả"), all sharing this bug,
+      all fixed by the same change since the grouping is data-driven, not
+      hardcoded to one word.
+    - **Stuck cards re-sorted**: top 5 now ranked by `consecutiveAttempts`
+      descending (worst offenders first) instead of by `lastSeen` — a
+      request to consistently surface the cards causing the most trouble,
+      not just the most recently missed one. The underlying counter logic
+      itself (increments once per wrong answer while already pinned at
+      streak -3) was already correct and unchanged — verified again this
+      chantier by direct testing, not just re-reading the code.
+    `sw.js` cache bumped to `nhat-chu-v42`.
 
 ## Planned next (not started)
 

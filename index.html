@@ -1834,9 +1834,22 @@ function buildDeck(){
   const total = activeVocab();
   const size = Math.min(selectedSize, total.length);
 
-  const withDir = total.map(w => {
+  // Grouped by VN spelling BEFORE the direction coin flip — true homonyms
+  // (see mergeVnCard below, e.g. "chỉ") must share ONE direction roll for
+  // the whole group in 'mix' mode. Rolling per-word independently used to
+  // mean both senses landed on vn2en (mergeable) only ~25% of the time they
+  // were drawn together — the other ~75% split them into one vn2en card and
+  // one en2vn card, which looked like the merge was broken/inconsistent
+  // across sessions. Grouping first makes it deterministic per session:
+  // either the whole homonym group is vn2en (merges into one card) or the
+  // whole group is en2vn (each sense shows separately with its own distinct
+  // English prompt — no merge needed there, fronts already differ).
+  const spellingGroups = {};
+  total.forEach(w => { (spellingGroups[w.vn] = spellingGroups[w.vn] || []).push(w); });
+  const withDir = [];
+  Object.values(spellingGroups).forEach(group => {
     const dir = selectedDirection === 'mix' ? (Math.random() < 0.5 ? 'vn2en' : 'en2vn') : selectedDirection;
-    return {...w, dir};
+    group.forEach(w => withDir.push({...w, dir}));
   });
 
   // Collapse same-spelling VN-front homonyms into single merged cards
@@ -2934,7 +2947,9 @@ function renderStatisticsScreen(){
       instances.push({id, dir, ...stuckCards[id][dir]});
     });
   });
-  instances.sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
+  // Worst offenders first (most consecutive wrong answers while stuck at
+  // -3), not most-recent-first — ties broken by lastSeen desc.
+  instances.sort((a, b) => b.consecutiveAttempts - a.consecutiveAttempts || b.lastSeen.localeCompare(a.lastSeen));
 
   if(instances.length === 0){
     const empty = document.createElement('p');
