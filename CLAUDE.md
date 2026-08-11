@@ -251,11 +251,24 @@ session opened in this folder — keep it up to date after each chantier.
   entry; the other direction (if also stuck) is untouched. The Statistics
   screen's "Stuck cards" section flattens `stuckCards` into one list of
   `{id, dir, consecutiveAttempts, lastSeen}` instances (so a word stuck both
-  ways appears twice, once per direction), sorted by `lastSeen` desc,
-  top 5 shown. Entry point: a 3rd home-screen `.vocab-card` ("📊 Statistics",
-  same style as Vocabulary/Grammar) → `renderStatisticsScreen()`, rebuilt
-  fresh every time the screen opens (cheap enough — 7 days + up to 5 rows —
-  that there's no need to cache or diff it).
+  ways appears twice, once per direction), sorted by `lastSeen` desc, top 5
+  shown as a **2-line row** each (word + direction flags on line 1,
+  ellipsis-truncated gloss on line 2 — condensed from an initial 3-line
+  design, chantier 18, specifically so all 3 sections fit one screen with no
+  scroll on a small phone; see chantier 18 for the exact CSS tightened to
+  make that fit). Entry point: a 3rd home-screen `.vocab-card` ("📊
+  Statistics", same style as Vocabulary/Grammar) → `renderStatisticsScreen()`,
+  rebuilt fresh every time the screen opens (cheap enough — 7 days + up to
+  5 rows — that there's no need to cache or diff it). The metric-card row
+  sits under its own "Today" section title (same style as "Last 7 days"/
+  "Stuck cards"), and each histogram row shows that day's raw `cardsFlipped`
+  count to the right of the bar, in addition to the success-rate % already
+  inside the green segment — the % is a rate, the count is a volume, chantier
+  18 added the count so both are visible at once. Every VN↔EN direction
+  label anywhere in the app (this screen, the home Vocabulary card, the
+  per-word popup, the report popup) is rendered by the single `dirFlags(dir)`
+  helper — `🇻🇳 → 🇬🇧` / `🇬🇧 → 🇻🇳` — instead of "VN → EN"/"EN → VN" text
+  (chantier 18).
 
 ## UI structure
 
@@ -729,6 +742,37 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     testing the data functions in isolation — worth remembering as a reason
     to always exercise the real click path, not just the underlying logic,
     before calling a feature done. `sw.js` cache bumped to `nhat-chu-v38`.
+
+18. Statistics polish, from live-usage feedback right after chantier 17
+    shipped (see "Data model" for the exact mechanics touched):
+    - **No-scroll layout**: stuck-card rows condensed from 3 lines to 2
+      (word+direction on one line, gloss on the next, ellipsis-truncated so
+      a long gloss can never force a 3rd line), and every Statistics
+      spacing value (card padding, section margins, row gaps) tightened —
+      specifically so all 3 sections (today / 7-day histogram / top-5 stuck
+      cards) fit on one screen with zero scrolling on a small phone
+      (verified at 375×667, iPhone SE-class, the smallest common target).
+    - **Day counts on the histogram**: each of the 7 daily bars now shows
+      its raw `cardsFlipped` count to the right, alongside the success-rate
+      % already inside the green segment — volume and rate were previously
+      conflated into a single number.
+    - **"Today" grouping**: the 3 metric cards got their own section title,
+      matching "Last 7 days"/"Stuck cards" — and "Cards today" was renamed
+      to "Cards reviewed" since "today" is now redundant with the title.
+    - **Flags instead of text everywhere**: "VN → EN"/"EN → VN" replaced by
+      `🇻🇳 → 🇬🇧`/`🇬🇧 → 🇻🇳` app-wide (Statistics stuck cards, the home
+      Vocabulary card, the per-word popup, the report popup) via one shared
+      `dirFlags(dir)` helper — a global visual-consistency pass, not
+      Statistics-specific, done in the same chantier because the stuck-card
+      compaction already needed a compact direction indicator.
+    Also folds in a same-day standalone fix that shipped between chantier 17
+    and this one: the floating report/issues icon (top-right on every
+    screen) had a permanently-empty label `<span>` still reserving
+    line-height space beneath it, visibly pushing the icon above the
+    header text next to it — removed, and the button's `top` offset
+    retuned to center on that text now that the dead space is gone.
+    `sw.js` cache bumped to `nhat-chu-v39` (icon fix) then `nhat-chu-v40`
+    (this chantier).
 
 ## Planned next (not started)
 
