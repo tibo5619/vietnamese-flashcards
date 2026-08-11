@@ -3,7 +3,7 @@
 // Network-first: every request tries the network first (so app updates
 // pushed to GitHub Pages are picked up as soon as there's a connection) and
 // only falls back to the cached copy when the network is unavailable.
-const CACHE_NAME = 'nhat-chu-v40';
+const CACHE_NAME = 'nhat-chu-v41';
 const ASSETS = [
   './',
   './index.html',

@@ -252,23 +252,36 @@ session opened in this folder — keep it up to date after each chantier.
   screen's "Stuck cards" section flattens `stuckCards` into one list of
   `{id, dir, consecutiveAttempts, lastSeen}` instances (so a word stuck both
   ways appears twice, once per direction), sorted by `lastSeen` desc, top 5
-  shown as a **2-line row** each (word + direction flags on line 1,
-  ellipsis-truncated gloss on line 2 — condensed from an initial 3-line
-  design, chantier 18, specifically so all 3 sections fit one screen with no
-  scroll on a small phone; see chantier 18 for the exact CSS tightened to
-  make that fit). Entry point: a 3rd home-screen `.vocab-card` ("📊
-  Statistics", same style as Vocabulary/Grammar) → `renderStatisticsScreen()`,
-  rebuilt fresh every time the screen opens (cheap enough — 7 days + up to
-  5 rows — that there's no need to cache or diff it). The metric-card row
-  sits under its own "Today" section title (same style as "Last 7 days"/
-  "Stuck cards"), and each histogram row shows that day's raw `cardsFlipped`
-  count to the right of the bar, in addition to the success-rate % already
-  inside the green segment — the % is a rate, the count is a volume, chantier
-  18 added the count so both are visible at once. Every VN↔EN direction
-  label anywhere in the app (this screen, the home Vocabulary card, the
-  per-word popup, the report popup) is rendered by the single `dirFlags(dir)`
-  helper — `🇻🇳 → 🇬🇧` / `🇬🇧 → 🇻🇳` — instead of "VN → EN"/"EN → VN" text
-  (chantier 18).
+  shown as a **2-line row** each — condensed from an initial 3-line design
+  (chantier 18) specifically so all 3 sections fit one screen with no
+  scroll on a typical current phone. Row layout, left to right (chantier
+  19): direction flags, then the word pair, then the streak count pinned to
+  the far right. **Which word is bold/primary is not fixed to Vietnamese**
+  — it follows the direction actually being tested (`vn2en` prompts VN
+  first → VN bold with the EN gloss as subtitle; `en2vn` prompts EN first →
+  EN bold with the VN word as subtitle), matching the flag order from
+  `dirFlags(dir)` right next to it; the subtitle is ellipsis-truncated
+  (`text-overflow:ellipsis`) so a long gloss can never force a 3rd line.
+  Entry point: a 3rd home-screen `.vocab-card` ("📊 Statistics", same style
+  as Vocabulary/Grammar) → `renderStatisticsScreen()`, rebuilt fresh every
+  time the screen opens (cheap enough — 7 days + up to 5 rows — that
+  there's no need to cache or diff it). The metric-card row sits under its
+  own "Today" section title (same style as "Last 7 days"/"Stuck cards"),
+  and each histogram row shows that day's raw `cardsFlipped` count to the
+  right of the bar, in addition to the success-rate % already inside the
+  green segment — the % is a rate, the count is a volume, chantier 18 added
+  the count so both are visible at once. Every VN↔EN direction label
+  anywhere in the app (this screen, the home Vocabulary card, the per-word
+  popup, the report popup) is rendered by the single `dirFlags(dir)` helper
+  — `🇻🇳 → 🇬🇧` / `🇬🇧 → 🇻🇳` — instead of "VN → EN"/"EN → VN" text
+  (chantier 18). Statistics' CSS sizing was calibrated **twice**: chantier
+  18 squeezed everything down to fit the smallest phone on the market
+  (iPhone-SE-class, 375×667) with no scroll at all; live use on the user's
+  own (larger, more typical) phone found that read as cramped, so chantier
+  19 backed the sizing off to target a common current phone instead
+  (~390×844, e.g. iPhone 13/14) — comfortably fits there with zero scroll,
+  and only needs a small scroll on the smallest phones, which was judged
+  the better tradeoff.
 
 ## UI structure
 
@@ -773,6 +786,27 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     retuned to center on that text now that the dead space is gone.
     `sw.js` cache bumped to `nhat-chu-v39` (icon fix) then `nhat-chu-v40`
     (this chantier).
+
+19. Statistics tweaks from testing chantier 18 on the user's actual phone
+    (see "Data model" for the exact mechanics touched):
+    - **Sizing recalibrated**: chantier 18's no-scroll layout had been
+      tuned against the smallest phone on the market (iPhone-SE-class,
+      375×667) and read as too cramped on the user's own, more typical
+      phone — every Statistics size bumped back up moderately, now
+      calibrated against a common current phone (~390×844) instead. Still
+      fits with zero scroll there; the smallest phones may now need a
+      little scroll, judged the better tradeoff.
+    - **Stuck-card word order fixed to the direction, not to Vietnamese**:
+      the bold/primary word used to always be the Vietnamese one regardless
+      of direction, which read backwards for an EN→VN row (you're being
+      shown the English word first in practice). Now `vn2en` shows VN bold
+      with the EN gloss as subtitle, `en2vn` shows EN bold with the VN word
+      as subtitle — matches what's actually prompted in that direction.
+    - **Stuck-card row re-laid-out**: direction flags moved to their own
+      column on the far left (previously inline next to the word), then
+      the word pair, then the streak count pinned to the far right —
+      clearer scanning order than the chantier 18 layout.
+    `sw.js` cache bumped to `nhat-chu-v41`.
 
 ## Planned next (not started)
 

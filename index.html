@@ -140,22 +140,25 @@
 
   /* ---------- STATISTICS ---------- */
   /* Sized to fit the 3 sections (today / 7-day histogram / stuck cards) on
-     one screen with no scrolling — kept noticeably tighter than the rest of
-     the app's cards on purpose, see CLAUDE.md chantier 18. */
+     one screen with no scrolling on a typical current phone (~390×844,
+     e.g. iPhone 13/14) — tighter than the rest of the app's cards, but not
+     squeezed down to the smallest phone on the market (that read as too
+     cramped, chantier 19 backed it off from chantier 18's iPhone-SE-first
+     sizing). A very small screen may need a little scroll here. */
   .stats-metric-row{ display:flex; gap:8px; }
   .metric-card{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
-    background:var(--surface); border:1px solid var(--line); border-radius:12px;
-    padding:8px 6px; text-align:center;
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:var(--surface); border:1px solid var(--line); border-radius:13px;
+    padding:11px 7px; text-align:center;
   }
-  .metric-card-emoji{ font-size:18px; line-height:1; }
-  .metric-card-value{ font-family:'Be Vietnam Pro',sans-serif; font-weight:800; font-size:18px; color:var(--ink); }
-  .metric-card-label{ font-family:'IBM Plex Sans',sans-serif; font-size:10px; color:var(--muted); }
-  .stats-section-title{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:13.5px; color:var(--ink); margin:0 0 8px; }
-  .stats-section{ margin-bottom:12px; }
-  .stats-hist-row{ display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .metric-card-emoji{ font-size:19px; line-height:1; }
+  .metric-card-value{ font-family:'Be Vietnam Pro',sans-serif; font-weight:800; font-size:19px; color:var(--ink); }
+  .metric-card-label{ font-family:'IBM Plex Sans',sans-serif; font-size:10.5px; color:var(--muted); }
+  .stats-section-title{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:14px; color:var(--ink); margin:0 0 10px; }
+  .stats-section{ margin-bottom:14px; }
+  .stats-hist-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .stats-hist-label{ width:30px; flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); }
-  .stats-hist-track{ flex:1; height:18px; border-radius:6px; background:rgba(43,35,28,0.07); overflow:hidden; }
+  .stats-hist-track{ flex:1; height:19px; border-radius:6px; background:rgba(43,35,28,0.07); overflow:hidden; }
   .stats-hist-bar{ height:100%; display:flex; border-radius:6px; overflow:hidden; }
   .stats-hist-seg{ height:100%; }
   .stats-hist-seg.correct{
@@ -167,23 +170,33 @@
   /* Card count for that day, to the right of its bar — fixed width so bars
      of different day-counts still line up left-edge to left-edge. */
   .stats-hist-count{ width:24px; flex-shrink:0; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted); }
+  /* Row layout, left to right: direction flags, a gap, the primary/
+     secondary word pair, then the streak count pinned to the far right
+     (words is the only flex:1 item, so it alone absorbs/yields the space
+     needed to push the count to the edge). */
   .stuck-card-row{
-    display:flex; align-items:center; gap:8px;
-    background:var(--surface); border:1px solid var(--line); border-radius:11px;
-    padding:6px 11px; margin-bottom:4px;
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:9px 12px; margin-bottom:6px;
   }
   .stuck-card-row:last-child{ margin-bottom:0; }
+  .stuck-card-dir{ flex-shrink:0; font-size:15px; line-height:1; }
   .stuck-card-words{ flex:1; min-width:0; }
-  .stuck-card-top{ display:flex; align-items:baseline; gap:6px; }
-  .stuck-card-vn{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:13.5px; color:var(--ink); }
-  .stuck-card-dir{ font-family:'IBM Plex Sans',sans-serif; font-size:10.5px; color:var(--muted); flex-shrink:0; }
-  .stuck-card-en{
-    font-family:'IBM Plex Sans',sans-serif; font-size:11px; color:var(--muted);
+  /* Which word is bold/primary follows the direction being tested, not a
+     fixed language — vn2en prompts with VN first, en2vn prompts with EN
+     first, so the row should read the same way (see dirFlags(dir) for the
+     matching flag order). */
+  .stuck-card-primary{
+    font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:14px; color:var(--ink);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .stuck-card-secondary{
+    font-family:'IBM Plex Sans',sans-serif; font-size:11.5px; color:var(--muted);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .stuck-card-count{
-    flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:11.5px;
-    color:var(--red); background:var(--red-soft); border-radius:8px; padding:3px 7px;
+    flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:12px;
+    color:var(--red); background:var(--red-soft); border-radius:8px; padding:4px 8px;
   }
   .stats-empty-state{ font-family:'IBM Plex Sans',sans-serif; font-size:13px; color:var(--muted); font-style:italic; }
 
@@ -2934,27 +2947,33 @@ function renderStatisticsScreen(){
       const row = document.createElement('div');
       row.className = 'stuck-card-row';
 
-      const words = document.createElement('div');
-      words.className = 'stuck-card-words';
-      const top = document.createElement('div');
-      top.className = 'stuck-card-top';
-      const vn = document.createElement('span');
-      vn.className = 'stuck-card-vn';
-      vn.textContent = word ? word.vn : '(deleted word)';
-      const dirLbl = document.createElement('span');
+      // Primary/bold word follows what's actually being prompted in this
+      // direction (VN first for vn2en, EN first for en2vn) rather than
+      // always defaulting to Vietnamese — matches dirFlags(inst.dir)'s flag
+      // order below.
+      const isVnFirst = inst.dir === 'vn2en';
+      const primaryText = word ? (isVnFirst ? word.vn : word.en) : '(deleted word)';
+      const secondaryText = word ? (isVnFirst ? word.en : word.vn) : '';
+
+      const dirLbl = document.createElement('div');
       dirLbl.className = 'stuck-card-dir';
       dirLbl.textContent = dirFlags(inst.dir);
-      top.append(vn, dirLbl);
-      const en = document.createElement('div');
-      en.className = 'stuck-card-en';
-      en.textContent = word ? word.en : '';
-      words.append(top, en);
+
+      const words = document.createElement('div');
+      words.className = 'stuck-card-words';
+      const primary = document.createElement('div');
+      primary.className = 'stuck-card-primary';
+      primary.textContent = primaryText;
+      const secondary = document.createElement('div');
+      secondary.className = 'stuck-card-secondary';
+      secondary.textContent = secondaryText;
+      words.append(primary, secondary);
 
       const count = document.createElement('div');
       count.className = 'stuck-card-count';
       count.textContent = `${inst.consecutiveAttempts}×`;
 
-      row.append(words, count);
+      row.append(dirLbl, words, count);
       stuckSection.appendChild(row);
     });
   }
