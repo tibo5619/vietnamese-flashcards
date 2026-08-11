@@ -221,10 +221,47 @@ session opened in this folder — keep it up to date after each chantier.
   exhausting every marker search on that PDF, not a missed extraction — so
   it has zero cards and never appears as a group in the Grammar tab.
 
+- **Statistics** (`daily-stats` and `stuck-cards` localStorage keys, chantier
+  17): `dailyStats[YYYY-MM-DD]` (local calendar day, via `todayKey()`) =
+  `{cardsFlipped, correctAnswers, incorrectAnswers, sessionCompleted}` —
+  created lazily on the day's first flip (`ensureTodayStats()`, called from
+  `markCard()`), never eagerly at startup, so a day with no activity simply
+  has no key (the histogram/streak logic tell "no session" apart from "0
+  cards" this way). Counted **once per card drawn**, not per underlying id —
+  same convention as `sessionResults` (chantier 16): a merged VN-homonym
+  card is one flip. `sessionCompleted` is set at the exact point
+  `renderCard()` detects `deckPos >= deck.length` (natural deck exhaustion)
+  — deliberately **not** set on an early exit via `#exitBtn`, mirroring the
+  sessionResults screen's own "only on full completion" rule. The home
+  Statistics card's "🔥 N-day streak" and the Statistics screen's own streak
+  metric (`computeStreakDays()`) walk backward from today counting
+  consecutive `sessionCompleted` days; if today has no completed session yet
+  that alone doesn't break the streak — the walk just starts from yesterday
+  instead (finishing later today still keeps it, same as most habit-tracker
+  apps). The 7-day activity histogram uses a **rolling 7-day window**
+  (`last7DaysKeys()`, today always last), not a Mon-Sun calendar week —
+  chosen for simplicity over calendar-week alignment, confirmed with the
+  user. `stuckCards[id][dir]` = `{consecutiveAttempts, lastSeen}` — tracked
+  **independently per direction** (confirmed with the user: a word can be
+  stuck VN→EN without being stuck EN→VN), populated by `updateStuckCard()`
+  inside `applyAnswer()`. A word/direction becomes "stuck" only when it was
+  *already* at streak -3 on a previous appearance and stays at -3 after this
+  answer too (`prevStreak === -3 && newStreak === -3`) — first reaching -3
+  doesn't count yet. Climbing back above -3 clears only that direction's own
+  entry; the other direction (if also stuck) is untouched. The Statistics
+  screen's "Stuck cards" section flattens `stuckCards` into one list of
+  `{id, dir, consecutiveAttempts, lastSeen}` instances (so a word stuck both
+  ways appears twice, once per direction), sorted by `lastSeen` desc,
+  top 5 shown. Entry point: a 3rd home-screen `.vocab-card` ("📊 Statistics",
+  same style as Vocabulary/Grammar) → `renderStatisticsScreen()`, rebuilt
+  fresh every time the screen opens (cheap enough — 7 days + up to 5 rows —
+  that there's no need to cache or diff it).
+
 ## UI structure
 
 Screens (each a `<section class="screen">`, shown via `showScreen(id)`):
-`home` → `session` / `add` / `wordlist` / `grammar` / `issues` / `settings`.
+`home` → `session` / `add` / `wordlist` / `grammar` / `statistics` /
+`issues` / `settings`.
 `session` → `sessionResults` once the deck is exhausted (see "Data model" for
 what it shows and how) — only on full completion; exiting early via `#exitBtn`
 still goes straight to `home` as before, unchanged.
@@ -665,6 +702,33 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     constraints") as a safety net even though this bounded layout no
     longer strictly needs it to avoid overflow. `sw.js` cache bumped to
     `nhat-chu-v33`.
+
+17. New **Statistics** tab (`statistics` screen, home card — see "Data
+    model" for the full `dailyStats`/`stuckCards` mechanics and "UI
+    structure" for the screen). Three sections: 3 metric cards (cards today,
+    success rate, day streak), a rolling-7-day activity histogram (green
+    correct / red wrong segments, bar width proportional to that day's card
+    count), and a top-5 "stuck cards" list. Two new localStorage keys
+    (`daily-stats`, `stuck-cards`), both additive — `progress` and every
+    other existing key untouched. Two design decisions were confirmed with
+    the user before/during the build rather than assumed: stuck-card
+    tracking is **independent per direction** (a word can be stuck VN→EN
+    without being stuck EN→VN — the initial proposal of a single combined
+    entry per word id was corrected by the user), and the 7-day window is a
+    **rolling** window (today always last) rather than a Mon-Sun calendar
+    week, chosen for simplicity and confirmed before implementation. "End of
+    session" for the streak/histogram reuses the exact same natural-
+    deck-exhaustion point `renderCard()` already uses for the `sessionResults`
+    screen (chantier 16) — exiting early via `#exitBtn` does not count.
+    Caught and fixed during this chantier's own browser-based verification:
+    an `ensureTodayStats()` helper was referenced (in comments and in both
+    `markCard()` and `renderCard()`) but never actually defined — a
+    `ReferenceError` that silently broke every "Got it"/"Needs work" button
+    in the session screen. Found by driving a real session in the browser
+    preview (flip → answer → check `dailyStats`) rather than only unit-
+    testing the data functions in isolation — worth remembering as a reason
+    to always exercise the real click path, not just the underlying logic,
+    before calling a feature done. `sw.js` cache bumped to `nhat-chu-v38`.
 
 ## Planned next (not started)
 
