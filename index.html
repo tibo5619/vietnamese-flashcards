@@ -442,15 +442,18 @@
   .back-row h2{ font-size:19px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
 
   /* ---------- FLOATING REPORT/ISSUES BUTTON ---------- */
+  /* top:18px (not 12px) centers the 28px flag on the same line as the
+     back-row's h2/back-button and the home screen's settingsBtn — both of
+     those sit ~32px from #app's top edge, see CLAUDE.md if this ever needs
+     retuning after a header layout change. */
   .floating-issue-btn{
-    position:absolute; top:12px; right:16px; z-index:10;
+    position:absolute; top:18px; right:16px; z-index:10;
     background:none; border:none; padding:0; margin:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    display:flex; align-items:center; justify-content:center;
     cursor:pointer;
   }
   .floating-issue-btn:active{ transform:scale(0.9); }
   .floating-issue-flag{ font-size:28px; line-height:1; }
-  .floating-issue-label{ font-size:9.5px; color:var(--muted); line-height:1; }
   .floating-issue-badge{
     position:absolute; top:-4px; right:-6px; min-width:16px; height:16px; padding:0 4px;
     border-radius:8px; background:var(--red); color:#FBEFE9;
@@ -756,7 +759,6 @@
 
   <button type="button" id="floatingIssueBtn" class="floating-issue-btn" aria-label="Report an issue" title="Report an issue">
     <span class="floating-issue-flag" id="floatingIssueFlag">🔔</span>
-    <span class="floating-issue-label" id="floatingIssueLabel"></span>
     <span class="floating-issue-badge" id="floatingIssueBadge">0</span>
   </button>
 
@@ -1358,7 +1360,7 @@ function setTestMode(on){
   // (measured, not hardcoded, since the banner's height can vary if its
   // text wraps on a narrow screen).
   const bannerHeight = on ? document.getElementById('testModeBanner').offsetHeight : 0;
-  document.getElementById('floatingIssueBtn').style.top = `calc(12px + ${bannerHeight}px)`;
+  document.getElementById('floatingIssueBtn').style.top = `calc(18px + ${bannerHeight}px)`;
   refreshStats();
 }
 
@@ -3353,7 +3355,6 @@ function updateFloatingIcon(){
   const btn = document.getElementById('floatingIssueBtn');
   const badge = document.getElementById('floatingIssueBadge');
   const flag = document.getElementById('floatingIssueFlag');
-  const label = document.getElementById('floatingIssueLabel');
   if(currentScreenId === 'issues' || currentScreenId === 'issueDetail'){
     btn.classList.add('hidden');
     return;
@@ -3361,13 +3362,11 @@ function updateFloatingIcon(){
   btn.classList.remove('hidden');
   if(currentScreenId === 'home'){
     flag.textContent = '🔔';
-    label.textContent = '';
     const unresolvedCount = issueReports.filter(r => !r.resolved).length;
     badge.textContent = unresolvedCount;
     badge.classList.toggle('show', unresolvedCount > 0);
   } else {
     flag.textContent = '📝';
-    label.textContent = '';
     badge.classList.remove('show');
   }
 }
