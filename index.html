@@ -374,6 +374,25 @@
   }
   .btn-emoji{ font-size:28px; line-height:1; }
 
+  /* ---------- GRAMMAR-IN-SESSION CARD ---------- */
+  .gcard-zone{ flex:1; min-height:0; display:flex; flex-direction:column; padding:4px 0 12px; }
+  .gcard-front{
+    align-self:center; margin:auto 0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:28px 22px; border-radius:22px; border:1px solid var(--line);
+    box-shadow:0 20px 40px -22px rgba(43,35,28,0.35);
+    background:linear-gradient(165deg, var(--gold-soft), var(--surface) 70%);
+    cursor:pointer;
+  }
+  .gcard-front .flag-tag{ font-size:44px; }
+  .gcard-front .tap-hint{ position:static; margin-top:10px; }
+  .gcard-detail{ flex:1; min-height:0; display:flex; flex-direction:column; }
+  .gs-timer{
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:22px;
+    color:var(--ink); text-align:center; margin:0 0 10px;
+  }
+  .grammar-session-actions{ display:flex; flex-direction:column; }
+
   /* ---------- SESSION RESULTS ---------- */
   /* Separate class from .face (not shared) so this card's flip never
      collides with the session card's global `.face.front`/`.face.back`
@@ -414,6 +433,7 @@
   .rs-col-row{ display:flex; align-items:center; justify-content:flex-start; gap:4px; padding:5px 0; font-size:11px; }
   .rs-arrow{ color:var(--muted); font-size:11px; }
   .rs-outcome-count{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); min-width:14px; }
+  .rs-grammar-note{ font-size:11.5px; color:var(--muted); text-align:center; margin:14px 0 0; flex-shrink:0; }
 
   /* ---------- ADD WORD ---------- */
   #add h2, #home h2{ font-family:'Be Vietnam Pro',sans-serif; font-size:22px; margin:0 0 18px; color:var(--ink);}
@@ -505,7 +525,7 @@
      filters scroll away with the list. Capping just this screen's height
      makes .wordlist-scroll the actual scroll container, so .wl-sticky-header
      (everything above it) stays in place instead. */
-  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen, #settingsResetVocab.screen, #sessionResults.screen, #statistics.screen{ max-height:100vh; max-height:100svh; }
+  #wordlist.screen, #issues.screen, #grammar.screen, #grammarDetail.screen, #settingsResetVocab.screen, #sessionResults.screen, #statistics.screen, #session.screen{ max-height:100vh; max-height:100svh; }
   .wl-sticky-header{ flex-shrink:0; }
   .wordlist-empty{ color:var(--muted); font-size:14px; text-align:center; margin-top:30px; }
   .wl-item{
@@ -553,6 +573,7 @@
   .wl-popup-backdrop{
     position:fixed; inset:0; background:rgba(43,35,28,0.45); z-index:20;
     display:none; align-items:center; justify-content:center; padding:24px;
+    overflow-y:auto;
   }
   .wl-popup-backdrop.show{ display:flex; }
   .wl-popup-card{
@@ -581,7 +602,7 @@
   }
   .report-note-input:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:transparent; }
   .report-popup-actions{ display:flex; gap:10px; align-items:stretch; }
-  .report-popup-actions .btn-apply{ padding:0 16px; border-color:var(--line); color:var(--muted); }
+  .report-popup-actions .btn-apply{ flex:1; padding:0 16px; border-color:var(--line); color:var(--muted); }
 
   .issue-item{
     border:1px solid var(--line); border-radius:12px; background:var(--surface);
@@ -660,6 +681,10 @@
     padding:13px; margin-bottom:8px; cursor:pointer; font-family:inherit; text-align:left;
   }
   .gram-row-title{ flex:1; font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:15px; color:var(--ink); }
+  .gram-row-badge{
+    flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:700;
+    color:#FBF3EC; background:var(--jade); border-radius:999px; padding:2px 7px; min-width:20px; text-align:center;
+  }
   .gram-row-chevron{ flex-shrink:0; color:var(--muted); font-size:14px; }
 
   /* detail page: sticky top block (title/structure/explanation) stays put,
@@ -743,6 +768,24 @@
     font-size:13px; color:#FBF3EC;
   }
   .method-row.active .method-row-radio{ background:var(--jade); border-color:var(--jade); }
+
+  /* ---------- SETTINGS > GRAMMAR IN SESSION ---------- */
+  .switch-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:13px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface);
+  }
+  .switch{
+    position:relative; width:44px; height:26px; flex-shrink:0;
+    border-radius:999px; background:var(--line); border:none; padding:0; cursor:pointer;
+    transition:background .2s ease;
+  }
+  .switch.on{ background:var(--jade); }
+  .switch-thumb{
+    position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%;
+    background:#FBF3EC; transition:transform .2s ease; box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch.on .switch-thumb{ transform:translateX(18px); }
+  .field.disabled{ opacity:0.4; pointer-events:none; }
 
   @media (prefers-reduced-motion: reduce){
     .card, .progress-fill, .btn, .session-actions{ transition:none !important; }
@@ -838,7 +881,7 @@
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       <div class="counter" id="counter">0/0</div>
     </div>
-    <div class="card-zone">
+    <div class="card-zone" id="cardZone">
       <div class="card" id="card">
         <div class="swipe-stamp learning" id="stampLearning">LEARNING</div>
         <div class="swipe-stamp know" id="stampKnow">KNOW</div>
@@ -855,11 +898,40 @@
         </div>
       </div>
     </div>
+    <!-- Grammar-rule review card: a separate zone (not reusing .face/.card
+         internals) shown instead of #cardZone when the current deck entry
+         is type:'grammar'. Front is a small tap-to-reveal box matching the
+         vocab card's size for visual consistency; once flipped, the detail
+         view expands to fill the zone with its own internal scroll (same
+         .wordlist-scroll pattern as the standalone grammarDetail screen)
+         since a full rule (structure/explanation/5 examples) can't fit in a
+         flashcard-sized box. -->
+    <div class="gcard-zone hidden" id="gcardZone">
+      <div class="card gcard-front" id="gcardFrontCard">
+        <span class="flag-tag">🔤</span>
+        <p class="word-main">Grammar</p>
+        <span class="tap-hint">tap to reveal</span>
+      </div>
+      <div class="gcard-detail hidden" id="gcardDetail">
+        <p class="gd-eyebrow" id="gcardEyebrow">—</p>
+        <h1 class="gd-title" id="gcardTitle">—</h1>
+        <div class="gd-structure" id="gcardStructure"></div>
+        <p class="gd-section-label">What it means</p>
+        <p class="gd-explanation" id="gcardExplanation"></p>
+        <div id="gcardScaleContainer"></div>
+        <p class="gd-section-label">Examples</p>
+        <div class="wordlist-scroll"><div class="gd-examples" id="gcardExamples"></div></div>
+      </div>
+    </div>
     <div class="session-actions" id="sessionActions">
       <div class="session-actions-main">
         <button class="btn btn-review" id="reviewBtn"><span class="btn-label">Needs work</span> <span class="btn-emoji">🧠</span></button>
         <button class="btn btn-known" id="knownBtn"><span class="btn-label">Got it</span> <span class="btn-emoji">✅</span></button>
       </div>
+    </div>
+    <div class="grammar-session-actions hidden" id="grammarSessionActions">
+      <p class="gs-timer" id="gsTimer">2:00</p>
+      <button class="btn btn-primary" id="grammarContinueBtn" type="button" disabled>Continue</button>
     </div>
   </section>
 
@@ -885,6 +957,7 @@
               <div id="resultsColWrong"></div>
             </div>
           </div>
+          <p class="rs-grammar-note hidden" id="resultsGrammarNote"></p>
         </div>
       </div>
     </div>
@@ -1037,6 +1110,11 @@
       <span>Learning method</span>
       <span class="menu-btn-chevron">›</span>
     </button>
+    <button class="menu-btn" type="button" id="openGrammarSessionBtn">
+      <span class="menu-btn-emoji">⏱️</span>
+      <span>Grammar in session</span>
+      <span class="menu-btn-chevron">›</span>
+    </button>
     <button class="menu-btn" type="button" id="openDataBtn">
       <span class="menu-btn-emoji">💾</span>
       <span>Data</span>
@@ -1094,6 +1172,26 @@
       <h2 style="margin:0;">Learning method</h2>
     </div>
     <div id="learningModeList"></div>
+  </section>
+
+  <!-- SETTINGS > GRAMMAR IN SESSION -->
+  <section id="settingsGrammarSession" class="screen">
+    <div class="back-row">
+      <button id="backFromGrammarSession" aria-label="Back">←</button>
+      <h2 style="margin:0;">Grammar in session</h2>
+    </div>
+    <div class="switch-row" style="margin-bottom:20px;">
+      <span>Show grammar cards during sessions</span>
+      <button type="button" class="switch" id="gsEnableToggle" aria-label="Toggle grammar cards in sessions"><span class="switch-thumb"></span></button>
+    </div>
+    <div class="field" id="gsCountField">
+      <label for="gsCountInput">Rules per session</label>
+      <input id="gsCountInput" type="number" min="1" step="1" inputmode="numeric">
+    </div>
+    <div class="field" id="gsTimerField">
+      <label for="gsTimerInput">Timer duration (minutes)</label>
+      <input id="gsTimerInput" type="number" min="1" step="1" inputmode="numeric">
+    </div>
   </section>
 
   <!-- SETTINGS > VOCABULARY SOURCES -->
@@ -1202,6 +1300,17 @@
     </div>
   </div>
 
+  <div class="wl-popup-backdrop" id="quitSessionConfirmBackdrop">
+    <div class="wl-popup-card">
+      <div class="wl-popup-vn" style="font-size:17px;">Quit session?</div>
+      <div class="wl-popup-en" style="margin-bottom:16px;">All progress from this session — including words already answered — will be lost. Only a fully completed session is saved.</div>
+      <div class="report-popup-actions">
+        <button class="btn-apply" id="quitSessionCancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="quitSessionConfirmBtn" type="button" style="flex:1;">Quit</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 <div class="toast" id="toast"></div>
 
@@ -1299,11 +1408,43 @@ let sessionResults = [];
 let dailyStats = {};
 let stuckCards = {};
 
+// Grammar-in-session settings ({enabled, count, timerMinutes}, Settings >
+// Grammar in session) and the review counter it feeds (grammarReviewCount[
+// ruleId] = number of times that rule has been read to completion in a
+// FULLY finished session — see the atomic-save comment in renderCard()).
+// sessionGrammarReviewed is the in-session-only counter shown on the
+// results screen, parallel to sessionResults.
+const GRAMMAR_SESSION_DEFAULTS = {enabled: true, count: 1, timerMinutes: 2};
+let grammarSessionSettings = {...GRAMMAR_SESSION_DEFAULTS};
+let grammarReviewCount = {};
+let sessionGrammarReviewed = 0;
+let grammarTimerInterval = null;
+let grammarTimerRemaining = 0;
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// Mobile keyboards shrink the VISUAL viewport but not the layout viewport,
+// so a `position:fixed; inset:0` popup (see .wl-popup-backdrop) stays sized
+// to the full, keyboard-unaware layout height — on a phone this can center
+// the popup (e.g. "Report an issue", which has a textarea) partly or wholly
+// behind the keyboard. Keeping the backdrop's top/height in sync with
+// window.visualViewport pins it to whatever's actually visible instead.
+// No-op (falls back to the CSS inset:0) on browsers without the API.
+if(window.visualViewport){
+  const syncPopupsToViewport = () => {
+    const vv = window.visualViewport;
+    document.querySelectorAll('.wl-popup-backdrop').forEach(el => {
+      el.style.top = vv.offsetTop + 'px';
+      el.style.height = vv.height + 'px';
+    });
+  };
+  window.visualViewport.addEventListener('resize', syncPopupsToViewport);
+  window.visualViewport.addEventListener('scroll', syncPopupsToViewport);
 }
 
 // ---------- Storage (localStorage — data lives on this device/browser only) ----------
@@ -1339,6 +1480,8 @@ async function loadState(){
   learningMode = loadJSON('learning-mode', 'balanced');
   dailyStats = loadJSON('daily-stats', {});
   stuckCards = loadJSON('stuck-cards', {});
+  grammarSessionSettings = loadJSON('grammar-session-settings', GRAMMAR_SESSION_DEFAULTS);
+  grammarReviewCount = loadJSON('grammar-review-count', {});
   if(migrateProgressStreaks()) await saveProgress();
 }
 
@@ -1352,6 +1495,11 @@ async function saveDailyStats(){
 
 async function saveStuckCards(){
   if(!saveJSON('stuck-cards', stuckCards)) flagStorageError();
+}
+
+async function saveGrammarReviewCount(){
+  if(testMode) return;
+  if(!saveJSON('grammar-review-count', grammarReviewCount)) flagStorageError();
 }
 
 async function saveCustomVocab(){
@@ -1831,6 +1979,7 @@ const BUCKET_ORDER = ['new', '-3', '-2', '-1', '1', '2', '3'];
 //   with whatever remains regardless of category (tiny vocab edge case).
 function buildDeck(){
   sessionResults = [];
+  sessionGrammarReviewed = 0;
   const total = activeVocab();
   const size = Math.min(selectedSize, total.length);
 
@@ -1894,7 +2043,31 @@ function buildDeck(){
     picked = picked.concat(leftover.slice(0, size - picked.length));
   }
 
-  deck = shuffle(picked);
+  // Independent per-bucket rounding above (Math.round(size*pct/100) for
+  // each of the 7 buckets) can overshoot `size` by a card even though the
+  // quotas sum to exactly 100 — e.g. balanced mode at size 20 rounds to
+  // 8+4+3+2+2+1+1=21, not 20 (classic largest-remainder rounding drift).
+  // Trim to the exact requested size as a final step, after shuffling so
+  // the dropped card isn't always from whichever bucket is last in
+  // BUCKET_ORDER.
+  deck = shuffle(picked).slice(0, size);
+
+  // Grammar-in-session cards (Settings > Grammar in session) are ADDED on
+  // top of the vocab deck built above, never replacing a vocab card — see
+  // CLAUDE.md for the confirmed design. Drawn from activeGrammar() (same
+  // active-scope gate as the Grammar tab) and dropped into random,
+  // independent positions so they land spread out rather than clustered.
+  if(grammarSessionSettings.enabled){
+    const grammarPool = activeGrammar();
+    const n = Math.min(grammarSessionSettings.count, grammarPool.length);
+    if(n > 0){
+      shuffle(grammarPool).slice(0, n).forEach(rule => {
+        const card = {type: 'grammar', ruleId: rule.id, id: 'gram-' + rule.id};
+        deck.splice(Math.floor(Math.random() * (deck.length + 1)), 0, card);
+      });
+    }
+  }
+
   deckPos = 0;
 }
 
@@ -1914,15 +2087,28 @@ function renderCard(){
     // "Chantier 17") is deliberately this natural deck-exhaustion point only
     // — exiting early via #exitBtn does NOT mark the day complete, matching
     // the sessionResults screen's own "only on full completion" rule.
+    // This is also the single commit point for the whole session's atomic
+    // save: progress/stuckCards/dailyStats/grammarReviewCount were only
+    // mutated in memory up to now (see markCard()/the grammar Continue
+    // handler) — reaching a full, natural deck exhaustion is what actually
+    // persists them. An early exit never reaches this branch.
     if(deck.length > 0){
       ensureTodayStats().sessionCompleted = true;
+      saveProgress();
+      saveStuckCards();
       saveDailyStats();
+      saveGrammarReviewCount();
     }
     renderSessionResults();
     showScreen('sessionResults');
     return;
   }
   currentCard = deck[deckPos];
+  if(currentCard.type === 'grammar'){ renderGrammarCard(); return; }
+  document.getElementById('cardZone').classList.remove('hidden');
+  document.getElementById('gcardZone').classList.add('hidden');
+  document.getElementById('sessionActions').classList.remove('hidden');
+  document.getElementById('grammarSessionActions').classList.add('hidden');
   revealed = false;
 
   const cardEl = document.getElementById('card');
@@ -2000,6 +2186,36 @@ function renderCard(){
   document.getElementById('progressFill').style.width = (100*deckPos/deck.length) + '%';
 }
 
+// Grammar-in-session card: no correct/wrong concept, so it's rendered and
+// advanced through its own small pipeline instead of reusing
+// renderCard()'s vocab-card DOM work or markCard()'s streak logic.
+function renderGrammarCard(){
+  clearGrammarTimer();
+  document.getElementById('cardZone').classList.add('hidden');
+  document.getElementById('gcardZone').classList.remove('hidden');
+  document.getElementById('sessionActions').classList.add('hidden');
+  document.getElementById('grammarSessionActions').classList.remove('hidden');
+
+  document.getElementById('gcardFrontCard').classList.remove('hidden');
+  document.getElementById('gcardDetail').classList.add('hidden');
+  const gcardEl = document.getElementById('gcardFrontCard');
+  gcardEl.style.transition = 'none';
+  gcardEl.style.transform = 'scaleX(1)';
+
+  const continueBtn = document.getElementById('grammarContinueBtn');
+  continueBtn.disabled = true;
+  document.getElementById('gsTimer').textContent = formatGrammarTimer(grammarSessionSettings.timerMinutes * 60);
+
+  document.getElementById('counter').textContent = (deckPos+1) + '/' + deck.length;
+  document.getElementById('progressFill').style.width = (100*deckPos/deck.length) + '%';
+}
+
+function formatGrammarTimer(totalSeconds){
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
 function markCard(known){
   const dir = currentCard.dir;
   // A merged homonym card (see mergeVnCard) was shown as a single prompt,
@@ -2012,14 +2228,16 @@ function markCard(known){
   ids.forEach(id => applyAnswer(id, dir, known));
   const newStreak = getStreak(ids[0], dir);
   sessionResults.push({prevStreak, newStreak, correct: known});
-  saveProgress();
-  saveStuckCards();
+  // No save here — the whole session is atomic (see renderCard()'s
+  // deck-exhaustion branch): progress/stuckCards/dailyStats only get
+  // written to localStorage once the deck is fully completed, so an early
+  // exit (quit-confirm popup) can discard everything by simply reloading
+  // these in-memory objects from storage untouched.
   // Counted once per card drawn (not per underlying id) — same convention
   // as sessionResults above — so a merged homonym card is one flip, not N.
   const today = ensureTodayStats();
   today.cardsFlipped++;
   if(known) today.correctAnswers++; else today.incorrectAnswers++;
-  saveDailyStats();
   deckPos++;
   renderCard();
 }
@@ -2029,7 +2247,29 @@ document.getElementById('startBtn').addEventListener('click', ()=>{
   showScreen('session');
   renderCard();
 });
-document.getElementById('exitBtn').addEventListener('click', ()=>{ showScreen('home'); refreshStats(); });
+document.getElementById('exitBtn').addEventListener('click', ()=>{
+  document.getElementById('quitSessionConfirmBackdrop').classList.add('show');
+});
+document.getElementById('quitSessionCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('quitSessionConfirmBackdrop').classList.remove('show');
+});
+document.getElementById('quitSessionConfirmBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'quitSessionConfirmBackdrop') e.currentTarget.classList.remove('show');
+});
+document.getElementById('quitSessionConfirmBtn').addEventListener('click', ()=>{
+  // The whole session is atomic (see renderCard()'s deck-exhaustion branch)
+  // — nothing was written to localStorage yet, so discarding just means
+  // reloading these in-memory objects straight from storage, exactly like
+  // the existing "test mode off" handler already does for `progress`.
+  clearGrammarTimer();
+  progress = loadJSON('progress', {});
+  dailyStats = loadJSON('daily-stats', {});
+  stuckCards = loadJSON('stuck-cards', {});
+  grammarReviewCount = loadJSON('grammar-review-count', {});
+  document.getElementById('quitSessionConfirmBackdrop').classList.remove('show');
+  showScreen('home');
+  refreshStats();
+});
 
 // ---------- Session results (end-of-session recap card) ----------
 function streakBadge(streak){
@@ -2086,6 +2326,12 @@ function renderSessionResults(){
 
   renderResultsColumn('resultsColCorrect', RESULTS_LADDER_CORRECT, true);
   renderResultsColumn('resultsColWrong', RESULTS_LADDER_WRONG, false);
+
+  const grammarNote = document.getElementById('resultsGrammarNote');
+  grammarNote.classList.toggle('hidden', sessionGrammarReviewed === 0);
+  if(sessionGrammarReviewed > 0){
+    grammarNote.textContent = `${sessionGrammarReviewed} grammar rule${sessionGrammarReviewed === 1 ? '' : 's'} reviewed this session`;
+  }
 
   // Always land on the front face, unrevealed — mirrors renderCard()'s
   // reset of the session card at the start of every new draw.
@@ -2174,6 +2420,68 @@ cardEl.addEventListener('pointerup', ()=>{
 
 document.getElementById('knownBtn').addEventListener('click', ()=>markCard(true));
 document.getElementById('reviewBtn').addEventListener('click', ()=>markCard(false));
+
+// ---------- Grammar-in-session card: flip + forced reading timer ----------
+// This is the first setInterval-based UI in the app (everything else is a
+// one-shot setTimeout for animations) — see clearGrammarTimer() for why it
+// must be cleared from every exit path, not just its own natural countdown.
+function flipGrammarCard(){
+  const el = document.getElementById('gcardFrontCard');
+  if(el.classList.contains('hidden')) return; // already flipped
+  el.style.transition = 'transform .16s ease';
+  el.style.transform = 'scaleX(0.04)';
+  setTimeout(()=>{
+    const rule = grammarData.find(c => c.id === currentCard.ruleId);
+    if(rule){
+      const bookDef = BOOKS.find(bk => bk.id === rule.book);
+      document.getElementById('gcardEyebrow').textContent = bookDef ? `${bookDef.title} - Bài ${rule.lesson}` : `Bài ${rule.lesson}`;
+      document.getElementById('gcardTitle').textContent = rule.title;
+      document.getElementById('gcardStructure').innerHTML = rule.structure;
+      document.getElementById('gcardExplanation').innerHTML = rule.explanation;
+      document.getElementById('gcardScaleContainer').innerHTML = rule.scaleHtml || '';
+      document.getElementById('gcardExamples').innerHTML = rule.examples.map(ex => `
+        <div class="gd-example${ex.book ? ' book' : ''}">
+          <div class="gd-example-vn">${ex.vn}</div>
+          <div class="gd-example-en">${ex.en}</div>
+        </div>`).join('');
+    }
+    el.classList.add('hidden');
+    document.getElementById('gcardDetail').classList.remove('hidden');
+    startGrammarTimer();
+  }, 150);
+}
+document.getElementById('gcardFrontCard').addEventListener('click', flipGrammarCard);
+
+function startGrammarTimer(){
+  clearGrammarTimer(); // defensive re-entrancy guard
+  grammarTimerRemaining = grammarSessionSettings.timerMinutes * 60;
+  document.getElementById('gsTimer').textContent = formatGrammarTimer(grammarTimerRemaining);
+  document.getElementById('grammarContinueBtn').disabled = true;
+  grammarTimerInterval = setInterval(tickGrammarTimer, 1000);
+}
+function tickGrammarTimer(){
+  grammarTimerRemaining--;
+  document.getElementById('gsTimer').textContent = formatGrammarTimer(Math.max(grammarTimerRemaining, 0));
+  if(grammarTimerRemaining <= 0){
+    clearGrammarTimer();
+    document.getElementById('grammarContinueBtn').disabled = false;
+  }
+}
+// Called on natural timer completion, on Continue click (defensive), and —
+// critically — from the quit-confirm handler, so an abandoned countdown can
+// never keep ticking into the next session.
+function clearGrammarTimer(){
+  if(grammarTimerInterval){ clearInterval(grammarTimerInterval); grammarTimerInterval = null; }
+}
+
+document.getElementById('grammarContinueBtn').addEventListener('click', ()=>{
+  if(document.getElementById('grammarContinueBtn').disabled) return;
+  clearGrammarTimer();
+  grammarReviewCount[currentCard.ruleId] = (grammarReviewCount[currentCard.ruleId] || 0) + 1;
+  sessionGrammarReviewed++;
+  deckPos++;
+  renderCard();
+});
 
 document.getElementById('addBtn').addEventListener('click', ()=>{
   clearCheckResult();
@@ -2818,6 +3126,7 @@ function renderGrammarList(){
     const rows = groups[key].map(c => `
       <button class="gram-row" data-id="${c.id}">
         <div class="gram-row-title">${c.title}</div>
+        ${grammarReviewCount[c.id] ? `<div class="gram-row-badge">×${grammarReviewCount[c.id]}</div>` : ''}
         <div class="gram-row-chevron">›</div>
       </button>`).join('');
     return `<div class="lesson-group open">
@@ -3600,6 +3909,46 @@ document.getElementById('openLearningModeBtn').addEventListener('click', ()=>{
 });
 document.getElementById('backFromLearningMode').addEventListener('click', ()=>{
   showScreen('settings');
+});
+
+// ---------- Settings: grammar-in-session (Settings > Grammar in session) ----------
+// Lightweight inline-save-on-change pattern, same as learningMode above —
+// no async saveX() wrapper needed for this small bundled key.
+function renderGrammarSessionSettings(){
+  const on = grammarSessionSettings.enabled;
+  document.getElementById('gsEnableToggle').classList.toggle('on', on);
+  document.getElementById('gsCountField').classList.toggle('disabled', !on);
+  document.getElementById('gsTimerField').classList.toggle('disabled', !on);
+  const countInput = document.getElementById('gsCountInput');
+  const timerInput = document.getElementById('gsTimerInput');
+  countInput.value = grammarSessionSettings.count;
+  timerInput.value = grammarSessionSettings.timerMinutes;
+  countInput.disabled = !on;
+  timerInput.disabled = !on;
+}
+document.getElementById('openGrammarSessionBtn').addEventListener('click', ()=>{
+  renderGrammarSessionSettings();
+  showScreen('settingsGrammarSession');
+});
+document.getElementById('backFromGrammarSession').addEventListener('click', ()=>{
+  showScreen('settings');
+});
+document.getElementById('gsEnableToggle').addEventListener('click', ()=>{
+  grammarSessionSettings.enabled = !grammarSessionSettings.enabled;
+  saveJSON('grammar-session-settings', grammarSessionSettings);
+  renderGrammarSessionSettings();
+});
+document.getElementById('gsCountInput').addEventListener('change', (e)=>{
+  const n = Math.max(1, Math.round(Number(e.target.value)) || 1);
+  grammarSessionSettings.count = n;
+  saveJSON('grammar-session-settings', grammarSessionSettings);
+  e.target.value = n;
+});
+document.getElementById('gsTimerInput').addEventListener('change', (e)=>{
+  const n = Math.max(1, Math.round(Number(e.target.value)) || 1);
+  grammarSessionSettings.timerMinutes = n;
+  saveJSON('grammar-session-settings', grammarSessionSettings);
+  e.target.value = n;
 });
 
 (async function init(){
