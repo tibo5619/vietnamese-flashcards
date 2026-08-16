@@ -67,6 +67,19 @@ session opened in this folder — keep it up to date after each chantier.
 - **Custom vocab** (`custom-vocab` localStorage key): user-added words,
   `{id, vn, en, lesson:null}`, always included in `activeVocab()` regardless
   of active-scope — no toggle for these.
+- **Regional-variant convention** (chantier 21, e.g. "bao tay" vs "găng
+  tay" — same meaning, Southern vs Northern Vietnam spelling): merged into
+  a **single** vocab entry rather than kept as two cards or two glosses —
+  `vn` becomes `"<southern> (S) / <northern> (N)"`, `en` stays the plain
+  shared meaning (e.g. `"bao tay (S) / găng tay (N)"` → `"glove"`). The
+  redundant second entry is deleted rather than kept alongside it. This is
+  a **different** mechanism from the VN-homonym auto-merge (`mergeVnCard()`,
+  see the streak/session-draw notes below) — that one only ever triggers
+  for two entries sharing the *exact same spelling* with different senses
+  (e.g. "chỉ"); a regional variant is two *different* spellings for the
+  *same* sense, authored as one entry by hand, not merged automatically at
+  runtime. Apply this same pattern any time a future review session turns
+  up another true regional-variant pair.
 - **`alwaysActive` books** (chantier 21): a `BOOKS` entry can set
   `alwaysActive: true` (currently only `custom`, `data/custom.json`) to mean
   "same treatment as custom-vocab" — no Settings → Sources entry, no lesson
@@ -525,6 +538,71 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
   history of "Sandbox chat" / "Production chat" / one chat per feature in
   its earlier Claude.ai days). Minor tweaks don't need their own chat — do
   them in whatever chat is already open.
+- **Always offer choices instead of leaving a question open-ended** — the
+  user explicitly asked (during chantier 21) to not have to type out an
+  answer when a multiple-choice question would do. Prefer `AskUserQuestion`
+  with concrete options over a free-text prompt, even for something as
+  small as "want to see the result first, or move to the next point?".
+
+### Vocab-review session protocol (standing instructions, from chantier 21)
+
+When the user brings a freshly exported "issues + vocab" JSON
+(`exportVocabReview()`, see "Data model") into a session, follow this exact
+sequence every time — this is a standing rule, don't ask the user to
+re-explain it:
+
+1. **Ask before pushing vocab** — before writing anything into
+   `data/custom.json`, ask for a quick go/no-go to graduate the raw
+   `customVocab` entries **as-is** (unchanged text, ids preserved — see the
+   id-preservation rule in "Data model"). Push first, refine later — don't
+   pre-analyze wording or propose gloss corrections at this stage (that
+   happens during the issues review in step 4). The one exception: flag —
+   don't silently push — a customVocab entry that's an **exact** spelling
+   duplicate of a word that already exists elsewhere, rather than writing a
+   real duplicate into a permanent file.
+2. **Push, then build the table** — once approved, write the entries into
+   `data/custom.json`, then summarize every `issueReports` entry as a single
+   numbered table: report info, the user's own note, Claude's read of what
+   the problem actually is, and a first-draft proposed fix. **`data/
+   dictionary.json` is one input, not "the reference"** (corrected twice
+   during chantier 21 — the user pushed back explicitly on treating it as
+   authoritative) — it's a thin, sometimes flat/ambiguous Wiktionary dump
+   (see the "rủ" vs "mời" case, where it glossed both identically). Act as
+   an actual research agent, not a lookup script: draw on general
+   Vietnamese-language knowledge and `WebSearch`/`WebFetch` for nuance,
+   register, or usage questions, and weigh that above the local file when
+   they'd disagree. Don't just report neutral facts either — proactively
+   give an opinion and a concrete suggested fix, calibrated to the user's
+   stated level (A2/B1) and grouping preferences (see "Working agreement").
+   **Keep every proposed gloss glance-readable, not a mini-essay** — a
+   flashcard back (`.word-main`, 30px, no auto-shrink) comfortably fits
+   about 4 short lines before it starts crowding the card (verified live in
+   the browser during chantier 21's "chỉ" gloss); a register/nuance note in
+   parentheses is welcome, a clause that needs re-reading to parse is not.
+   **Never claim a word "isn't in your list" from memory** — grep the
+   actual `data/*.json` files first, every time (chantier 21 got this wrong
+   three separate times in one session — "chút nữa", "khu vực", "xem xét" —
+   each already present and each time the user had to correct it). A
+   comparison word mentioned in a report may well already be a real card.
+3. **Ask which half to review first** — via `AskUserQuestion` (not prose),
+   ask whether to go through the vocab-related rows or the app-bug/dev-idea
+   rows first.
+4. **Review one row at a time, self-contained, and STOP after each** —
+   restate that row's full context (word/report/note/analysis) at the start
+   of its own message; never assume the user will scroll back to the table.
+   Use `AskUserQuestion` for the actual decision points so answers are fast.
+   **Hard rule (corrected during chantier 21 after being violated the first
+   time): implement/discuss exactly one row, show the result if there is
+   one to see, then stop and wait for the user's explicit go-ahead before
+   touching the next row — never auto-advance through multiple rows in the
+   same turn, even when a row's fix seems small or obvious.** The user
+   explicitly wants to stay in control of the pace and reserves the right
+   to change their mind about an already-"resolved" row once they've seen
+   it rendered (e.g. a UI change that looked right in description but not
+   in practice) — so showing the result and pausing isn't optional politeness,
+   it's the actual point of going one row at a time.
+5. **Summarize before committing** — at the end of the session, recap every
+   decision made, and only commit once the user confirms.
 
 ## Chantiers completed so far
 
@@ -924,6 +1002,41 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
 
 ## Planned next (not started)
 
+- **Fix synonym-merge direction bug + audit `VOCAB_CLEANUP_LOG.md`** (found
+  chantier 21, deferred as its own future chantier — real scope, not a
+  quick fix): the user identified two *intended* merge types that the
+  current single mechanism conflates.
+  - **Type 1 — similar/overlapping spelling** (one word contains or extends
+    the other, e.g. "cảm"/"cảm lạnh", "mang"/"mang theo", "mát"/"mát mẻ"):
+    correctly merged **both directions** today via the existing hand-authored
+    `vn: "X / Y"` single-entry pattern (see "Regional-variant convention"
+    in "Data model" — same mechanism, this is the general case it was
+    generalized from). No bug here — leave these alone.
+  - **Type 2 — genuinely different spelling, true synonyms** (e.g. "thoải
+    mái"/"dễ chịu", "xài"/"sử dụng", "lười"/"làm biếng"): should merge
+    **only in EN→VN** (one English prompt, both Vietnamese spellings shown
+    together on the back) but stay **separate in VN→EN** (each Vietnamese
+    spelling is its own independent prompt/card — seeing two unrelated
+    spellings pre-paired doesn't test real recognition, since in the wild
+    you'll meet one or the other, not both glued together). **This
+    direction-aware behavior does not exist in the code at all** — verified
+    by grepping for any EN-side grouping mechanism, none found. It would be
+    the mirror of `mergeVnCard()` (which groups by VN spelling, merges in
+    vn2en, splits in en2vn) — grouping by shared `en` text instead, merging
+    in en2vn, splitting in vn2en (the vn2en split needs no new code, since
+    keeping them as separate JSON entries already produces that today).
+  - **Confirmed broken today, live-tested in the browser**: "thoải mái /
+    dễ chịu" (`b71`) is merged in *both* directions (wrong — VN→EN should
+    split); "xài" (`b352`) / "sử dụng" (`c302`) are separate in *both*
+    directions (wrong — EN→VN should merge them, currently doesn't).
+  - **The actual task**: (1) build the EN-side merge-for-en2vn-only
+    mechanism; (2) re-read `VOCAB_CLEANUP_LOG.md` top to bottom, classify
+    every past merge as Type 1 or Type 2, and for every Type 2 currently
+    stored as a combined `vn: "X / Y"` entry, split it back into two
+    separate JSON objects (same `en` text on both, so the new mechanism
+    picks them up) — check git history for each pair's original two ids
+    before the merge, to restore them exactly rather than inventing new
+    ones (preserves any existing `progress` continuity).
 - **Vocabulary content**: broaden Connect 1 beyond the end-of-book glossary
   (needs the per-lesson PDFs, already available — see "Known constraints"),
   rework existing Connect 1 entries (translations, sort-order handling for

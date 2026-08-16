@@ -279,7 +279,11 @@
   .pill-flag{ font-size:40px; line-height:1; }
   #dirGroup .pill{ width:66px; height:66px; padding:0; display:flex; align-items:center; justify-content:center; }
   #dirGroup .pill[data-value="mix"] .pill-flag{ font-size:21px; letter-spacing:-7px; padding-right:7px; }
-  .size-slider{ width:100%; max-width:280px; margin:0 auto; accent-color:var(--red); height:22px; }
+  .size-toggle-row{ display:flex; align-items:flex-start; gap:16px; }
+  .size-col{ flex:1; min-width:0; }
+  .gs-quick-toggle{ display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+  .gs-quick-label{ white-space:nowrap; }
+  .size-slider{ width:100%; accent-color:var(--red); height:22px; }
 
   /* ---------- SESSION ---------- */
   #session{ padding-top:12px; min-height:0; }
@@ -519,7 +523,7 @@
   .wl-status-toggle .pill{ flex:1; padding:8px 6px; font-size:12px; text-align:center; white-space:nowrap; }
   .wl-legend{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
   .wl-legend-item{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
-  .wordlist-scroll{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  .wordlist-scroll{ flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   /* #app only sets min-height, so a normal .screen grows past the viewport
      and the whole page scrolls — fine elsewhere, but here it means the
      filters scroll away with the list. Capping just this screen's height
@@ -665,7 +669,7 @@
     background:none; border:none; padding:0; margin:0 0 8px; cursor:pointer;
     font-family:inherit; text-align:left;
   }
-  .lesson-group-header .lesson-group-title{ margin:0; flex:1; }
+  .lesson-group-header .lesson-group-title{ margin:0; flex:1; min-width:0; }
   .lesson-group-chevron{
     flex-shrink:0; color:var(--muted); font-size:12px; font-weight:700;
     transition:transform .2s ease; transform:rotate(0deg);
@@ -786,6 +790,8 @@
   }
   .switch.on .switch-thumb{ transform:translateX(18px); }
   .field.disabled{ opacity:0.4; pointer-events:none; }
+  .number-picker{ display:flex; gap:8px; }
+  .number-picker .pill{ flex:1; height:44px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; }
 
   @media (prefers-reduced-motion: reduce){
     .card, .progress-fill, .btn, .session-actions{ transition:none !important; }
@@ -864,8 +870,16 @@
           </div>
         </div>
         <div class="setting-row">
-          <span class="setting-label" id="sizeLabel">Session size — 20 words</span>
-          <input type="range" id="sizeSlider" class="size-slider" min="10" max="100" step="10" value="20">
+          <div class="size-toggle-row">
+            <div class="size-col">
+              <span class="setting-label" id="sizeLabel">Session size — 20 words</span>
+              <input type="range" id="sizeSlider" class="size-slider" min="10" max="100" step="10" value="20">
+            </div>
+            <div class="gs-quick-toggle">
+              <span class="setting-label gs-quick-label">Grammar</span>
+              <button type="button" class="switch" id="gsQuickToggle" aria-label="Toggle grammar cards in this session"><span class="switch-thumb"></span></button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1185,12 +1199,24 @@
       <button type="button" class="switch" id="gsEnableToggle" aria-label="Toggle grammar cards in sessions"><span class="switch-thumb"></span></button>
     </div>
     <div class="field" id="gsCountField">
-      <label for="gsCountInput">Rules per session</label>
-      <input id="gsCountInput" type="number" min="1" step="1" inputmode="numeric">
+      <label>Rules per session</label>
+      <div class="number-picker" id="gsCountPicker">
+        <button type="button" class="pill" data-value="1">1</button>
+        <button type="button" class="pill" data-value="2">2</button>
+        <button type="button" class="pill" data-value="3">3</button>
+        <button type="button" class="pill" data-value="4">4</button>
+        <button type="button" class="pill" data-value="5">5</button>
+      </div>
     </div>
     <div class="field" id="gsTimerField">
-      <label for="gsTimerInput">Timer duration (minutes)</label>
-      <input id="gsTimerInput" type="number" min="1" step="1" inputmode="numeric">
+      <label>Timer duration (minutes)</label>
+      <div class="number-picker" id="gsTimerPicker">
+        <button type="button" class="pill" data-value="1">1</button>
+        <button type="button" class="pill" data-value="2">2</button>
+        <button type="button" class="pill" data-value="3">3</button>
+        <button type="button" class="pill" data-value="4">4</button>
+        <button type="button" class="pill" data-value="5">5</button>
+      </div>
     </div>
   </section>
 
@@ -1425,6 +1451,13 @@ let stuckCards = {};
 const GRAMMAR_SESSION_DEFAULTS = {enabled: true, count: 1, timerMinutes: 2};
 let grammarSessionSettings = {...GRAMMAR_SESSION_DEFAULTS};
 let grammarReviewCount = {};
+// grammarLastShown[ruleId] = timestamp last queued into a session deck (set
+// at deck-build time, not gated on finishing the session — see chantier 21
+// point 26). buildDeck() picks the `count` least-recently-shown active
+// rules instead of a pure shuffle, so a rule can't repeat until every other
+// active rule has had a turn — fixes rules clustering close together with
+// pure randomness while others went untouched for a long stretch.
+let grammarLastShown = {};
 let sessionGrammarReviewed = 0;
 let grammarTimerInterval = null;
 let grammarTimerRemaining = 0;
@@ -1490,6 +1523,7 @@ async function loadState(){
   stuckCards = loadJSON('stuck-cards', {});
   grammarSessionSettings = loadJSON('grammar-session-settings', GRAMMAR_SESSION_DEFAULTS);
   grammarReviewCount = loadJSON('grammar-review-count', {});
+  grammarLastShown = loadJSON('grammar-last-shown', {});
   if(migrateProgressStreaks()) await saveProgress();
 }
 
@@ -1508,6 +1542,11 @@ async function saveStuckCards(){
 async function saveGrammarReviewCount(){
   if(testMode) return;
   if(!saveJSON('grammar-review-count', grammarReviewCount)) flagStorageError();
+}
+
+async function saveGrammarLastShown(){
+  if(testMode) return;
+  if(!saveJSON('grammar-last-shown', grammarLastShown)) flagStorageError();
 }
 
 async function saveCustomVocab(){
@@ -2073,14 +2112,23 @@ function buildDeck(){
   // CLAUDE.md for the confirmed design. Drawn from activeGrammar() (same
   // active-scope gate as the Grammar tab) and dropped into random,
   // independent positions so they land spread out rather than clustered.
+  // Picking is no longer a pure shuffle (chantier 21 point 26): the `count`
+  // *least-recently-shown* active rules are picked first — via
+  // grammarLastShown — so a rule can't repeat until every other active rule
+  // has had a turn, fixing rules clustering close together in consecutive
+  // sessions while others went untouched.
   if(grammarSessionSettings.enabled){
     const grammarPool = activeGrammar();
     const n = Math.min(grammarSessionSettings.count, grammarPool.length);
     if(n > 0){
-      shuffle(grammarPool).slice(0, n).forEach(rule => {
+      const dueFirst = [...grammarPool].sort((a, b) => (grammarLastShown[a.id] || 0) - (grammarLastShown[b.id] || 0));
+      const now = Date.now();
+      shuffle(dueFirst.slice(0, n)).forEach(rule => {
+        grammarLastShown[rule.id] = now;
         const card = {type: 'grammar', ruleId: rule.id, id: 'gram-' + rule.id};
         deck.splice(Math.floor(Math.random() * (deck.length + 1)), 0, card);
       });
+      saveGrammarLastShown();
     }
   }
 
@@ -2190,8 +2238,13 @@ function renderCard(){
     const back = isVnFirst ? currentCard.en : currentCard.vn;
     wordFront.textContent = front;
     wordBack.textContent = back;
-    const bookDef = BOOKS.find(b => b.id === currentCard.book);
-    lessonTagBack.textContent = bookDef ? `${bookDef.title} - Bài ${currentCard.lesson}` : 'Manual Input';
+    const isCustomWord = !currentCard.book || currentCard.book === 'custom';
+    if(isCustomWord){
+      lessonTagBack.textContent = customAddedDateLabel(currentCard.id);
+    } else {
+      const bookDef = BOOKS.find(b => b.id === currentCard.book);
+      lessonTagBack.textContent = bookDef ? `${bookDef.title} - Bài ${currentCard.lesson}` : 'Manual Input';
+    }
     hasPastReport = issueReports.some(r => r.wordId === currentCard.id);
   }
   // Discreet reminder on the back face only — helps avoid reporting the
@@ -2597,16 +2650,41 @@ function findVnDuplicate(vn){
   return { exact, near };
 }
 
+// `w.book` is only set on baseVocab entries (tagged by loadBooksData()) —
+// a customVocab word not yet graduated into a book file has no `book` at
+// all, hence the fallback label.
+function wordSourceLabel(w){
+  if(!w.book) return 'your added words';
+  const bookDef = BOOKS.find(b => b.id === w.book);
+  if(!bookDef) return '';
+  return w.lesson ? `${bookDef.title} — Bài ${w.lesson}` : bookDef.title;
+}
+
+// Every custom-vocab id is 'c' + Date.now() — whether still on-device or
+// already graduated into data/custom.json (ids are preserved across that
+// move, see "Data model") — so the add date is recoverable from the id
+// alone, no separate stored field needed.
+function customAddedDateLabel(id){
+  const ts = Number(String(id).slice(1));
+  if(!ts || isNaN(ts)) return 'Manually added';
+  const d = new Date(ts);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `Manually added on ${dd}/${mm}/${yy}`;
+}
 function renderDuplicateNotice(box, dup){
   if(dup && dup.exact){
     const div = document.createElement('div');
-    div.textContent = `⚠ Already in your list: "${dup.exact.vn}" — ${dup.exact.en}`;
+    const src = wordSourceLabel(dup.exact);
+    div.textContent = `⚠ Already in your list: "${dup.exact.vn}" — ${dup.exact.en}${src ? ` (${src})` : ''}`;
     box.appendChild(div);
     return true;
   }
   if(dup && dup.near){
     const div = document.createElement('div');
-    div.textContent = `⚠ Very similar to an existing word: "${dup.near.vn}" — ${dup.near.en}. Make sure this isn't the same word before adding.`;
+    const src = wordSourceLabel(dup.near);
+    div.textContent = `⚠ Very similar to an existing word: "${dup.near.vn}" — ${dup.near.en}${src ? ` (${src})` : ''}. Make sure this isn't the same word before adding.`;
     box.appendChild(div);
     return true;
   }
@@ -3936,17 +4014,34 @@ document.getElementById('backFromLearningMode').addEventListener('click', ()=>{
 // ---------- Settings: grammar-in-session (Settings > Grammar in session) ----------
 // Lightweight inline-save-on-change pattern, same as learningMode above —
 // no async saveX() wrapper needed for this small bundled key.
-function renderGrammarSessionSettings(){
+// Two independent on/off switches share this one setting: the full one on
+// Settings > Grammar in session, and a quick-access one on the home screen
+// (chantier 21, next to the direction flags — added so skipping grammar
+// review for a fast session doesn't require a trip into Settings). Both
+// stay in sync via syncGrammarToggles(), called after every change to
+// grammarSessionSettings.enabled regardless of which switch triggered it.
+function syncGrammarToggles(){
   const on = grammarSessionSettings.enabled;
+  const quick = document.getElementById('gsQuickToggle');
+  if(quick) quick.classList.toggle('on', on);
   document.getElementById('gsEnableToggle').classList.toggle('on', on);
   document.getElementById('gsCountField').classList.toggle('disabled', !on);
   document.getElementById('gsTimerField').classList.toggle('disabled', !on);
-  const countInput = document.getElementById('gsCountInput');
-  const timerInput = document.getElementById('gsTimerInput');
-  countInput.value = grammarSessionSettings.count;
-  timerInput.value = grammarSessionSettings.timerMinutes;
-  countInput.disabled = !on;
-  timerInput.disabled = !on;
+}
+// Both fields are a fixed 1-5 quick-pick (chantier 21, replacing a
+// type-a-number input) — clamp here in case a value saved before this
+// change (no upper bound back then) falls outside that range.
+function renderNumberPicker(containerId, value){
+  const clamped = Math.min(5, Math.max(1, value));
+  document.querySelectorAll(`#${containerId} .pill`).forEach(btn=>{
+    btn.classList.toggle('active', Number(btn.dataset.value) === clamped);
+  });
+  return clamped;
+}
+function renderGrammarSessionSettings(){
+  grammarSessionSettings.count = renderNumberPicker('gsCountPicker', grammarSessionSettings.count);
+  grammarSessionSettings.timerMinutes = renderNumberPicker('gsTimerPicker', grammarSessionSettings.timerMinutes);
+  syncGrammarToggles();
 }
 document.getElementById('openGrammarSessionBtn').addEventListener('click', ()=>{
   renderGrammarSessionSettings();
@@ -3955,22 +4050,26 @@ document.getElementById('openGrammarSessionBtn').addEventListener('click', ()=>{
 document.getElementById('backFromGrammarSession').addEventListener('click', ()=>{
   showScreen('settings');
 });
-document.getElementById('gsEnableToggle').addEventListener('click', ()=>{
+function toggleGrammarSessionEnabled(){
   grammarSessionSettings.enabled = !grammarSessionSettings.enabled;
   saveJSON('grammar-session-settings', grammarSessionSettings);
-  renderGrammarSessionSettings();
+  syncGrammarToggles();
+}
+document.getElementById('gsEnableToggle').addEventListener('click', toggleGrammarSessionEnabled);
+document.getElementById('gsQuickToggle').addEventListener('click', toggleGrammarSessionEnabled);
+document.querySelectorAll('#gsCountPicker .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    grammarSessionSettings.count = Number(btn.dataset.value);
+    saveJSON('grammar-session-settings', grammarSessionSettings);
+    renderGrammarSessionSettings();
+  });
 });
-document.getElementById('gsCountInput').addEventListener('change', (e)=>{
-  const n = Math.max(1, Math.round(Number(e.target.value)) || 1);
-  grammarSessionSettings.count = n;
-  saveJSON('grammar-session-settings', grammarSessionSettings);
-  e.target.value = n;
-});
-document.getElementById('gsTimerInput').addEventListener('change', (e)=>{
-  const n = Math.max(1, Math.round(Number(e.target.value)) || 1);
-  grammarSessionSettings.timerMinutes = n;
-  saveJSON('grammar-session-settings', grammarSessionSettings);
-  e.target.value = n;
+document.querySelectorAll('#gsTimerPicker .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    grammarSessionSettings.timerMinutes = Number(btn.dataset.value);
+    saveJSON('grammar-session-settings', grammarSessionSettings);
+    renderGrammarSessionSettings();
+  });
 });
 
 (async function init(){
@@ -3978,6 +4077,7 @@ document.getElementById('gsTimerInput').addEventListener('change', (e)=>{
   await loadGrammarData();
   await loadState();
   refreshStats();
+  syncGrammarToggles();
 })();
 
 // Registers the offline/installability service worker (see sw.js).

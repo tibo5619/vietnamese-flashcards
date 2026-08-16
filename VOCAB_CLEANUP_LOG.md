@@ -109,3 +109,59 @@ into one card (all senses listed) on VN-front session cards. Code:
   request — no casual/formal tag this time.
 - **xài tiền** → "to spend (money)" — unchanged; now the sole "to spend"
   card since "xài" dropped that sense.
+
+## 2026-08-16 — chantier 21 vocab-review session
+
+- **mời** → "to invite (polite, formal)" — distinguished from "rủ"
+  (friendly/informal invite); both confirmed accurate as a pair.
+- **gấp ... lần**, **vừa ... vừa ...**, **tuy ... nhưng ...**, **hơi** —
+  removed from vocabulary entirely (not reworded). Each already has its own
+  full Grammar-tab card (structure/explanation/examples); keeping them as
+  vocab flashcards too was pure duplication with no added value.
+- **nhẹ** → "light (weight); mild, not serious" — the old gloss ("not
+  serious, not severe") only showed the derived/figurative sense, missing
+  the primary literal meaning.
+- **nặng** → "heavy (weight); serious, severe" — same fix, mirror word of
+  "nhẹ".
+- **mong muốn** → "to wish for, to hope for (more formal/emphatic than
+  muốn)" — old gloss risked an English connotation ("desire") the Vietnamese
+  word doesn't carry (mong muốn is specifically non-sexual desire).
+  **muốn** added as a new word ("to want (casual, everyday)") — more
+  fundamental/frequent than "mong muốn" but wasn't in the list at all.
+- **bao tay / găng tay** — merged into one card ("glove"), kept `bao
+  tay`'s id (`b6`), deleted the separate `găng tay` custom-vocab entry.
+  Genuine regional variant (bao tay = South, găng tay = North) — see the
+  new "Regional-variant convention" in CLAUDE.md "Data model".
+- **hướng dẫn** → "to teach, to instruct, to guide (formal, comprehensive)"
+  / **chỉ** → "to guide, to show, to instruct, to teach (direct, simple)"
+  — both already existed with near-identical, overlapping glosses; added
+  short register qualifiers to distinguish them instead of rewording.
+- **nhờ** → "to ask for a favor" — old gloss ("to ask for help; please")
+  conflated the request itself with "giúp" (the actual act of helping).
+- **lát nữa** → "a bit later (time only)" / **chút nữa** → "a bit later /
+  a bit more (time or amount)" — both already existed, reworded together
+  for consistent phrasing ("in a little while" → "a bit later") and to
+  state the one real difference (chút nữa also covers quantity/degree).
+- **túi tiền** → "budget, what one can afford (casual)" — old gloss
+  ("budget, financial capacity") was accurate but overly abstract; register
+  note added instead of the literal "money pocket" root (judged less
+  useful here than for nhẹ/nặng, since the figurative jump is small).
+- **bạn bè** → "friends (as a group)" — same core meaning, made the
+  collective/plural sense visually clearer than a bare "s".
+- **diện tích** → "size, area (e.g. m²)" / **khu vực** → "zone, area,
+  region" / **dung tích** → "volume, capacity (e.g. liters)" — all three
+  already existed; diện tích and khu vực both listed the bare word "area",
+  the actual source of the confusion being reviewed. Standardized together
+  rather than fixing one in isolation.
+- **điện máy** → "appliances, electronics (general term)" / **điện tử** →
+  "electronics (circuits, e.g. phones)" — both already existed sharing the
+  word "electronics"; điện máy is the broad retail/everyday term (any
+  electrical appliance), điện tử is the narrower technical one (devices
+  with circuits).
+- **chăm chỉ / siêng** — merged into one card ("hardworking, diligent"),
+  kept `chăm chỉ`'s id (`c32`), deleted `siêng` (`b275`). **Type 2 by the
+  classification found this same session** (different spelling, true
+  synonyms, not similar/overlapping spelling) — per the merge-direction bug
+  noted in CLAUDE.md "Planned next", this should end up split again in
+  VN→EN once that mechanism exists; flagging here now so the future audit
+  doesn't have to rediscover it.
