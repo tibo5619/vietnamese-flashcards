@@ -3,7 +3,7 @@
 // Network-first: every request tries the network first (so app updates
 // pushed to GitHub Pages are picked up as soon as there's a connection) and
 // only falls back to the cached copy when the network is unavailable.
-const CACHE_NAME = 'nhat-chu-v65';
+const CACHE_NAME = 'nhat-chu-v66';
 const ASSETS = [
   './',
   './index.html',
@@ -37,7 +37,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request)
+    // {cache:'no-store'} bypasses the browser's own HTTP cache (GitHub
+    // Pages serves everything with max-age=600) — without it, "network
+    // first" was still silently returning a stale response for up to 10
+    // minutes on background fetches (data/*.json loaded from JS), even
+    // though the top-level page reload looked fresh. Caught live: pushed
+    // vocab edits, closed/reopened the app, UI changes showed but word
+    // text didn't.
+    fetch(event.request, {cache: 'no-store'})
       .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});

@@ -496,10 +496,17 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
   handling; a button inside the back face won't register clicks). Session
   action buttons live in `.session-actions`, outside the card.
 - **Service worker is network-first**, not cache-first (`sw.js`, cache name
-  currently `nhat-chu-v17` — bump it on every `index.html`/asset change). A
+  bumped on every `index.html`/data/asset change — currently `v66`). A
   cache-first version was shipped first and
   caused already-installed phones to keep serving a stale `index.html`
   forever after a code update — don't revert this without re-solving that.
+  **The SW's own fetch must use `{cache:'no-store'}`** (chantier 21) — GitHub
+  Pages serves everything with `max-age=600`, so a plain `fetch()` inside
+  the SW can silently return a browser-HTTP-cached stale response for up to
+  10 minutes even though the SW's own logic is "network first" — caught
+  live when a vocab-content push showed up in the UI (index.html) but not
+  in the word data (`data/*.json`, fetched later from JS, same page load).
+  Don't drop `no-store` without re-solving this too.
 - **`#app` uses `min-height:100svh`**, not `100dvh` — `dvh` caused the home
   screen to visibly grow (pushing the footer off-screen) when a mobile
   browser's address bar collapses on scroll.
