@@ -80,9 +80,14 @@ session opened in this folder — keep it up to date after each chantier.
   directly, so how does a word ever get corrected or made permanent?" Words
   typed into "Add a word" still land in `custom-vocab` exactly as before —
   nothing changes day to day. Periodically the user exports **"Export data
-  (vocab review)"** (Settings → Data → `exportVocabReview()`) — a bundle of
+  (issues + vocab)"** (Settings → Data → `exportVocabReview()`) — a bundle of
   `{customVocab, issueReports (unresolved only)}`, deliberately **without**
-  `progress`, and brings the file into a Claude Code session. Claude reviews
+  `progress`, and brings the file into a Claude Code session. This single
+  button also **replaced** the older, narrower "Export data (issues only)"
+  from chantier 15 — that one only ever downloaded unresolved
+  `issueReports`, a strict subset of what this export already carries, so
+  keeping both was redundant; `exportIssues()` was deleted rather than kept
+  alongside it. Claude reviews
   each word (cross-referencing any tied `issueReports` note for translation
   nuance — see the "rủ" vs "mời" example worked through when this workflow
   was designed) and, for whichever words are judged ready, writes them
@@ -901,8 +906,10 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
     designed and built the same session (see "Data model" for the full
     mechanics): a new always-visible `data/custom.json` book (an `alwaysActive`
     flag on `BOOKS`, currently only this one entry), a new **"Export data
-    (vocab review)"** button (`exportVocabReview()`, bundles `customVocab` +
-    unresolved `issueReports`, deliberately excludes `progress`), and
+    (issues + vocab)"** button (`exportVocabReview()`, bundles `customVocab`
+    + unresolved `issueReports`, deliberately excludes `progress`) that also
+    replaced chantier 15's narrower "Export data (issues only)" (a strict
+    subset, made redundant), and
     `livingCustomVocab()` — an id-based shadow filter so a word "graduated"
     into `data/custom.json` (keeping its original custom-vocab id)
     automatically hides its now-redundant `custom-vocab` copy, with zero

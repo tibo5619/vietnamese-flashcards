@@ -1213,13 +1213,9 @@
       <span class="menu-btn-emoji">⬇️</span>
       <span>Export data (all)</span>
     </button>
-    <button class="menu-btn" type="button" id="exportIssuesBtn">
-      <span class="menu-btn-emoji">📋</span>
-      <span>Export data (issues only)</span>
-    </button>
     <button class="menu-btn" type="button" id="exportVocabReviewBtn">
       <span class="menu-btn-emoji">🗂️</span>
-      <span>Export data (vocab review)</span>
+      <span>Export data (issues + vocab)</span>
     </button>
     <button class="menu-btn" type="button" id="importDataBtn">
       <span class="menu-btn-emoji">⬆️</span>
@@ -2983,21 +2979,6 @@ function exportData(){
   showToast('Backup downloaded');
 }
 
-function exportIssues(){
-  const unresolved = issueReports.filter(r => !r.resolved);
-  if(unresolved.length === 0){ showToast('No unresolved issues to export'); return; }
-  const blob = new Blob([JSON.stringify(unresolved, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `issues_${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  showToast(`${unresolved.length} issue${unresolved.length === 1 ? '' : 's'} exported`);
-}
-
 // Bundles customVocab + unresolved issueReports (no progress) — the file
 // to bring into a periodic Claude Code review session (see CLAUDE.md
 // "Planned next" / vocab review workflow). One-way: never re-imported,
@@ -3762,7 +3743,6 @@ document.getElementById('saveIssueResolutionBtn').addEventListener('click', asyn
 });
 
 document.getElementById('newIssueBtn').addEventListener('click', () => openReportPopup());
-document.getElementById('exportIssuesBtn').addEventListener('click', exportIssues);
 document.querySelectorAll('#issuesStatusGroup .pill').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('#issuesStatusGroup .pill').forEach(b=>b.classList.remove('active'));
