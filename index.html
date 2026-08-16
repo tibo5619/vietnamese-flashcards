@@ -1217,6 +1217,10 @@
       <span class="menu-btn-emoji">📋</span>
       <span>Export data (issues only)</span>
     </button>
+    <button class="menu-btn" type="button" id="exportVocabReviewBtn">
+      <span class="menu-btn-emoji">🗂️</span>
+      <span>Export data (vocab review)</span>
+    </button>
     <button class="menu-btn" type="button" id="importDataBtn">
       <span class="menu-btn-emoji">⬆️</span>
       <span>Import data</span>
@@ -1319,10 +1323,18 @@
 // data/connect1.json: an array of {id, vn, en, lesson}) and adding one line
 // below. Newly added lessons default to inactive in active-scope until the
 // user turns them on in Settings — see getActiveScope() further down.
+// `alwaysActive: true` (currently only "custom") marks a book whose words
+// bypass Settings > Sources entirely — no lesson toggle, always included,
+// same treatment custom-vocab already got. Words graduated from a review
+// session into data/custom.json (see CLAUDE.md "Data model") keep their
+// original custom-vocab id, so activeVocab()/allVocab() can tell a promoted
+// word from its now-obsolete localStorage copy.
 const BOOKS = [
   { id: 'connect1', title: 'Connect 1', file: 'data/connect1.json', lessonsCount: 6, grammarFile: 'data/grammar-connect1.json' },
   { id: 'connect2', title: 'Connect 2', file: 'data/connect2.json', lessonsCount: 6, grammarFile: 'data/grammar-connect2.json' },
+  { id: 'custom', title: 'My Vocabulary', file: 'data/custom.json', lessonsCount: 0, alwaysActive: true },
 ];
+const ALWAYS_ACTIVE_BOOKS = new Set(BOOKS.filter(b => b.alwaysActive).map(b => b.id));
 
 let baseVocab = []; // filled by loadBooksData(), each entry tagged with its `book` id
 
@@ -1539,7 +1551,14 @@ function setTestMode(on){
 // only where we must consider words the user hasn't "unlocked" yet (duplicate
 // detection). Everywhere else (sessions, stats, vocabulary list) should use
 // activeVocab() instead.
-function allVocab(){ return baseVocab.concat(customVocab); }
+// A word promoted into a permanent file (data/custom.json) keeps its
+// original custom-vocab id (see BOOKS above) — so its old localStorage copy
+// is filtered out here rather than requiring the user to delete it by hand.
+function livingCustomVocab(){
+  const baseIds = new Set(baseVocab.map(w => w.id));
+  return customVocab.filter(w => !baseIds.has(w.id));
+}
+function allVocab(){ return baseVocab.concat(livingCustomVocab()); }
 
 // ---------- Active vocabulary scope (which books/lessons feed sessions) ----------
 // Stored as { [bookId]: { [lessonNumber]: true|false } }. A lesson missing from
@@ -1569,10 +1588,11 @@ function setLessonActive(bookId, lesson, active){
   saveJSON('active-scope', scope);
 }
 // Vocabulary actually usable right now: base words whose book+lesson is
-// active, plus custom words (always included, no toggle).
+// active (or whose whole book is alwaysActive), plus custom words (always
+// included, no toggle).
 function activeVocab(){
   const scope = getActiveScope();
-  return baseVocab.filter(w => scope[w.book] && scope[w.book][w.lesson]).concat(customVocab);
+  return baseVocab.filter(w => ALWAYS_ACTIVE_BOOKS.has(w.book) || (scope[w.book] && scope[w.book][w.lesson])).concat(livingCustomVocab());
 }
 // Same active-scope filtering as vocabulary — a grammar rule is tied to a
 // book+lesson and only appears once that lesson is turned on in Settings.
@@ -2978,6 +2998,28 @@ function exportIssues(){
   showToast(`${unresolved.length} issue${unresolved.length === 1 ? '' : 's'} exported`);
 }
 
+// Bundles customVocab + unresolved issueReports (no progress) — the file
+// to bring into a periodic Claude Code review session (see CLAUDE.md
+// "Planned next" / vocab review workflow). One-way: never re-imported,
+// so it deliberately carries none of the progress round-trip risk that
+// "Export data (all)" has.
+function exportVocabReview(){
+  const unresolved = issueReports.filter(r => !r.resolved);
+  if(customVocab.length === 0 && unresolved.length === 0){ showToast('Nothing to export'); return; }
+  const payload = { customVocab, issueReports: unresolved };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vocab-review_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Vocab review data exported');
+}
+document.getElementById('exportVocabReviewBtn').addEventListener('click', exportVocabReview);
+
 let pendingImportData = null;
 
 function openImportConfirm(data){
@@ -3768,7 +3810,7 @@ function renderSettingsSources(){
   const container = document.getElementById('sourcesList');
   container.innerHTML = '';
 
-  BOOKS.forEach(book => {
+  BOOKS.filter(book => !book.alwaysActive).forEach(book => {
     const bookWords = baseVocab.filter(w => w.book === book.id);
     const activeCount = bookWords.filter(w => scope[book.id][w.lesson]).length;
 
