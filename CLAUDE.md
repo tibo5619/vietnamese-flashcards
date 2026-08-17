@@ -39,487 +39,99 @@ session opened in this folder — keep it up to date after each chantier.
 - `VOCAB_CLEANUP_LOG.md` — **not loaded automatically**, read only on
   request: word-by-word record of the Aug 2026 VN/EN duplicate-vocabulary
   cleanup (which words got merged, reworded, or kept separate, and why).
+- `docs/DATA-MODEL.md`, `docs/UI-STRUCTURE.md`, `docs/CHANGELOG.md` — **not
+  loaded automatically**, read only when a task needs the detail: full
+  mechanics for the data layer, full screen/layout structure, and the
+  chantier-by-chantier dev log (all but the last 3). Short summaries with
+  pointers to these live in the "Data model" / "UI structure" / "Chantiers"
+  sections below — read the full doc when a task actually touches that area.
 
 ## Data model
 
-- **Vocabulary catalog**: `BOOKS` array in `index.html` (near the top of the
-  `<script>`), e.g. `{ id, title, file, lessonsCount }`. `loadBooksData()`
-  fetches every book's JSON file and tags each entry with `book: bookDef.id`,
-  filling the global `baseVocab` array.
-- **Recipe to add a new book** (e.g. Connect 3): drop `data/connect3.json`
-  (same shape as `data/connect1.json`) → add one line to `BOOKS` → add the
-  file path to `ASSETS` in `sw.js` and bump `CACHE_NAME` → done. Lessons
-  default to **inactive** until the user turns them on (see active-scope).
-  Before finalizing the new book's JSON, compare its `vn` words against every
-  existing book's and report findings to the user (count + full list, split
-  into "identical word+translation" vs "same word, different sense") — this
-  check can be run automatically, but **never delete or keep an entry without
-  the user explicitly deciding**, one at a time or via a rule they approve.
-  (Connect 1 vs Connect 2 had 7 words in common; only 1 — "bữa tiệc" — was an
-  exact duplicate and was removed after confirmation; the other 6 were the
-  same word with a different sense, kept as-is.)
-- **Active scope** (`active-scope` localStorage key): `{ [bookId]: { [lesson]:
-  true|false } }`. Drives `activeVocab()`, which feeds session draws, the
-  Vocabulary screen, and home stats. `allVocab()` (unfiltered) is used ONLY by
-  the duplicate check in "Add a word" — a word must be catchable as a
-  duplicate even if its lesson isn't active yet. Connect 1 lessons default to
-  active (pre-existing content); anything added later defaults to inactive.
-- **Custom vocab** (`custom-vocab` localStorage key): user-added words,
-  `{id, vn, en, lesson:null}`, always included in `activeVocab()` regardless
-  of active-scope — no toggle for these.
-- **Regional-variant convention** (chantier 21, e.g. "bao tay" vs "găng
-  tay" — same meaning, Southern vs Northern Vietnam spelling): merged into
-  a **single** vocab entry rather than kept as two cards or two glosses —
-  `vn` becomes `"<southern> (S) / <northern> (N)"`, `en` stays the plain
-  shared meaning (e.g. `"bao tay (S) / găng tay (N)"` → `"glove"`). The
-  redundant second entry is deleted rather than kept alongside it. This is
-  a **different** mechanism from the VN-homonym auto-merge (`mergeVnCard()`,
-  see the streak/session-draw notes below) — that one only ever triggers
-  for two entries sharing the *exact same spelling* with different senses
-  (e.g. "chỉ"); a regional variant is two *different* spellings for the
-  *same* sense, authored as one entry by hand, not merged automatically at
-  runtime. Apply this same pattern any time a future review session turns
-  up another true regional-variant pair.
-- **`alwaysActive` books** (chantier 21): a `BOOKS` entry can set
-  `alwaysActive: true` (currently only `custom`, `data/custom.json`) to mean
-  "same treatment as custom-vocab" — no Settings → Sources entry, no lesson
-  toggle, unconditionally included. `ALWAYS_ACTIVE_BOOKS` (a `Set` built once
-  from `BOOKS`) is checked in both `activeVocab()` (bypasses the normal
-  `scope[book][lesson]` filter) and `renderSettingsSources()` (skips the book
-  entirely when rendering the per-lesson grid) — `getActiveScope()` needs no
-  change since `lessonsCount: 0` already makes its per-lesson loop a no-op.
-- **Vocab-review workflow** (chantier 21) — the answer to "custom-vocab lives
-  only in the user's phone localStorage, Claude Code can't see or edit it
-  directly, so how does a word ever get corrected or made permanent?" Words
-  typed into "Add a word" still land in `custom-vocab` exactly as before —
-  nothing changes day to day. Periodically the user exports **"Export data
-  (issues + vocab)"** (Settings → Data → `exportVocabReview()`) — a bundle of
-  `{customVocab, issueReports (unresolved only)}`, deliberately **without**
-  `progress`, and brings the file into a Claude Code session. This single
-  button also **replaced** the older, narrower "Export data (issues only)"
-  from chantier 15 — that one only ever downloaded unresolved
-  `issueReports`, a strict subset of what this export already carries, so
-  keeping both was redundant; `exportIssues()` was deleted rather than kept
-  alongside it. Claude reviews
-  each word (cross-referencing any tied `issueReports` note for translation
-  nuance — see the "rủ" vs "mời" example worked through when this workflow
-  was designed) and, for whichever words are judged ready, writes them
-  **directly into `data/custom.json`** (a normal file edit, committed and
-  pushed like any other code change) — this is the "graduation" moment. The
-  critical rule making this safe: **a promoted word keeps its exact original
-  `custom-vocab` id**. Progress (`progress[id]`) is keyed purely by id and
-  lives in its own separate localStorage key untouched by any of this, so a
-  promoted word's learning streak carries over automatically with zero
-  migration — nothing about `progress` ever needs to move. The now-redundant
-  copy still sitting in the user's `custom-vocab` is **not** deleted by
-  hand — `livingCustomVocab()` (used by both `allVocab()` and
-  `activeVocab()`) filters out any `customVocab` entry whose id already
-  exists in `baseVocab`, so the moment `data/custom.json` ships and the app
-  reloads, the old copy simply stops being shown; it sits inert in
-  localStorage indefinitely (harmless, tiny) rather than needing a cleanup
-  step. This was a deliberate correction mid-design: an earlier version of
-  this plan had the user manually delete graduated words via "Reset manually
-  added words" — rejected because that screen intentionally also deletes
-  the matching `progress` entries (built for "I don't want this word
-  anymore", not "this word moved to a permanent file"), which would have
-  silently reset the streak on every graduated word. The export is
-  **one-way** (phone → Claude Code session) — it is never re-imported, so it
-  carries none of the snapshot/staleness risk that a full "Export data
-  (all)" → edit → re-import round-trip would (re-importing an old `progress`
-  snapshot can overwrite any progress made in the meantime; this workflow
-  never touches `progress` at all, so that risk doesn't apply here). Fixing
-  a word that's already in `connect1.json`/`connect2.json` (not
-  custom-vocab) is simpler still: Claude just edits that file directly, no
-  export/import of any kind needed, since it's already a tracked repo file.
-- **Progress** (`progress` localStorage key): per-direction learning memory,
-  `{ [wordId]: { vn2en: {correct, wrong, last, streak}, en2vn: {...} } }`.
-  `correct`/`wrong` are cumulative counters kept for reference only; `last`
-  is kept for backward compatibility with pre-streak data (see migration
-  below). The live value driving everything is `streak` — a signed integer
-  that is **always -3..-1 or 1..3, never 0** — computed by `stepStreak()` in
-  `index.html`: a correct answer moves it one step toward +3 (jumping
-  straight from -1 to +1, skipping 0 — the two are the *same* pivot point,
-  just colored differently), a wrong answer moves it one step toward -3
-  (jumping from +1 to -1). Both directions are tracked fully independently —
-  knowing a word VN→EN says nothing about EN→VN. `isKnownInDir()` /
-  `isNeedsReviewInDir()` just check the sign (`streak > 0` / `streak < 0`);
-  the magnitude (1/2/3) is extra detail, not a separate category, everywhere
-  except the weighted draw (see below). **Migration**: progress saved before
-  `streak` existed is upgraded lazily (`migratedStreak()`, run once at
-  startup by `migrateProgressStreaks()` in `loadState()`) — if a word was
-  never missed (`wrong === 0`), its streak is reconstructed *exactly* as
-  `+min(correct, 3)` (nothing could have broken the run), symmetrically for
-  never-succeeded words; a genuinely mixed history (both `correct` and
-  `wrong` > 0) can't be reconstructed exactly since the order of past
-  answers was never recorded, so it restarts at `±1` from `last`.
-  **Weighted session draw** (`buildDeck()`): candidates fall into 7 buckets —
-  `new` (never seen) plus one per streak value (`-3`..`3`, skipping 0) — and
-  `LEARNING_MODES` (in `index.html`, selected in Settings → Learning method,
-  `learning-mode` localStorage key, default `balanced`) supplies the quota
-  table: `discovery` 60/30/10, `balanced` 40/40/20, `review` 20/50/30,
-  `consolidation` 0/70/30 (new / review-total / maintenance-total — always
-  multiples of ten so a 10-word session divides evenly). The review total is
-  split across `-3`/`-2`/`-1` weighted toward the worse end, and the
-  maintenance total across `1`/`2`/`3` weighted toward the fresher end —
-  these finer splits are internal only, never shown in the UI. Fallback
-  cascade: a bucket short on words hands its shortfall to the next bucket in
-  `BUCKET_ORDER` (`new`→`-3`→`-2`→`-1`→`1`→`2`→`3`); if `new` is completely
-  empty its whole share is redistributed proportionally across the other 6
-  (same shape, scaled up to still sum to 100). A merged VN-homonym card (see
-  `mergeVnCard()`) is represented by whichever underlying sense has the
-  lowest streak (most negative wins, `new` wins over everything).
-  **`buildDeck()` rolls the 'mix'-mode direction coin flip once per VN-
-  spelling group, not once per word** (chantier 20) — true homonyms sharing
-  one spelling (e.g. "chỉ" = "only" vs "chỉ" = "to guide", 5 such pairs
-  currently: "bộ phận", "chỉ", "mới", "nên", "trả") must land on the same
-  direction together, otherwise one sense could roll vn2en while the other
-  rolled en2vn independently, which used to make the merge into "chỉ (2)"
-  happen only ~25% of the times both were drawn — the other ~75% split them
-  into a vn2en card and an unrelated-looking en2vn card, reported by the
-  user as the merge "randomly" not working. Grouping by spelling before the
-  coin flip makes it deterministic per session: the whole group is either
-  vn2en (merges into one card) or en2vn (each sense shows separately with
-  its own distinct English prompt — no merge needed there, fronts already
-  differ, so no visual ambiguity either way).
-- **`mergeEnCard()` (chantier 22)** — the mirror of `mergeVnCard()`, for
-  true synonyms: two+ vocab entries with a *different* `vn` spelling but the
-  exact same `en` gloss text (e.g. "xài" / "sử dụng", both "to use") merge
-  into one en2vn card (one English prompt, every VN spelling listed on the
-  back) but stay fully separate on vn2en — seeing two pre-paired VN
-  spellings there would give the answer away, and that split needs no code
-  at all since keeping them as distinct JSON entries already produces
-  separate cards. This is the fix for a real gap: two *intended* merge
-  patterns had been conflated under one hand-authored `vn: "X / Y"` JSON
-  convention. **Type 1** — one spelling contains/extends the other (e.g.
-  "cảm"/"cảm lạnh", "mang"/"mang theo") — correctly merges both directions
-  today via `mergeVnCard()` alone; no `en`-side counterpart needed since
-  these were never meant to split. **Type 2** — genuinely different
-  spellings, true synonyms (e.g. "thoải mái"/"dễ chịu", "xài"/"sử dụng")
-  — needed `mergeEnCard()`, since merging both directions was wrong: seeing
-  two independent VN spellings pre-paired on a VN-front card isn't a real
-  recognition test. `candidateCategory()` (weighted-draw bucket) and the
-  merged-card render/mark-answer code in `renderCard()`/`markCard()` are
-  shared between both merge directions — `candidateCategory()` reads
-  `c.dir` instead of hardcoding `'vn2en'`, and `renderCard()`'s merged
-  branch picks `currentCard.vn`/`s.en` vs `currentCard.en`/`s.vn` based on
-  `isVnFirst`, exactly mirroring the unmerged-card branch beside it.
-  **The 'mix'-mode coin-flip grouping (previous bullet) generalizes to a
-  union-find** over "same `vn`" OR "same `en`" — any words that could end up
-  on a merged card, either direction, must share one coin flip, or a
-  synonym pair would suffer the exact same ~25%-of-the-time problem chantier
-  20 fixed for homonyms. Every past `vn: "X / Y"` merge was re-classified
-  (see `VOCAB_CLEANUP_LOG.md`, 2026-08-17 entry, for the full list and the
-  git-history-verified original ids used to split each Type 2 pair back into
-  two JSON entries with identical `en` text). Two entries were deliberately
-  left as judgment calls rather than mechanically reclassified: "mùa hè
-  (casu.) / mùa hạ (litt.)" stays merged both directions (its register tag
-  lives in `vn`, not `en`, so neither merge mechanism would touch it anyway
-  — user chose not to change its shape), and "ngừng / ngưng" (Bắc/Nam
-  regional variant) was retagged to `"ngưng (S) / ngừng (N)"` to match the
-  established Regional-variant convention (S/N order, "bao tay (S) / găng
-  tay (N)") — cosmetic only, still one merged entry.
-- **Other localStorage keys**: `issue-reports` (user-flagged
-  translation/spelling/app-behavior issues),
-  each `{id, wordId, vn, en, dir, page, note, resolved, createdAt}` — `page`
-  is the screen id (`home`/`session`/`add`/`wordlist`/`issues`/`settings*`)
-  active when the report was opened, always recorded; `vn`/`en`/`dir` are
-  only set when the report is tied to a specific word (a session card or a
-  not-found "Add a word" entry) — see "UI structure" for how it's created.
-- **All storage is `localStorage`** — per-device, per-browser, never synced,
-  never sent anywhere. Export/Import (Settings → Data) is the only way to
-  move data across devices/browsers.
-- **Reference dictionary** (`data/dictionary.json`, ~4.5MB raw / ~1.4MB
-  gzip): `{ _license, vn: {...}, en: {...} }`, built by
-  `scripts/build-dictionary.py` from Vietnamese-language Wiktionary entries
-  (CC BY-SA 3.0, actively maintained — chosen over an earlier FVDP/OVDP-based
-  version after that ~20-year-old, no-longer-updated source turned out to
-  have real data-quality problems: e.g. its gloss for "chó" (dog) came out
-  as the unpunctuated blob "Dog spaniel boxer saluki" because its markup
-  couldn't be parsed unambiguously). `vn` is keyed by `normalizeVn(headword)`
-  → array of `{vn, gl}` variants sharing that diacritic-stripped spelling
-  (usually 1, sometimes many — e.g. "ban" groups with "bàn", "bạn", "bản",
-  etc., 12 in total). `gl` is a list of individual senses (Wiktionary's
-  numbered definitions, one gloss string per sense — e.g. "chó" → `["dog",
-  "(little) (son of a) bitch"]`), not one combined string; each sense is
-  also run through `trim_gloss()` in the build script, which drops a
-  trailing long explanatory clause after a short term (e.g. Wiktionary's
-  "printer; a device, usually attached to a computer, used to print text
-  or images onto paper" becomes just `"printer"`) while leaving genuine
-  multi-synonym lists like "to save; to glean; to collect; to lay up"
-  intact — it keeps semicolon-separated segments (parenthesis-aware, so
-  "smack (a loud kiss; a quick noise)" isn't split mid-parenthetical) only
-  while each one stays under 40 characters, stopping at the first long
-  one. Same function also strips a trailing verbose parenthetical off an
-  otherwise-short segment (`strip_verbose_paren()`) — e.g. "crab (a
-  crustacean of the infraorder Brachyura)" becomes just `"crab"` — but
-  leaves a short clarifying parenthetical alone ("to save (every bit of)")
-  and leaves a segment that *starts* with "(" alone (no lead text to fall
-  back to, e.g. "(little) (son of a) bitch"). Affects ~1.3% of senses for
-  the semicolon case and ~10% for the trailing-parenthetical case — real
-  volume, which is why this is a build-script rule rather than a per-word
-  fix. `en` is keyed by
-  an English gloss phrase → array of matching Vietnamese headwords. Lazily
-  fetched by `loadDictionaryData()` only when "Add a word" opens (not at app
-  startup — a one-time download, cached by the service worker afterward).
-  `lookupVnInDictionary()`/`lookupEnInDictionary()` query it.
-  **The user can never type a word straight into Save** — "Check word"
-  (`checkDuplicates()`) renders every matching entry via `dictSenseRows()`:
-  the headword once, then **each individual sense as its own row with its
-  own Apply button** (capped at `MAX_SENSES_SHOWN` = 2, "+N more senses"
-  beyond that) — so picking "dog" applies exactly "dog", not every sense of
-  "chó" glued together. Clicking Apply calls `applyDictionaryEntry(vn, en)`,
-  which overwrites both inputs with that exact spelling + single gloss,
-  re-runs `findVnDuplicate()` against it, and only then reveals the Save
-  button (`#saveWordBtn` is `.hidden` by default and after every edit — see
-  `clearCheckResult()`). This exists specifically to stop a typed-but-
-  uncorrected spelling (e.g. "meo") from being saved just because it happens
-  to match a real word ("mèo") once diacritics are stripped —
-  matching-for-the-check and what-gets-saved used to be the same string,
-  which was the bug. `.check-result` has a `max-height` with internal
-  scroll so a long sense list (e.g. "ban"'s 11 senses across 12 headwords)
-  doesn't push Save far down the screen. A not-found entry shows an inline
-  "Report this word" row (`reportRow()`) instead of an Apply button, calling
-  `openReportPopup({vn, en})` directly (no separate modal) so it lands on
-  the Issues screen for later review. **`findVnDuplicate()`'s "exact" match
-  requires literal string equality** (`w.vn === vn`), not just same-after-
-  normalizeVn — two different accented words that only share their bare
-  spelling (e.g. "chó" dog vs "chỗ" place) fall through to the non-blocking
-  "near" warning instead of being wrongly treated as the same word already
-  in the list. This only became safe to tighten because Apply always writes
-  a real dictionary headword's exact spelling into the VN field before Save
-  is ever reachable — free-typed near-misses like "meo" can no longer reach
-  this check at all. Regenerate the dictionary file with `python3
-  scripts/build-dictionary.py` if the upstream source ever needs
-  refreshing.
+Short summary of each subsystem — read `docs/DATA-MODEL.md` for the full
+mechanics (streak math, merge algorithms, migration logic, exact function
+names) whenever a task actually touches one of these.
 
-- **Grammar** (`data/grammar-<bookId>.json`, e.g. `data/grammar-connect1.json`):
-  an array of card objects `{id, lesson, title, structure, explanation,
-  examples: [{vn, en, book}], scaleHtml?}`. `structure`/`explanation`/`vn`/`en`
-  are **pre-rendered HTML strings**, not plain text — they already contain
-  `<mark class="hl">...</mark>` around the rule's own literal keywords (styled
-  red, see CSS) and `<span class="gd-ph">[...]</span>` around placeholder
-  words (`[subject]`, `[verb]`, `[degree word]`..., always lower-case,
-  bracketed, italic, never bold — this convention is deliberate, keep it
-  consistent for any new rule added later). Storing HTML directly (instead of
-  structured segments a JS renderer would assemble) matches this project's
-  no-build-step, single-file philosophy — same pragmatic tradeoff as the
-  reference dictionary's pre-trimmed glosses. `examples[].book: true` marks a
-  sentence taken verbatim from the textbook (rendered with a gold left
-  border, `.gd-example.book`) vs. one written for this app to fill out to
-  **5 examples per rule**; every rule was checked for one-word-two-meanings
-  clashes across lessons before being written (e.g. "mới" means "just did X"
-  in Bài 1 but "not until X, later than expected" in Bài 3 — both cards
-  cross-reference each other in their explanation text so the two senses
-  don't get confused). `scaleHtml` is optional, set on exactly one card so
-  far (Bài 1 "Degrees of liking") — a full `<div class="gd-scale">` block (a
-  red→gold→jade gradient bar, one tick per level, each level's label angled
-  underneath its own tick) injected as-is into `#gdScaleContainer`; add the
-  same field to any future rule that similarly benefits from a visual scale.
-  Loaded via `loadGrammarData()` (eager, alongside `loadBooksData()` at
-  startup — these files are small, unlike the reference dictionary — tags
-  each card with `book: bookDef.id`, filling the global `grammarData` array)
-  and filtered by `activeGrammar()`, which reuses the **exact same
-  active-scope** that gates vocabulary (`getActiveScope()` — a grammar rule's
-  `lesson` number is checked against `scope[card.book][card.lesson]`, so
-  toggling a lesson on/off in Settings → Vocabulary sources unlocks/hides its
-  grammar rules too, no separate toggle). Grammar has **no learning-memory
-  tracking** — no streak, no session draws, pure consultation, deliberately
-  separate from the flashcard system; the home screen's Grammar card just
-  shows a live count (`refreshGrammarCard()`, called from `refreshStats()`)
-  instead of the Vocabulary card's known/review bars — deliberately
-  book-agnostic text (just "N rules unlocked"), since it now sums rules
-  across every book with a `grammarFile`, not just Connect 1.
-  `data/grammar-connect2.json` (21 cards, chantier 13) extracts from a
-  **different heading marker** than Connect 1's PDFs — Connect 2's grammar
-  boxes are tagged "Cấu trúc" (Structure) / "Ngữ dụng" (Language Usage)
-  instead of "Câu giao tiếp" — found by searching each page's text for
-  either string. Connect 2 Bài 6 is a pure review/capstone lesson (recycles
-  earlier structures like `vừa...vừa`/`tuy...nhưng` in new exercises) and
-  genuinely introduces no new grammar box of its own — confirmed by
-  exhausting every marker search on that PDF, not a missed extraction — so
-  it has zero cards and never appears as a group in the Grammar tab.
+- **Vocabulary catalog** — `BOOKS` array in `index.html`; `loadBooksData()`
+  fetches each book's JSON and fills the global `baseVocab`.
+- **Adding a new book** — drop `data/<id>.json`, add one `BOOKS` line, add
+  the file to `sw.js` `ASSETS` + bump `CACHE_NAME`. Lessons default
+  inactive. Must cross-check VN words against every existing book first —
+  user decides every duplicate, never auto-deleted.
+- **Active scope** — `active-scope` localStorage key drives `activeVocab()`
+  (per-lesson on/off filter feeding sessions, Vocabulary screen, stats);
+  `allVocab()` (unfiltered) is used only by the Add-word duplicate check.
+- **Custom vocab** — `custom-vocab` key, user-added words, always included
+  in `activeVocab()` regardless of active-scope.
+- **Regional-variant convention** — same-meaning North/South spelling pairs
+  (e.g. "bao tay (S) / găng tay (N)") are merged into one hand-authored
+  entry, not two cards.
+- **`alwaysActive` books** — a `BOOKS` flag (currently only `custom`) for
+  books that skip the Settings toggle and are unconditionally included.
+- **Vocab-review workflow** — periodic "Export data (issues + vocab)" bundle
+  reviewed in a Claude Code session; graduated words are written into
+  `data/custom.json` keeping their exact original `custom-vocab` id (so
+  `progress`/streak carries over with zero migration); `livingCustomVocab()`
+  auto-hides the now-redundant localStorage copy. See the standing protocol
+  under "Working agreement" below.
+- **Synonym/homonym merging** — `mergeVnCard()` (same spelling, different
+  sense, e.g. "chỉ") merges both directions; `mergeEnCard()` (different
+  spelling, same English gloss, e.g. "xài"/"sử dụng") merges only en2vn. A
+  union-find groups every word that could land on either kind of merged
+  card so the session's per-group direction coin flip stays consistent.
+- **Progress / streak** — `progress` key, a signed streak (-3..-1/1..3,
+  never 0) tracked independently per direction (`stepStreak()`), with a
+  lazy migration for pre-streak data. Session draws (`buildDeck()`) pull
+  from 7 streak buckets using a quota table keyed by `LEARNING_MODES`
+  (Settings → Learning method), with a fallback cascade when a bucket runs
+  short.
+- **Other localStorage** — `issue-reports` key: user-flagged
+  translation/spelling/app-behavior issues, each tied to a word + screen.
+- **Storage model** — everything lives in `localStorage`, per-device, never
+  synced; Export/Import (Settings → Data) is the only cross-device path.
+- **Reference dictionary** — `data/dictionary.json` (Wiktionary, CC BY-SA),
+  built by `scripts/build-dictionary.py`. "Add a word" is Apply-only: Save
+  stays hidden until an exact dictionary spelling+sense is applied
+  (`checkDuplicates()` → `dictSenseRows()` → `applyDictionaryEntry()`), so a
+  free-typed near-miss can never be saved as-is.
+- **Grammar** — `data/grammar-<bookId>.json`, one card per rule with
+  pre-rendered HTML (keyword highlights, placeholder spans). No streak or
+  session tracking — pure consultation, gated by the same active-scope that
+  gates vocabulary.
+- **Statistics** — `daily-stats` + `stuck-cards` keys. A session only counts
+  as "completed" (for the day-streak count) on natural deck exhaustion, not
+  an early exit. Stuck-word tracking is independent per direction.
 
-- **Statistics** (`daily-stats` and `stuck-cards` localStorage keys, chantier
-  17): `dailyStats[YYYY-MM-DD]` (local calendar day, via `todayKey()`) =
-  `{cardsFlipped, correctAnswers, incorrectAnswers, sessionCompleted}` —
-  created lazily on the day's first flip (`ensureTodayStats()`, called from
-  `markCard()`), never eagerly at startup, so a day with no activity simply
-  has no key (the histogram/streak logic tell "no session" apart from "0
-  cards" this way). Counted **once per card drawn**, not per underlying id —
-  same convention as `sessionResults` (chantier 16): a merged VN-homonym
-  card is one flip. `sessionCompleted` is set at the exact point
-  `renderCard()` detects `deckPos >= deck.length` (natural deck exhaustion)
-  — deliberately **not** set on an early exit via `#exitBtn`, mirroring the
-  sessionResults screen's own "only on full completion" rule. The home
-  Statistics card's "🔥 N-day streak" and the Statistics screen's own streak
-  metric (`computeStreakDays()`) walk backward from today counting
-  consecutive `sessionCompleted` days; if today has no completed session yet
-  that alone doesn't break the streak — the walk just starts from yesterday
-  instead (finishing later today still keeps it, same as most habit-tracker
-  apps). The 7-day activity histogram uses a **rolling 7-day window**
-  (`last7DaysKeys()`, today always last), not a Mon-Sun calendar week —
-  chosen for simplicity over calendar-week alignment, confirmed with the
-  user. `stuckCards[id][dir]` = `{consecutiveAttempts, lastSeen}` — tracked
-  **independently per direction** (confirmed with the user: a word can be
-  stuck VN→EN without being stuck EN→VN), populated by `updateStuckCard()`
-  inside `applyAnswer()`. A word/direction becomes "stuck" only when it was
-  *already* at streak -3 on a previous appearance and stays at -3 after this
-  answer too (`prevStreak === -3 && newStreak === -3`) — first reaching -3
-  doesn't count yet. Climbing back above -3 clears only that direction's own
-  entry; the other direction (if also stuck) is untouched. The Statistics
-  screen's "Stuck cards" section flattens `stuckCards` into one list of
-  `{id, dir, consecutiveAttempts, lastSeen}` instances (so a word stuck both
-  ways appears twice, once per direction), sorted **worst offenders first**
-  (`consecutiveAttempts` desc, ties broken by `lastSeen` desc — chantier
-  20, changed from a pure recency sort so the cards that have been wrong
-  the most times in a row while stuck float to the top), top 5 shown as a
-  **2-line row** each — condensed from an initial 3-line design
-  (chantier 18) specifically so all 3 sections fit one screen with no
-  scroll on a typical current phone. Row layout, left to right (chantier
-  19): direction flags, then the word pair, then the streak count pinned to
-  the far right. **Which word is bold/primary is not fixed to Vietnamese**
-  — it follows the direction actually being tested (`vn2en` prompts VN
-  first → VN bold with the EN gloss as subtitle; `en2vn` prompts EN first →
-  EN bold with the VN word as subtitle), matching the flag order from
-  `dirFlags(dir)` right next to it; the subtitle is ellipsis-truncated
-  (`text-overflow:ellipsis`) so a long gloss can never force a 3rd line.
-  Entry point: a 3rd home-screen `.vocab-card` ("📊 Statistics", same style
-  as Vocabulary/Grammar) → `renderStatisticsScreen()`, rebuilt fresh every
-  time the screen opens (cheap enough — 7 days + up to 5 rows — that
-  there's no need to cache or diff it). The metric-card row sits under its
-  own "Today" section title (same style as "Last 7 days"/"Stuck cards"),
-  and each histogram row shows that day's raw `cardsFlipped` count to the
-  right of the bar, in addition to the success-rate % already inside the
-  green segment — the % is a rate, the count is a volume, chantier 18 added
-  the count so both are visible at once. Every VN↔EN direction label
-  anywhere in the app (this screen, the home Vocabulary card, the per-word
-  popup, the report popup) is rendered by the single `dirFlags(dir)` helper
-  — `🇻🇳 → 🇬🇧` / `🇬🇧 → 🇻🇳` — instead of "VN → EN"/"EN → VN" text
-  (chantier 18). Statistics' CSS sizing was calibrated **twice**: chantier
-  18 squeezed everything down to fit the smallest phone on the market
-  (iPhone-SE-class, 375×667) with no scroll at all; live use on the user's
-  own (larger, more typical) phone found that read as cramped, so chantier
-  19 backed the sizing off to target a common current phone instead
-  (~390×844, e.g. iPhone 13/14) — comfortably fits there with zero scroll,
-  and only needs a small scroll on the smallest phones, which was judged
-  the better tradeoff.
+Full mechanics: see [docs/DATA-MODEL.md](docs/DATA-MODEL.md) (not
+auto-loaded — read it yourself when a task touches this area).
 
 ## UI structure
 
-Screens (each a `<section class="screen">`, shown via `showScreen(id)`):
-`home` → `session` / `add` / `wordlist` / `grammar` / `statistics` /
-`issues` / `settings`.
-`session` → `sessionResults` once the deck is exhausted (see "Data model" for
-what it shows and how) — only on full completion; exiting early via `#exitBtn`
-still goes straight to `home` as before, unchanged.
-`grammar` (list, tapped from the home screen's Grammar card, styled like the
-Vocabulary card but with a plain "N rules unlocked" count instead of
-known/review bars) → `grammarDetail` (one rule, full page — not a popup,
-deliberately, to leave room for the examples list — via `openGrammarDetail
-(cardId)`, back button returns to `grammar` via `showScreen('grammar')`).
-Both reuse the wordlist screen's established layout patterns rather than
-introducing new ones: `.wl-sticky-header` / `max-height:100svh` + `.wordlist-
-scroll` for the list (rows grouped into `.lesson-group`s, one per book+lesson,
-title-only `.gram-row`s — the full rule only renders once opened, on
-`grammarDetail`), and the same `max-height` + inner-scroll split on the
-detail screen itself: `.gd-sticky` (title/structure/explanation, and the
-optional scale graphic) stays fixed, only `.gd-examples` scrolls, so a rule
-with many examples never pushes the explanation off-screen.
-Each `.lesson-group` is a self-contained accordion (chantier 13): its
-`.lesson-group-header` (the "Connect 1 — Bài 1 (5)" row, count from
-`groups[key].length`) toggles the `open` class on its own `.lesson-group`
-only, independent of every other group — plain `classList.toggle()`, no
-persisted JS state, since `renderGrammarList()` only re-runs on a fresh
-Home→Grammar entry (always starts every group `open` by default) and
-`backFromGrammarDetail` returns to `grammar` without re-rendering, so
-manually-collapsed groups stay collapsed across a detail-view round trip
-for free. `.lesson-group-rows` (wraps the `.gram-row`s) collapses via a
-`max-height` CSS transition rather than `display:none`, matching the app's
-no-animation-library convention; the chevron rotates 90° and turns gold
-when its group is open.
-`showScreen()` tracks the active screen in `currentScreenId` and calls
-`updateFloatingIcon()`, which drives `#floatingIssueBtn` — a single button
-positioned outside all `.screen` sections (direct child of `#app`, `position:
-absolute`, top-right) so it stays visible across every screen, including
-mid-session. It has two modes, switched purely by CSS class/click-handler in
-`updateFloatingIcon()`, not by separate markup: on `home` it shows a badge
-(unresolved `issueReports` count, hidden at 0) and opens the `issues` screen
-— the only way to reach the list; on every other screen except `issues`
-itself (where it's hidden — the list has its own "+ New report" button) it
-opens the report popup directly (`openReportPopup()`), capturing the current
-session card if there is one, else just the page. This replaced two older
-entry points: the session-only "Report an issue" button and the home-only
-"Reported issues" menu row.
-`settings` is a 4-entry menu (`.menu-btn` rows): **Vocabulary sources**
-(→ `settingsSources`, per-book `.lesson-grid` of 3-column `.lesson-tile`s
-instead of stacked rows — compact enough that Connect 1 + Connect 2 (12
-lessons) fit on one screen with no scroll; the container still scrolls once a
-3rd book is added) / **Data** (→ `settingsData`, Export/Import) / **Reset**
-(→ `settingsReset`, a 2-entry sub-screen: **Reset learning progress**, opens
-the pre-existing confirm popup — `progress = {}` — and **Reset manually added
-words**, opens a confirm popup naming the exact word count, then clears
-`customVocab` and deletes only the `progress` entries for those word ids;
-if there are 0 custom words it shows a toast instead of opening the popup)
-/ **Learning method** (→ `settingsLearningMode`, see "Data model" for what
-each mode actually changes) — a single-choice list of `.method-row`s built
-by `renderLearningModeList()`, one per key in `LEARNING_MODES`, each row a
-fixed `min-height` (so "Consolidation"'s two-line subtitle doesn't make that
-row taller than the others) showing only a title + plain-language subtitle,
-deliberately no percentages.
-The Vocabulary list (`wordlist`) and its per-word popup (`wlPopupBackdrop`)
-show the streak from "Data model" two ways: `renderWordList()` draws a
-compact `.wl-badge` per row (18px circle, the magnitude 1-3 as a digit
-inside, empty outline if never seen) for whichever single direction the
-`wlLangGroup` pill has selected — never both, since the list already shows
-one direction at a time. The badge fill color is magnitude-shaded to match
-the home Vocabulary card's stat-bar gradient exactly (chantier 12's
-`known-mag1/2/3` / `review-mag1/2/3` hex values, `wl-badge.on-known.mag1/2/3`
-/ `.on-review.mag1/2/3` in the CSS) rather than a flat jade/red — same
-darker-is-more-entrenched convention, same two light shades needing a dark
-text color override for legibility. A free-text search box
-(`#wlSearchInput`, chantier 14) sits below the language pill: it filters
-`words` against only the field for whichever language is currently
-selected (`wordlistLang` doubles as the word object's own field name, `vn`
-or `en`) via `wordlistSearchFilter()`, reusing `normalizeVn()` (see "Data
-model") so an unaccented query like "chao" still matches "chào" — the query
-never matches the other language's field, and it resets to empty every time
-the screen is reopened from `home` (`statDirectoryBtn`'s click handler,
-alongside the existing reset-to-"All" behavior). The header title
-(`#wordlistTitle`) is a plain static "Vocabulary" — an earlier version
-rewrote it live to "Vocabulary | Status (DIR→DIR)" on every filter change,
-removed per the user as unnecessary noise. Tapping a row calls
-`openWordPopup(w)` (takes the whole word object,
-not just display strings, so it can look up both directions), which renders
-the full detail via `renderStreakPips()`: a 5-pip `.wl-popup-pip` row per
-direction, pivot at the middle pip (magnitude 1, colored by sign), extending
-outward to the two pips on either side for magnitude 2/3 — never seen shows
-all 5 empty. The home screen's Vocabulary card (`#vocabStats`, built by
-`refreshStats()`) shows the same per-direction split as two compact rows
-(`computeDirStats()` for the numbers), each a segmented `.vocab-stat-bar`
-with all 3 percentages (known/review/never-seen, no decimals) centered
-inside their own segment — deliberately not a single merged known/review
-total across both directions, since a word known in one direction and not
-the other used to make "known + review" over- or under-shoot the real word
-count. `renderStatBar()` guarantees each shown segment (skipping any that
-rounds to 0%) a minimum visual width so its own number stays legible,
-borrowing the difference from the other segments in one non-sequential pass
-(so boosting one small segment can never undercut another back below the
-minimum — the two "small" segments can't both need it beyond what the one
-guaranteed "big" segment can spare, since a real distribution can't have 2
-of the 3 categories under 12% and still sum to 100).
-`add` (Add a word) is no longer reachable from `home` — its entry point is
-now `#addBtn`, a small `.icon-btn` ("+") in the `wordlist` screen's
-back-row, next to the "Vocabulary" title. `backFromAdd` returns to
-`wordlist` (re-running `renderWordList()` first, so a just-added word shows
-up) instead of `home`. `wordlist`'s header (back-row, status/lang pills,
-legend — everything above `#wordlistScroll`, wrapped in `.wl-sticky-header`)
-stays fixed while the list scrolls: `#app` only sets `min-height`, so
-normally a tall `.screen` grows past the viewport and the whole page
-scrolls past the header too — `#wordlist.screen` alone gets a `max-height`
-cap (`100vh`/`100svh`, same fallback pattern as `#app`), which makes
-`.wordlist-scroll{flex:1; overflow-y:auto}` the actual scroll container
-instead. Scoped to just this one screen by ID so it can't reintroduce the
-`100dvh` address-bar bug documented below for `home`.
+Short summary — read `docs/UI-STRUCTURE.md` for exact screen IDs, CSS
+patterns, and layout mechanics whenever a task actually touches the UI.
+
+- **Screen graph** — `home` → `session` / `add` / `wordlist` / `grammar` /
+  `statistics` / `issues` / `settings` (all via `showScreen(id)`); `session`
+  → `sessionResults` only on full deck completion, not an early exit.
+- **Grammar** — `grammar` (list, per-lesson accordion) → `grammarDetail`
+  (full page, not a popup), reusing the wordlist screen's sticky-header +
+  inner-scroll pattern.
+- **Floating report icon** — `#floatingIssueBtn`, present on every screen;
+  badge + opens the Issues list on `home`, opens the report popup directly
+  everywhere else.
+- **Settings** — 4-entry menu: Sources (per-book lesson grid) / Data
+  (Export/Import) / Reset (progress vs. custom words, with a per-word
+  picker) / Learning method (the `LEARNING_MODES` presets).
+- **Vocabulary list** (`wordlist`) — sticky header over a scrolling list,
+  magnitude-shaded streak badges, a diacritic-insensitive search box; tap a
+  row for a popup with a 5-pip streak row per direction.
+- **Home Vocabulary card** — two-direction stat bars with magnitude
+  sub-shading and a minimum-segment-width legibility guarantee.
+- **Add a word** — entry point is `#addBtn` inside the `wordlist` header
+  (not reachable from `home`); back returns to `wordlist`.
+
+Full mechanics: see [docs/UI-STRUCTURE.md](docs/UI-STRUCTURE.md) (not
+auto-loaded — read it yourself when a task touches this area).
 
 ## Known constraints (read before touching related code)
 
@@ -588,6 +200,17 @@ instead. Scoped to just this one screen by ID so it can't reintroduce the
   with concrete options over a free-text prompt, even for something as
   small as "want to see the result first, or move to the next point?".
 
+### Keeping this file lean
+
+CLAUDE.md should stay lean — as a rule of thumb, well under 300 lines, with
+only what's needed to start any task. When a section grows large with detail
+that's only needed occasionally (deep mechanics, historical log entries,
+edge-case rationale), proactively suggest — don't wait to be asked — moving
+it to a `docs/*.md` file with a short summary + pointer left in its place,
+the same pattern already used for `docs/DATA-MODEL.md`,
+`docs/UI-STRUCTURE.md`, and `docs/CHANGELOG.md`. Always propose this as a
+plan first, never do it silently.
+
 ### Vocab-review session protocol (standing instructions, from chantier 21)
 
 When the user brings a freshly exported "issues + vocab" JSON
@@ -650,356 +273,9 @@ re-explain it:
 
 ## Chantiers completed so far
 
-1. Ported from a Claude.ai artifact to a standalone static site: `window.storage`
-   → `localStorage`, Haiku check disabled, GitHub Pages deployment, PWA
-   manifest/icons/service worker, Export/Import.
-2. Vocabulary restructured for multi-book support: `data/connect1.json`
-   extracted from inline code, `BOOKS` catalog, per-lesson active-scope
-   filtering, new Settings screen (sources / data / reset).
-3. Settings UI redesign: bigger home menu buttons, 3-entry Settings menu,
-   vertical lesson checklist, disabled Connect 2 preview, mobile viewport
-   fix (`svh`).
-4. Connect 2 vocabulary added: `data/connect2.json` (410 words, lessons 1-6)
-   extracted from the source PDFs (see "Known constraints" for how), `BOOKS`
-   catalog entry added, the now-obsolete "COMING SOON" preview block removed
-   from Settings → Vocabulary sources, `sw.js` cache updated. Lessons default
-   to inactive, same as any newly-added book.
-5. Add-word verification redesigned around a reference dictionary instead of
-   the disabled Haiku check (see "Data model" for the mechanics). Went
-   through two iterations before landing: (1) hard-blocked Save on a raw
-   not-found/duplicate word, using the FVDP/OVDP dictionary (GNU GPL) —
-   replaced after catching a real bug, typing "meo" got silently saved
-   as-is just because it matched "mèo" once diacritics were stripped, since
-   Save trusted whatever was literally typed; (2) switched to an Apply-only
-   flow (type roughly → "Check word" → pick the exact dictionary spelling →
-   Save only appears once applied) and, separately, swapped the dictionary
-   source to Wiktionary data (CC BY-SA) after the FVDP source's ~20-year-old,
-   unpunctuated glosses turned out to combine multiple senses into one messy
-   blob (e.g. "chó"/dog rendered as "Dog spaniel boxer saluki") — fixed by
-   showing each sense as its own Apply row instead of joining them. Also
-   fixed `findVnDuplicate()`'s exact-match to require literal spelling
-   equality (was flagging unrelated words like "chó" dog and "chỗ" place as
-   duplicates just for sharing a bare spelling). "Report an issue" popup
-   generalized to also cover not-yet-saved words, surfaced inline instead of
-   a separate modal.
-6. Settings polish: **Vocabulary sources** rebuilt as a 3-column lesson grid
-   per book (see "UI structure") so it fits without scrolling with 2 books;
-   **Reset Progression** split into its own **Reset** sub-screen with 2
-   separate actions instead of one button — resetting learning progress
-   (unchanged) is conceptually different from deleting user-created content,
-   so "Reset manually added words" got its own entry, its own destructive-
-   sounding wording, and a confirmation that names the exact word count
-   before deleting (plus cleans up their now-orphaned `progress` entries).
-7. "Report an issue" redesigned around a single persistent floating icon
-   (`#floatingIssueBtn`, see "UI structure") instead of two separate entry
-   points (session-only button, home-only menu row). Every `issueReports`
-   entry now also records `page` (the screen it was opened from), captured
-   automatically — no category picker was added (considered, then dropped
-   as too heavy per the user). The `issues` screen gained a "+ New report"
-   button (for reports with no specific word) and status filter pills
-   (Unresolved/Resolved/All, mirroring the Vocabulary list's filter pattern).
-   `sw.js` cache bumped to `nhat-chu-v6`. Still open: how to periodically
-   surface unresolved reports to a Claude Code chat for review — deliberately
-   left unsolved this chantier (see "Planned next").
-8. Dictionary source switched from FVDP/OVDP (GPL, 1997-2007, unmaintained)
-   to Wiktionary-derived data (CC BY-SA, actively maintained) after real
-   words surfaced garbled glosses from the old source's ambiguous markup
-   (see "Data model" for the "chó"/dog example). Check-word results now
-   show each dictionary sense as its own row with its own Apply button
-   (`dictSenseRows()`, capped at `MAX_SENSES_SHOWN` = 2 + "+N more senses"),
-   instead of one Apply per headword that joined every sense into one
-   string — so picking "dog" applies exactly "dog". `findVnDuplicate()`'s
-   exact-match fixed to require literal spelling equality instead of
-   diacritic-stripped equality, which had been wrongly flagging unrelated
-   words sharing a bare spelling (e.g. "chó" dog vs "chỗ" place) as
-   duplicates. `.check-result` capped at a `max-height` with internal
-   scroll so a long sense list doesn't push Save far down the screen.
-   Settings → Data credit line updated to Wiktionary/CC BY-SA. Also: the
-   "Quick notes" scratchpad (bottom of "Add a word") removed entirely per
-   the user — markup, CSS, the `quick-notes` localStorage key, and its
-   Export/Import handling are all gone; `sw.js` cache bumped to
-   `nhat-chu-v8`.
-9. Two rounds of real-usage bug reports against the new dictionary, both
-   fixed as build-script rules rather than one-off data edits (see "Data
-   model" for `trim_gloss()`/`strip_verbose_paren()`): first "chó" showing
-   both its senses squashed into one Apply, then "máy in" → "printer; a
-   device, usually attached to a computer..." and "cua" → "crab (a
-   crustacean of the infraorder Brachyura)" — short terms polluted with a
-   long trailing explanation. The "+N more senses" note in `dictSenseRows()`
-   was also just static text with no way to actually see those senses —
-   turned into a real `<button>` that reveals them in place and removes
-   itself. Separately: "Add a word" moved off `home` entirely, now opened
-   via a small "+" icon button in the `wordlist` screen's header (see "UI
-   structure"), whose header was also made to stay fixed while the list
-   scrolls (previously the whole page scrolled the filters away).
-10. Learning-memory system replaced end to end: the old last-outcome-only
-    known/review/new categorization became a signed streak (-3..-1/1..3,
-    skip zero) tracked independently per direction, with an exact-where-
-    possible migration for existing progress and a redesigned draw
-    algorithm (see "Data model" for all the mechanics). Also fixed a real
-    bug caught during this chantier's own testing: the home stat bar's
-    minimum-segment-width guarantee was drawing a visible colored sliver
-    labeled "0%" for a category that rounded down to nothing, and applying
-    the width correction sequentially could shrink an already-boosted
-    segment back below its own minimum — `renderStatBar()` now hides any
-    category that rounds to 0% and corrects all undersized segments in a
-    single non-sequential pass. New UI: streak badges/pips in the
-    Vocabulary list and its per-word popup, the home Vocabulary card's
-    two-direction percentage bars, and a Settings → Learning method screen
-    (4 named presets, no percentages shown — see "UI structure"). The
-    visible `--red` was also brightened from `#9A3323` to `#D6412C`
-    everywhere it's used (a single CSS variable, so one change cascades to
-    the session "needs work" stamp, buttons, badges, etc.) — the old value
-    read as too muted for something meant to draw attention. `sw.js` cache
-    bumped to `nhat-chu-v16`.
-
-11. New **Grammar** tab added (`grammar`/`grammarDetail` screens, home
-    Grammar card — see "UI structure") with all 22 grammar rules from
-    Connect 1 (Bài 1-6), extracted from the source lesson-body PDFs (not the
-    vocabulary appendix used before — grammar boxes are scattered through
-    each lesson under a "Conversational Phrase" / "Câu giao tiếp" heading,
-    found by searching each PDF page's text for that marker rather than
-    reading a structured appendix). Deliberately **not** a flashcard system —
-    no streak, no session draws, pure consultation (see "Data model" for the
-    full card shape and the active-scope reuse that unlocks rules per
-    lesson). Went through several rounds of visual iteration before landing
-    on the final design, all driven by user feedback on live mockups
-    (published as Artifacts, since local file:// previews and the sandboxed
-    render panel both turned out unable to run JS or even plain `<a href=
-    "#...">` CSS `:target` navigation — the working mockup technique ended
-    up being pure-CSS `:target` page-switching with no JS at all, later
-    ported to real `showScreen()` calls for the actual app): detail view
-    moved from a popup to a full page for room to breathe; rule keywords
-    highlighted in bold red text (no background — an earlier gold-highlight
-    version was rejected as "too busy"); a placeholder-word convention
-    settled on (`[noun]`/`[verb]`/etc. — italic, lowercase, not bold, always
-    bracketed — vs. the rule's own literal words in plain bold); textbook
-    examples get a thin gold left border to distinguish them from the
-    examples written for this app to reach 5 per rule; and one rule ("Degrees
-    of liking", Bài 1) got a custom red→gold→jade gradient scale graphic
-    (mirrors the app's existing streak colors) after two failed attempts —
-    first a same-direction angled-label layout that overflowed and looked
-    cluttered, replaced by shrinking the bar to ~76% width (which both frees
-    room for the labels to lean into and pulls the ticks closer together)
-    with every label at the same rotation angle, then centered. Also caught
-    and fixed a real correctness bug during review: an early draft added
-    "(only)" to every English translation of "mới" examples, but "only"
-    actually comes from a *different* word ("thôi", which pairs with "mới"
-    in speech per the textbook's own note) — kept only on the one example
-    that actually contains "thôi" in the Vietnamese, and left uncolored
-    (not red) there since it isn't really "mới"'s own meaning. `sw.js` cache
-    bumped to `nhat-chu-v17`.
-
-12. Home screen's Vocabulary card stat bars (`renderStatBar()`) got
-    magnitude shading: the solid-green "known" segment and solid-red
-    "review" segment are now each subdivided into 3 inner shades matching
-    streak magnitude 1/2/3 (see "Data model" for the streak model) —
-    magnitude 3 darkest, magnitude 1 lightest. `computeDirStats()` gained
-    `knownByMag`/`reviewByMag` (additive, existing keys untouched) to feed
-    this. Purely cosmetic: the outer known/review/new percentages, widths,
-    and the `MIN_SEG_PCT` minimum-width legibility guarantee are all
-    unchanged — the magnitude sub-shading only divides up the width a
-    segment already got. Left-to-right order is deliberately different per
-    color: green goes dark→light (most solid first), red goes light→dark
-    (builds toward full "needs review") — chosen by the user, not
-    symmetric. Added `text-shadow` to the known/review percentage labels
-    since a lone light shade under the text is no longer guaranteed to have
-    the old flat dark background. `sw.js` cache bumped to `nhat-chu-v25`.
-
-13. Grammar extended to Connect 2: `data/grammar-connect2.json` (21 rules
-    across Bài 1-5; Bài 6 is a review lesson with no new structures — see
-    "Data model" for how the extraction marker differs from Connect 1's and
-    why Bài 6 has zero cards), `BOOKS`' connect2 entry gained a `grammarFile`
-    field, `sw.js` `ASSETS` gained the new file. Several Connect 2 rules
-    revisit ground Connect 1 already covers with more depth or nuance
-    (`Trong khi ... thì ...` vs. Connect 1's `khi / trong khi`; `Tuy ...
-    nhưng ...` vs. `Mặc dù ... nhưng ...` within Connect 2 itself) — each
-    such card's explanation cross-references the earlier one instead of
-    silently duplicating it, per the project's one-word/one-concept
-    cross-check convention (see "Data model"). Also added a per-lesson
-    accordion to the Grammar list (see "UI structure" for the mechanics):
-    each `.lesson-group` header is now clickable, shows a rule count in
-    parentheses, and independently expands/collapses its rows — open by
-    default, multiple groups can stay open at once (user's explicit
-    preference, confirmed before building). Fixed a real staleness bug this
-    surfaced: `refreshGrammarCard()`'s home-screen summary hardcoded "·
-    Connect 1", which would have quietly misrepresented the count once a
-    second book started contributing rules — removed rather than made
-    dynamic, since the count itself was already book-agnostic and a second
-    book name would have made the line noisy. `sw.js` cache bumped to
-    `nhat-chu-v26`.
-
-14. Vocabulary list search + badge polish: a free-text search box added
-    below the language toggle (`#wlSearchInput`), diacritic-insensitive
-    (reuses `normalizeVn()`) and scoped to whichever language is currently
-    selected — see "UI structure" for the mechanics. The per-row `.wl-badge`
-    streak indicator, previously a flat jade/red circle, now shades by
-    magnitude with the exact same 6 hex values as the home Vocabulary card's
-    stat-bar gradient from chantier 12, so the two known/review color scales
-    read as one consistent system across the app. Also removed the
-    `wordlistTitle` live rewrite ("Vocabulary | Status (DIR→DIR)") per the
-    user — the header is now always a plain static "Vocabulary" regardless
-    of the status/language filters. `sw.js` cache bumped to `nhat-chu-v27`.
-
-15. Settings reorganized around Data/Reset. `exportIssues()` added in
-    Settings → Data ("Export data (issues only)"): downloads only
-    `issueReports` entries with `resolved: false` as
-    `issues_YYYY-MM-DD.json` — a lighter counterpart to the existing full
-    `exportData()` backup (renamed "Export data (all)" for contrast), reusing
-    the same `Blob`+anchor download pattern. Settings → "Vocabulary sources"
-    renamed to just "Sources" (menu entry, screen header, and the Grammar
-    empty-state hint) now that it gates both vocabulary *and* grammar
-    lessons via the same active-scope. Settings main menu reordered to
-    Sources → Learning method → Data → Reset → Test mode; Data screen
-    reordered to Export data (all) → Export data (issues only) → Import
-    data. Settings → Reset → "Reset manually added words" no longer deletes
-    everything in one tap: it now opens a new picker screen
-    (`settingsResetVocab`, reusing the wordlist screen's sticky-header +
-    scroll pattern) listing every custom word with an individually tappable
-    checkmark (`.picker-row`/`.picker-toggle`, styled after the Issues
-    list's resolved-toggle circle) plus a "Select all" row that toggles
-    every word at once; the existing confirm-delete popup is reused as-is,
-    its message now reporting the actual selected count instead of always
-    "all". Deleting down to zero words auto-returns to the Reset screen;
-    a partial delete just re-renders the picker with the remainder.
-    `sw.js` cache bumped to `nhat-chu-v29`.
-
-16. End-of-session "Results" recap card. Finishing a full session (deck
-    exhausted, `deckPos >= deck.length` inside `renderCard()`) no longer
-    tosses a generic toast and jumps to `home` — it now routes to a new
-    `sessionResults` screen (see "UI structure") built around a card that
-    reuses the flashcard's exact flip mechanic. Front face is static:
-    "Results" / *Kết quả* (italic, below), same "tap to reveal" convention.
-    Back face is **two independent columns**, ✅ (correct answers) and 🧠
-    (wrong answers, mirroring the session buttons' own emoji) — each row
-    is fully self-contained (`[before pastille] → [after pastille] × N`,
-    both badges live in every row, no shared middle column). A word can
-    only ever start a session from one of 7 pastilles (`null`/new, `-3`..
-    `-1`, `1`..`3` — see `stepStreak()`, "Data model"), each with exactly
-    one correct-answer destination and one wrong-answer destination
-    (computed live via `stepStreak(pos, correct)`, never hardcoded), so
-    each column always shows exactly those same 7 rows — fixed, so no
-    scrolling is ever needed. A row whose count is `0` still shows its
-    `[before] → [after]` pastilles (the point of the column is to make
-    every reachable transition visible, not just what happened) — only the
-    `× N` count text itself is omitted for that row, never printed as
-    `×0`. The two columns deliberately run in **opposite directions**:
-    `RESULTS_LADDER_CORRECT` (`[-3,-2,-1,null,1,2,3]`) reads worst-review-
-    first, top to bottom, matching the ladder order used elsewhere (e.g.
-    `renderStreakPips`); `RESULTS_LADDER_WRONG` is the reverse
-    (`[3,2,1,null,-1,-2,-3]`) so the 🧠 column reads least-bad-first,
-    ending on the single worst possible outcome — 🔴3 answered wrong again
-    (`-3` "staying" `-3`) — at the very bottom. A "maintained" row (🟢3
-    correct again, or 🔴3 wrong again) needs no special-casing: its
-    destination badge is simply identical to its own starting pastille,
-    which already reads as "stayed here." This is the *second* design
-    pass — the very first version (a single shared-position 7×3 grid) was
-    rejected by the user for burying the "worst" outcome in the middle of
-    the grid instead of at a clear end, and for having no obvious reason
-    the grid couldn't show an impossible transition; this two-column,
-    opposite-direction, zero-omitted layout was specified directly by the
-    user and validated by them before being built. Both design passes were
-    proposed and confirmed with the user *before* code was written for
-    either — worth preserving as the pattern for any future
-    visually-driven feature request. Data capture (unchanged across both
-    passes): `markCard()` reads the pre-answer streak via the existing
-    `getStreak()` before calling `applyAnswer()`, and pushes
-    `{prevStreak, newStreak, correct}` into a session-scoped
-    `sessionResults` array (reset at the top of `buildDeck()`); for a
-    merged VN-homonym card, only the first id's streak is recorded — one
-    entry per card *drawn*, not per underlying id, same "representative
-    sense" convention `mergeVnCard` already uses elsewhere. The results
-    card's own front/back faces deliberately do **not** reuse the session
-    card's `.face` class (new `.rs-face` instead) — `flipCard()`/
-    `renderCard()` grab `.face.front`/`.face.back` via a bare
-    `document.querySelector()`, and since every screen's markup stays in
-    the DOM at once (only hidden via CSS), a shared class name would have
-    let the wrong card answer that query depending on source order; the
-    results screen gets its own small `flipResultsCard()` instead.
-    `#sessionResults.screen` was still added to the existing
-    `#wordlist.screen`-style `max-height:100svh` selector (see "Known
-    constraints") as a safety net even though this bounded layout no
-    longer strictly needs it to avoid overflow. `sw.js` cache bumped to
-    `nhat-chu-v33`.
-
-17. New **Statistics** tab (`statistics` screen, home card — see "Data
-    model" for the full `dailyStats`/`stuckCards` mechanics and "UI
-    structure" for the screen). Three sections: 3 metric cards (cards today,
-    success rate, day streak), a rolling-7-day activity histogram (green
-    correct / red wrong segments, bar width proportional to that day's card
-    count), and a top-5 "stuck cards" list. Two new localStorage keys
-    (`daily-stats`, `stuck-cards`), both additive — `progress` and every
-    other existing key untouched. Two design decisions were confirmed with
-    the user before/during the build rather than assumed: stuck-card
-    tracking is **independent per direction** (a word can be stuck VN→EN
-    without being stuck EN→VN — the initial proposal of a single combined
-    entry per word id was corrected by the user), and the 7-day window is a
-    **rolling** window (today always last) rather than a Mon-Sun calendar
-    week, chosen for simplicity and confirmed before implementation. "End of
-    session" for the streak/histogram reuses the exact same natural-
-    deck-exhaustion point `renderCard()` already uses for the `sessionResults`
-    screen (chantier 16) — exiting early via `#exitBtn` does not count.
-    Caught and fixed during this chantier's own browser-based verification:
-    an `ensureTodayStats()` helper was referenced (in comments and in both
-    `markCard()` and `renderCard()`) but never actually defined — a
-    `ReferenceError` that silently broke every "Got it"/"Needs work" button
-    in the session screen. Found by driving a real session in the browser
-    preview (flip → answer → check `dailyStats`) rather than only unit-
-    testing the data functions in isolation — worth remembering as a reason
-    to always exercise the real click path, not just the underlying logic,
-    before calling a feature done. `sw.js` cache bumped to `nhat-chu-v38`.
-
-18. Statistics polish, from live-usage feedback right after chantier 17
-    shipped (see "Data model" for the exact mechanics touched):
-    - **No-scroll layout**: stuck-card rows condensed from 3 lines to 2
-      (word+direction on one line, gloss on the next, ellipsis-truncated so
-      a long gloss can never force a 3rd line), and every Statistics
-      spacing value (card padding, section margins, row gaps) tightened —
-      specifically so all 3 sections (today / 7-day histogram / top-5 stuck
-      cards) fit on one screen with zero scrolling on a small phone
-      (verified at 375×667, iPhone SE-class, the smallest common target).
-    - **Day counts on the histogram**: each of the 7 daily bars now shows
-      its raw `cardsFlipped` count to the right, alongside the success-rate
-      % already inside the green segment — volume and rate were previously
-      conflated into a single number.
-    - **"Today" grouping**: the 3 metric cards got their own section title,
-      matching "Last 7 days"/"Stuck cards" — and "Cards today" was renamed
-      to "Cards reviewed" since "today" is now redundant with the title.
-    - **Flags instead of text everywhere**: "VN → EN"/"EN → VN" replaced by
-      `🇻🇳 → 🇬🇧`/`🇬🇧 → 🇻🇳` app-wide (Statistics stuck cards, the home
-      Vocabulary card, the per-word popup, the report popup) via one shared
-      `dirFlags(dir)` helper — a global visual-consistency pass, not
-      Statistics-specific, done in the same chantier because the stuck-card
-      compaction already needed a compact direction indicator.
-    Also folds in a same-day standalone fix that shipped between chantier 17
-    and this one: the floating report/issues icon (top-right on every
-    screen) had a permanently-empty label `<span>` still reserving
-    line-height space beneath it, visibly pushing the icon above the
-    header text next to it — removed, and the button's `top` offset
-    retuned to center on that text now that the dead space is gone.
-    `sw.js` cache bumped to `nhat-chu-v39` (icon fix) then `nhat-chu-v40`
-    (this chantier).
-
-19. Statistics tweaks from testing chantier 18 on the user's actual phone
-    (see "Data model" for the exact mechanics touched):
-    - **Sizing recalibrated**: chantier 18's no-scroll layout had been
-      tuned against the smallest phone on the market (iPhone-SE-class,
-      375×667) and read as too cramped on the user's own, more typical
-      phone — every Statistics size bumped back up moderately, now
-      calibrated against a common current phone (~390×844) instead. Still
-      fits with zero scroll there; the smallest phones may now need a
-      little scroll, judged the better tradeoff.
-    - **Stuck-card word order fixed to the direction, not to Vietnamese**:
-      the bold/primary word used to always be the Vietnamese one regardless
-      of direction, which read backwards for an EN→VN row (you're being
-      shown the English word first in practice). Now `vn2en` shows VN bold
-      with the EN gloss as subtitle, `en2vn` shows EN bold with the VN word
-      as subtitle — matches what's actually prompted in that direction.
-    - **Stuck-card row re-laid-out**: direction flags moved to their own
-      column on the far left (previously inline next to the word), then
-      the word pair, then the streak count pinned to the far right —
-      clearer scanning order than the chantier 18 layout.
-    `sw.js` cache bumped to `nhat-chu-v41`.
+Chantiers 1–19: see [docs/CHANGELOG.md](docs/CHANGELOG.md) (not auto-loaded
+— read it yourself for the full chronological dev log). The 3 most recent
+stay inline below for immediate context.
 
 20. Two bug fixes from live usage (see "Data model" for the exact
     mechanics touched):
