@@ -164,4 +164,60 @@ into one card (all senses listed) on VN-front session cards. Code:
   synonyms, not similar/overlapping spelling) — per the merge-direction bug
   noted in CLAUDE.md "Planned next", this should end up split again in
   VN→EN once that mechanism exists; flagging here now so the future audit
-  doesn't have to rediscover it.
+  doesn't have to rediscover it. **Resolved 2026-08-17, see below.**
+
+## 2026-08-17 — synonym-merge direction fix (Type 1 vs Type 2 audit)
+
+Built `mergeEnCard()` in `index.html` — the mirror of `mergeVnCard()`: two+
+words sharing the exact same `en` text but a *different* `vn` spelling now
+merge into one card only on the en2vn side (one English prompt, every VN
+spelling listed on the back); they stay fully separate on vn2en, which
+needed no code at all since keeping them as distinct JSON entries already
+produced that. See CLAUDE.md "Data model" for the full mechanism (union-find
+coin-flip grouping, `candidateCategory()`, rendering).
+
+Every past `vn: "X / Y"` merge in `data/connect1.json`/`data/connect2.json`
+was re-classified:
+
+- **Type 1 (overlapping/containing spelling) — left as-is, still merged both
+  directions**: cảm/cảm lạnh, khô/khô ráo, mang/mang theo, mát/mát mẻ,
+  ngập/ngập nước, ồn/ồn ào, tập/luyện tập, tiệc/bữa tiệc, tiện/tiện lợi,
+  phụ/phụ giúp.
+- **Regional variant (separate mechanism, untouched)**: bao tay (S) / găng
+  tay (N).
+- **Type 2 (genuinely different spelling, true synonyms) — split back into
+  two JSON entries, same `en` text on both, exact pre-merge ids restored
+  from git history**:
+  - **thoải mái / dễ chịu** → `b71`="dễ chịu" (unchanged id/lesson) +
+    `b299`="thoải mái" (lesson 3, re-added), both "comfortable".
+  - **lười / làm biếng** → `b171`="làm biếng" (unchanged id/lesson) +
+    `b179`="lười" (lesson 4, re-added), both "lazy".
+  - **chăm chỉ / siêng** → `c32`="chăm chỉ" (unchanged id/lesson) +
+    `b275`="siêng" (lesson 1, re-added to `connect1.json`), both
+    "hardworking, diligent".
+  - **hang / động** → `c139`="hang" (unchanged id/lesson) + `c105`="động"
+    (lesson 3, re-added), both "cave".
+  - **họp mặt / sum họp** → `c155`="họp mặt" (unchanged id/lesson) +
+    `c301`="sum họp" (lesson 5, re-added), both "to get together; to
+    gather; to reunite".
+  - **sản phẩm / mặt hàng** → `c294`="sản phẩm" (unchanged id/lesson) +
+    `c225`="mặt hàng" (lesson 1, re-added), both "product".
+  - **còn / vẫn** → `c392`="vẫn" (unchanged id/lesson, stays in
+    `connect2.json`) + `b58`="còn" (lesson 4, re-added to
+    `connect1.json` — cross-book restore, `b58` had been fully deleted
+    from `connect1.json` by the original merge).
+  - **xài / sử dụng** (`b352`/`c302`) — already stored as two separate
+    entries with identical `en` ("to use") since the 2026-08-08 cleanup;
+    zero data change needed, the new mechanism picks it up automatically.
+- **Deliberately left alone, judgment calls made with the user**:
+  - **mùa hè (casu.) / mùa hạ (litt.)** (`b207`) — register tag lives in the
+    `vn` text (not the `en` text like hàng xóm/láng giềng etc.), so it never
+    triggers either merge mechanism either way. Asked the user whether to
+    convert this to a Type 2 split or leave it merged in both directions —
+    **decided: leave unchanged**, stays one hand-authored card same as
+    Type 1 words.
+  - **ngừng / ngưng** (`c246`, Bắc/Nam regional variant) — retagged to
+    `"ngưng (S) / ngừng (N)"` to match the established (S)/(N) convention
+    from bao tay/găng tay (confirmed via web search: ngưng = Central/
+    Southern, ngừng = Northern/standard — Wiktionary). Purely cosmetic,
+    still one merged entry, unaffected by the Type 2 mechanism.

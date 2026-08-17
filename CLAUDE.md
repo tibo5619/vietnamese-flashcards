@@ -181,6 +181,43 @@ session opened in this folder — keep it up to date after each chantier.
   vn2en (merges into one card) or en2vn (each sense shows separately with
   its own distinct English prompt — no merge needed there, fronts already
   differ, so no visual ambiguity either way).
+- **`mergeEnCard()` (chantier 22)** — the mirror of `mergeVnCard()`, for
+  true synonyms: two+ vocab entries with a *different* `vn` spelling but the
+  exact same `en` gloss text (e.g. "xài" / "sử dụng", both "to use") merge
+  into one en2vn card (one English prompt, every VN spelling listed on the
+  back) but stay fully separate on vn2en — seeing two pre-paired VN
+  spellings there would give the answer away, and that split needs no code
+  at all since keeping them as distinct JSON entries already produces
+  separate cards. This is the fix for a real gap: two *intended* merge
+  patterns had been conflated under one hand-authored `vn: "X / Y"` JSON
+  convention. **Type 1** — one spelling contains/extends the other (e.g.
+  "cảm"/"cảm lạnh", "mang"/"mang theo") — correctly merges both directions
+  today via `mergeVnCard()` alone; no `en`-side counterpart needed since
+  these were never meant to split. **Type 2** — genuinely different
+  spellings, true synonyms (e.g. "thoải mái"/"dễ chịu", "xài"/"sử dụng")
+  — needed `mergeEnCard()`, since merging both directions was wrong: seeing
+  two independent VN spellings pre-paired on a VN-front card isn't a real
+  recognition test. `candidateCategory()` (weighted-draw bucket) and the
+  merged-card render/mark-answer code in `renderCard()`/`markCard()` are
+  shared between both merge directions — `candidateCategory()` reads
+  `c.dir` instead of hardcoding `'vn2en'`, and `renderCard()`'s merged
+  branch picks `currentCard.vn`/`s.en` vs `currentCard.en`/`s.vn` based on
+  `isVnFirst`, exactly mirroring the unmerged-card branch beside it.
+  **The 'mix'-mode coin-flip grouping (previous bullet) generalizes to a
+  union-find** over "same `vn`" OR "same `en`" — any words that could end up
+  on a merged card, either direction, must share one coin flip, or a
+  synonym pair would suffer the exact same ~25%-of-the-time problem chantier
+  20 fixed for homonyms. Every past `vn: "X / Y"` merge was re-classified
+  (see `VOCAB_CLEANUP_LOG.md`, 2026-08-17 entry, for the full list and the
+  git-history-verified original ids used to split each Type 2 pair back into
+  two JSON entries with identical `en` text). Two entries were deliberately
+  left as judgment calls rather than mechanically reclassified: "mùa hè
+  (casu.) / mùa hạ (litt.)" stays merged both directions (its register tag
+  lives in `vn`, not `en`, so neither merge mechanism would touch it anyway
+  — user chose not to change its shape), and "ngừng / ngưng" (Bắc/Nam
+  regional variant) was retagged to `"ngưng (S) / ngừng (N)"` to match the
+  established Regional-variant convention (S/N order, "bao tay (S) / găng
+  tay (N)") — cosmetic only, still one merged entry.
 - **Other localStorage keys**: `issue-reports` (user-flagged
   translation/spelling/app-behavior issues),
   each `{id, wordId, vn, en, dir, page, note, resolved, createdAt}` — `page`
@@ -1007,43 +1044,39 @@ re-explain it:
     workflow gap this chantier closes) is still to come. `sw.js` cache
     bumped to `nhat-chu-v46`.
 
+22. **Synonym-merge direction bug fixed** (found chantier 21, "Planned
+    next"): the two *intended* merge types hand-authored under the single
+    `vn: "X / Y"` JSON convention were conflated into one always-both-
+    directions mechanism. Built `mergeEnCard()` — the mirror of
+    `mergeVnCard()` — so Type 2 pairs (genuinely different spelling, true
+    synonyms, e.g. "xài"/"sử dụng") merge only in en2vn while staying split
+    in vn2en; Type 1 pairs (one spelling contains/extends the other, e.g.
+    "cảm"/"cảm lạnh") are untouched, still merged both directions via
+    `mergeVnCard()` alone. See "Data model" for the full mechanism (union-
+    find coin-flip grouping, generalized `candidateCategory()`/
+    `renderCard()`). Re-classified every past merge in
+    `data/connect1.json`/`data/connect2.json` (19 total) and split the 7
+    confirmed Type 2 entries back into two JSON objects each — same `en`
+    text on both (so the new mechanism regroups them), exact pre-merge ids
+    restored from git history, not invented (preserves `progress`
+    continuity): thoải mái/dễ chịu, lười/làm biếng, chăm chỉ/siêng,
+    hang/động, họp mặt/sum họp, sản phẩm/mặt hàng, còn/vẫn — full
+    before/after table in `VOCAB_CLEANUP_LOG.md`'s 2026-08-17 entry.
+    xài/sử dụng needed no data change (already 2 entries, already identical
+    `en`). Two entries were judgment calls confirmed with the user rather
+    than mechanically reclassified: "mùa hè (casu.) / mùa hạ (litt.)" stays
+    merged both directions unchanged (its register tag lives in `vn`, so
+    neither mechanism would touch it anyway), and "ngừng / ngưng" was
+    retagged to `"ngưng (S) / ngừng (N)"` to match the established (S)/(N)
+    convention (confirmed via web search which spelling is Southern vs
+    Northern) — cosmetic only. Verified live in the browser: both merge
+    directions tested for all 8 relevant pairs (7 restored + xài/sử dụng),
+    plus a full-deck screenshot of a merged "product" card showing "mặt
+    hàng" / "sản phẩm" together on the back. `sw.js` cache bumped to
+    `nhat-chu-v67`.
+
 ## Planned next (not started)
 
-- **Fix synonym-merge direction bug + audit `VOCAB_CLEANUP_LOG.md`** (found
-  chantier 21, deferred as its own future chantier — real scope, not a
-  quick fix): the user identified two *intended* merge types that the
-  current single mechanism conflates.
-  - **Type 1 — similar/overlapping spelling** (one word contains or extends
-    the other, e.g. "cảm"/"cảm lạnh", "mang"/"mang theo", "mát"/"mát mẻ"):
-    correctly merged **both directions** today via the existing hand-authored
-    `vn: "X / Y"` single-entry pattern (see "Regional-variant convention"
-    in "Data model" — same mechanism, this is the general case it was
-    generalized from). No bug here — leave these alone.
-  - **Type 2 — genuinely different spelling, true synonyms** (e.g. "thoải
-    mái"/"dễ chịu", "xài"/"sử dụng", "lười"/"làm biếng"): should merge
-    **only in EN→VN** (one English prompt, both Vietnamese spellings shown
-    together on the back) but stay **separate in VN→EN** (each Vietnamese
-    spelling is its own independent prompt/card — seeing two unrelated
-    spellings pre-paired doesn't test real recognition, since in the wild
-    you'll meet one or the other, not both glued together). **This
-    direction-aware behavior does not exist in the code at all** — verified
-    by grepping for any EN-side grouping mechanism, none found. It would be
-    the mirror of `mergeVnCard()` (which groups by VN spelling, merges in
-    vn2en, splits in en2vn) — grouping by shared `en` text instead, merging
-    in en2vn, splitting in vn2en (the vn2en split needs no new code, since
-    keeping them as separate JSON entries already produces that today).
-  - **Confirmed broken today, live-tested in the browser**: "thoải mái /
-    dễ chịu" (`b71`) is merged in *both* directions (wrong — VN→EN should
-    split); "xài" (`b352`) / "sử dụng" (`c302`) are separate in *both*
-    directions (wrong — EN→VN should merge them, currently doesn't).
-  - **The actual task**: (1) build the EN-side merge-for-en2vn-only
-    mechanism; (2) re-read `VOCAB_CLEANUP_LOG.md` top to bottom, classify
-    every past merge as Type 1 or Type 2, and for every Type 2 currently
-    stored as a combined `vn: "X / Y"` entry, split it back into two
-    separate JSON objects (same `en` text on both, so the new mechanism
-    picks them up) — check git history for each pair's original two ids
-    before the merge, to restore them exactly rather than inventing new
-    ones (preserves any existing `progress` continuity).
 - **Vocabulary content**: broaden Connect 1 beyond the end-of-book glossary
   (needs the per-lesson PDFs, already available — see "Known constraints"),
   rework existing Connect 1 entries (translations, sort-order handling for

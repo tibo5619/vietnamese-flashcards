@@ -1765,14 +1765,37 @@ function mergeVnCard(group){
     merged: true
   };
 }
+// Mirror of mergeVnCard, for the opposite direction: true synonyms — two+
+// DIFFERENT VN spellings sharing the exact same English gloss text (e.g.
+// "xài" / "sử dụng", both "to use") — merge into one en2vn card (one
+// English prompt, every VN spelling listed on the back) but stay fully
+// separate on the vn2en side, where pre-pairing them would give the answer
+// away. That vn2en split needs no code at all: keeping them as distinct
+// JSON entries already produces separate cards there. See CLAUDE.md "Data
+// model" / "Planned next" for the Type 1 (overlapping spelling, merged both
+// directions via mergeVnCard + a single hand-authored `vn: "X / Y"` entry)
+// vs Type 2 (this mechanism) distinction.
+function mergeEnCard(group){
+  return {
+    id: group.map(g => g.id).join('+'),
+    ids: group.map(g => g.id),
+    en: group[0].en,
+    senses: group.map(g => ({ vn: g.vn, book: g.book, lesson: g.lesson })),
+    dir: 'en2vn',
+    merged: true
+  };
+}
 // Category of a deck candidate for the weighted draw — a merged card is as
 // advanced as its LEAST-known sense, so it keeps showing up until every
 // sense behind it has been answered correctly at least once. "new" wins if
 // any sense is unseen; otherwise the most negative streak among the senses
 // represents the whole card (worst sense drives the bucket it lands in).
+// Works for either merge direction — c.dir is 'vn2en' for mergeVnCard,
+// 'en2vn' for mergeEnCard, and every id behind a merged card was always
+// tested in that same direction.
 function candidateCategory(c){
   if(!c.merged) return categorizeForDir(c.id, c.dir);
-  const streaks = c.ids.map(id => getStreak(id, 'vn2en'));
+  const streaks = c.ids.map(id => getStreak(id, c.dir));
   if(streaks.includes(null)) return 'new';
   return String(Math.min(...streaks));
 }
@@ -2038,34 +2061,51 @@ function buildDeck(){
   const total = activeVocab();
   const size = Math.min(selectedSize, total.length);
 
-  // Grouped by VN spelling BEFORE the direction coin flip — true homonyms
-  // (see mergeVnCard below, e.g. "chỉ") must share ONE direction roll for
-  // the whole group in 'mix' mode. Rolling per-word independently used to
-  // mean both senses landed on vn2en (mergeable) only ~25% of the time they
-  // were drawn together — the other ~75% split them into one vn2en card and
-  // one en2vn card, which looked like the merge was broken/inconsistent
-  // across sessions. Grouping first makes it deterministic per session:
-  // either the whole homonym group is vn2en (merges into one card) or the
-  // whole group is en2vn (each sense shows separately with its own distinct
-  // English prompt — no merge needed there, fronts already differ).
-  const spellingGroups = {};
-  total.forEach(w => { (spellingGroups[w.vn] = spellingGroups[w.vn] || []).push(w); });
+  // Grouped BEFORE the direction coin flip — true VN homonyms (see
+  // mergeVnCard below, e.g. "chỉ", same vn spelling) AND true synonyms (see
+  // mergeEnCard below, e.g. "xài" / "sử dụng", same en gloss but different
+  // vn spelling) must each share ONE direction roll across their whole
+  // group in 'mix' mode. Rolling per-word independently used to mean a
+  // homonym pair only landed on vn2en (mergeable) ~25% of the time they were
+  // drawn together — the other ~75% split them into one vn2en card and one
+  // en2vn card, which looked like the merge was broken/inconsistent across
+  // sessions (chantier 20). The same problem applies symmetrically to
+  // synonym groups on the en2vn side, so both relations feed one union-find:
+  // any words sharing vn OR sharing en end up in the same coin-flip group.
+  const parent = {};
+  total.forEach(w => { parent[w.id] = w.id; });
+  const find = id => { while(parent[id] !== id){ id = parent[id] = parent[parent[id]]; } return id; };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if(ra !== rb) parent[ra] = rb; };
+  const byVn = {}, byEn = {};
+  total.forEach(w => {
+    (byVn[w.vn] = byVn[w.vn] || []).push(w);
+    (byEn[w.en] = byEn[w.en] || []).push(w);
+  });
+  [byVn, byEn].forEach(groups => {
+    Object.values(groups).forEach(g => { for(let i=1;i<g.length;i++) union(g[0].id, g[i].id); });
+  });
+  const coinGroups = {};
+  total.forEach(w => { const r = find(w.id); (coinGroups[r] = coinGroups[r] || []).push(w); });
   const withDir = [];
-  Object.values(spellingGroups).forEach(group => {
+  Object.values(coinGroups).forEach(group => {
     const dir = selectedDirection === 'mix' ? (Math.random() < 0.5 ? 'vn2en' : 'en2vn') : selectedDirection;
     group.forEach(w => withDir.push({...w, dir}));
   });
 
-  // Collapse same-spelling VN-front homonyms into single merged cards
-  // (see mergeVnCard above) before they're sorted into the draw pools.
-  const vnGroups = {};
+  // Collapse same-spelling VN-front homonyms (mergeVnCard) and same-gloss
+  // EN-front synonyms (mergeEnCard) into single merged cards — mirror
+  // mechanisms, one per direction — before candidates are sorted into pools.
+  const vnGroups = {}, enGroups = {};
   const candidates = [];
   withDir.forEach(c => {
-    if(c.dir !== 'vn2en'){ candidates.push(c); return; }
-    (vnGroups[c.vn] = vnGroups[c.vn] || []).push(c);
+    if(c.dir === 'vn2en'){ (vnGroups[c.vn] = vnGroups[c.vn] || []).push(c); }
+    else { (enGroups[c.en] = enGroups[c.en] || []).push(c); }
   });
   Object.values(vnGroups).forEach(group => {
     candidates.push(group.length > 1 ? mergeVnCard(group) : group[0]);
+  });
+  Object.values(enGroups).forEach(group => {
+    candidates.push(group.length > 1 ? mergeEnCard(group) : group[0]);
   });
 
   const pools = {};
@@ -2209,10 +2249,15 @@ function renderCard(){
 
   let hasPastReport;
   if(currentCard.merged){
-    // Same VN spelling, multiple unrelated senses (see mergeVnCard) — show
-    // the sense count on the front, and every sense as its own numbered
-    // line on the back instead of a single joined string.
-    wordFront.append(currentCard.vn, Object.assign(document.createElement('span'), {
+    // Either same VN spelling with multiple unrelated senses (mergeVnCard,
+    // dir vn2en — front is currentCard.vn, each sense's English is s.en) or
+    // same EN gloss with multiple VN spellings (mergeEnCard, dir en2vn —
+    // front is currentCard.en, each sense's Vietnamese is s.vn). isVnFirst
+    // already encodes which; show the sense count on the front, and every
+    // sense as its own numbered line on the back instead of a single joined
+    // string.
+    const frontText = isVnFirst ? currentCard.vn : currentCard.en;
+    wordFront.append(frontText, Object.assign(document.createElement('span'), {
       className: 'card-sense-count', textContent: ` (${currentCard.senses.length})`
     }));
     wordBack.classList.add('word-main-multi');
@@ -2222,7 +2267,7 @@ function renderCard(){
       const idx = document.createElement('span');
       idx.className = 'sense-index';
       idx.textContent = `${i+1}.`;
-      line.append(idx, ' ' + s.en);
+      line.append(idx, ' ' + (isVnFirst ? s.en : s.vn));
       wordBack.appendChild(line);
     });
     lessonTagBack.textContent = currentCard.senses
