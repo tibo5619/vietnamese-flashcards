@@ -301,11 +301,6 @@
   .counter{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); min-width:44px; text-align:right;}
 
   .card-zone{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:4px 0 12px;}
-  /* Wraps #card so .card-report-flag can be positioned over the card's own
-     corner while staying a sibling of #card, not a descendant (see
-     .card-report-flag comment above for why). Carries the sizing #card used
-     to own directly; #card itself now just fills this shell. */
-  .card-shell{ width:100%; max-width:320px; aspect-ratio:0.88; max-height:100%; position:relative; }
   .card{
     width:100%; max-width:320px; aspect-ratio:0.88; max-height:100%;
     position:relative;
@@ -314,7 +309,6 @@
     cursor:grab;
     touch-action:none;
   }
-  #card{ width:100%; height:100%; max-width:none; aspect-ratio:auto; }
   .swipe-stamp{
     position:absolute; top:40%; left:50%; transform:translate(-50%,-50%) rotate(-10deg);
     font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:20px; letter-spacing:.1em;
@@ -345,23 +339,25 @@
     position:absolute; top:12px; left:50%; transform:translateX(-50%);
     font-size:44px; line-height:1;
   }
-  /* Lives in .card-shell, a sibling of #card, NOT inside it — a clickable
-     element inside #card would never receive a click, since #card captures
-     the pointer for swipe handling on its own pointerdown (see CLAUDE.md
-     "Known constraints"). Only shown once a report exists for the current
-     word AND the card is flipped to its back face (.show and .flipped both
-     set from renderCard()/flipCard()). Color signals resolution status:
-     red while any report on this word is still open, green once every
-     report on it has been marked resolved (see issueDetail's own toggle). */
+  /* Lives inside .face.back (so it moves/rotates with the card during
+     swipe, unlike an earlier version that lived outside #card and visibly
+     lagged behind during a drag). A plain <button> inside #card would
+     normally never receive a click — #card captures the pointer for swipe
+     handling on its own pointerdown (see CLAUDE.md "Known constraints") —
+     so the pointerdown handler below explicitly skips capture when the
+     event target is this button. Only shown once a report exists for the
+     current word (.face.back's own display:none already hides it on the
+     front face, so no separate "flipped" gating is needed). The icon emoji
+     itself signals resolution status: 🔴 while any report on this word is
+     still open, 🟢 once every report on it has been marked resolved. */
   .card-report-flag{
     position:absolute; top:14px; right:16px; z-index:2;
     display:none; align-items:center; justify-content:center;
     width:26px; height:26px; padding:0; border:none; background:none;
-    color:var(--red); cursor:pointer;
+    cursor:pointer;
   }
-  .card-report-flag.show.flipped{ display:flex; }
-  .card-report-flag.resolved{ color:var(--jade); }
-  .card-report-flag-icon{ width:16px; height:16px; }
+  .card-report-flag.show{ display:flex; }
+  .card-report-flag-icon{ font-size:16px; line-height:1; }
   .card-report-flag-count{
     position:absolute; top:-4px; right:-6px; min-width:15px; height:15px; padding:0 3px;
     border-radius:8px; background:var(--ink); color:var(--surface);
@@ -617,7 +613,13 @@
   .wl-popup-card{
     background:var(--surface); border-radius:16px; padding:22px 20px; max-width:340px; width:100%;
     box-shadow:0 20px 44px -18px rgba(43,35,28,0.4); text-align:center;
+    position:relative;
   }
+  .wl-popup-report-btn{
+    position:absolute; top:12px; right:12px; background:none; border:none; padding:4px;
+    font-size:17px; line-height:1; cursor:pointer; opacity:0.6;
+  }
+  .wl-popup-report-btn:active{ transform:scale(0.9); }
   .wl-popup-vn{ font-family:'Be Vietnam Pro',sans-serif; font-weight:700; font-size:22px; color:var(--ink); margin-bottom:8px; word-break:break-word; }
   .wl-popup-en{ font-size:15px; color:var(--muted); line-height:1.4; word-break:break-word; }
   /* Per-direction streak detail (5-pip track, pivot at the middle — see
@@ -955,25 +957,23 @@
       <div class="counter" id="counter">0/0</div>
     </div>
     <div class="card-zone" id="cardZone">
-      <div class="card-shell" id="cardShell">
-        <div class="card" id="card">
-          <div class="swipe-stamp learning" id="stampLearning">LEARNING</div>
-          <div class="swipe-stamp know" id="stampKnow">KNOW</div>
-          <div class="face front visible">
-            <span class="flag-tag" id="flagFront">🇻🇳</span>
-            <p class="word-main" id="wordFront">—</p>
-            <span class="tap-hint" id="tapHint">tap to reveal</span>
-          </div>
-          <div class="face back">
-            <span class="flag-tag" id="flagBack">🇬🇧</span>
-            <p class="word-main" id="wordBack">—</p>
-            <span class="lesson-tag" id="lessonTagBack">Bài —</span>
-          </div>
+      <div class="card" id="card">
+        <div class="swipe-stamp learning" id="stampLearning">LEARNING</div>
+        <div class="swipe-stamp know" id="stampKnow">KNOW</div>
+        <div class="face front visible">
+          <span class="flag-tag" id="flagFront">🇻🇳</span>
+          <p class="word-main" id="wordFront">—</p>
+          <span class="tap-hint" id="tapHint">tap to reveal</span>
         </div>
-        <button type="button" class="card-report-flag" id="cardReportFlag" title="You've reported this word before">
-          <svg class="card-report-flag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M6 2v20M6 3h13l-3 4 3 4H6"/></svg>
-          <span class="card-report-flag-count" id="cardReportFlagCount"></span>
-        </button>
+        <div class="face back">
+          <span class="flag-tag" id="flagBack">🇬🇧</span>
+          <button type="button" class="card-report-flag" id="cardReportFlag" title="You've reported this word before">
+            <span class="card-report-flag-icon" id="cardReportFlagIcon">🔴</span>
+            <span class="card-report-flag-count" id="cardReportFlagCount"></span>
+          </button>
+          <p class="word-main" id="wordBack">—</p>
+          <span class="lesson-tag" id="lessonTagBack">Bài —</span>
+        </div>
       </div>
     </div>
     <!-- Grammar-rule review card: a separate zone (not reusing .face/.card
@@ -1320,6 +1320,7 @@
 
   <div class="wl-popup-backdrop" id="wlPopupBackdrop">
     <div class="wl-popup-card" id="wlPopupCard">
+      <button type="button" class="wl-popup-report-btn" id="wlPopupReportBtn" aria-label="Report an issue with this word" title="Report an issue with this word">📝</button>
       <div class="wl-popup-vn" id="wlPopupPrimary">—</div>
       <div class="wl-popup-en" id="wlPopupSecondary">—</div>
       <div class="wl-popup-tracks" id="wlPopupTracks"></div>
@@ -2387,9 +2388,9 @@ function renderCard(){
   // appears only when there's more than one report to distinguish.
   currentCardReports = reportsForCard(currentCard);
   const reportFlag = document.getElementById('cardReportFlag');
-  reportFlag.classList.remove('flipped');
   reportFlag.classList.toggle('show', currentCardReports.length > 0);
-  reportFlag.classList.toggle('resolved', currentCardReports.length > 0 && currentCardReports.every(r => r.resolved));
+  document.getElementById('cardReportFlagIcon').textContent =
+    (currentCardReports.length > 0 && currentCardReports.every(r => r.resolved)) ? '🟢' : '🔴';
   const reportFlagCount = document.getElementById('cardReportFlagCount');
   reportFlagCount.textContent = currentCardReports.length;
   reportFlagCount.classList.toggle('show', currentCardReports.length > 1);
@@ -2590,12 +2591,14 @@ function flipCard(){
     document.querySelector('.face.back').classList.toggle('visible', revealed);
     document.getElementById('sessionActions').classList.toggle('visible', revealed);
     document.getElementById('tapHint').textContent = revealed ? 'swipe right: got it · swipe left: needs work' : 'tap to reveal';
-    document.getElementById('cardReportFlag').classList.toggle('flipped', revealed);
     cardEl.style.transform = 'scaleX(1)';
   }, 150);
 }
 
 cardEl.addEventListener('pointerdown', (e)=>{
+  // Let a tap on the report flag behave like a normal button click instead
+  // of starting a swipe-drag — see .card-report-flag's CSS comment.
+  if(e.target.closest('#cardReportFlag')) return;
   isDragging = true;
   dragStartX = e.clientX;
   dragCurX = 0;
@@ -3683,7 +3686,9 @@ function renderStreakPips(streak){
   return wrap;
 }
 
+let wlPopupWord = null; // the word currently shown in #wlPopupBackdrop — read by wlPopupReportBtn's click handler
 function openWordPopup(w){
+  wlPopupWord = w;
   document.getElementById('wlPopupPrimary').textContent = w.vn;
   document.getElementById('wlPopupSecondary').textContent = w.en;
   const tracks = document.getElementById('wlPopupTracks');
@@ -3703,6 +3708,11 @@ function openWordPopup(w){
 function closeWordPopup(){
   document.getElementById('wlPopupBackdrop').classList.remove('show');
 }
+document.getElementById('wlPopupReportBtn').addEventListener('click', ()=>{
+  if(!wlPopupWord) return;
+  closeWordPopup();
+  openReportPopup({ vn: wlPopupWord.vn, en: wlPopupWord.en, wordId: wlPopupWord.id, dir: null });
+});
 document.getElementById('wlPopupBackdrop').addEventListener('click', (e)=>{
   if(e.target.id === 'wlPopupBackdrop') closeWordPopup();
 });
@@ -3793,7 +3803,7 @@ function openReportPopup(context){
     reportContext = { vn: null, en: null, wordId: null, dir: null };
   }
   if(reportContext.vn){
-    const dirLabel = reportContext.dir ? dirFlags(reportContext.dir) : 'New word';
+    const dirLabel = reportContext.dir ? dirFlags(reportContext.dir) : (reportContext.wordId ? '' : 'New word');
     document.getElementById('reportPopupWord').textContent = `${reportContext.vn} — ${reportContext.en}`;
     document.getElementById('reportPopupDir').textContent = dirLabel;
   } else {
@@ -3940,7 +3950,7 @@ function renderIssuesList(status){
 
     const meta = document.createElement('div');
     meta.className = 'issue-meta';
-    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : report.dir === 'en2vn' ? 'EN→VN' : (report.vn ? 'New word' : null);
+    const dirLabel = report.dir === 'vn2en' ? 'VN→EN' : report.dir === 'en2vn' ? 'EN→VN' : (report.wordId ? null : (report.vn ? 'New word' : null));
     const pageLbl = pageLabel(report.page);
     const dateLabel = new Date(report.createdAt).toLocaleDateString();
     meta.textContent = [dirLabel, pageLbl, dateLabel].filter(Boolean).join(' · ');
